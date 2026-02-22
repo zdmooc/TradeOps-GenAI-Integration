@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workflow-api
+  template:
+    metadata:
+      labels:
+        app: workflow-api
+    spec:
+      containers:
+        - name: workflow-api
+          image: "{{ .Values.image.repository }}/workflow-api:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: "{{ $v }}"
+            {{- end }}
+            - name: PORT
+              value: "{{ .Values.services.workflowApi.port }}"
+          ports:
+            - containerPort: {{ .Values.services.workflowApi.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-api
+spec:
+  selector:
+    app: workflow-api
+  ports:
+    - port: {{ .Values.services.workflowApi.port }}
+      targetPort: {{ .Values.services.workflowApi.port }}

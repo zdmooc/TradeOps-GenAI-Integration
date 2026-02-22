@@ -1,0 +1,39 @@
+asyncapi: '2.6.0'
+info:
+  title: TradeOps Event Catalog
+  version: '0.1.0'
+servers:
+  localKafka:
+    url: redpanda:9092
+    protocol: kafka
+channels:
+  workflow.requested:
+    publish:
+      message:
+        name: WorkflowRequested
+        payload:
+          $ref: ../schemas/events/workflow.requested.schema.json
+  genai.review.created:
+    publish:
+      message:
+        name: GenAIReviewCreated
+        payload:
+          $ref: ../schemas/events/genai.review.created.schema.json
+  workflow.approved:
+    publish:
+      message:
+        name: WorkflowApproved
+        payload:
+          $ref: ../schemas/events/workflow.approved.schema.json
+  orders.filled:
+    publish:
+      message:
+        name: OrdersFilled
+        payload:
+          $ref: ../schemas/events/orders.filled.schema.json
+  audit.logged:
+    publish:
+      message:
+        name: AuditLogged
+        payload:
+          $ref: ../schemas/events/audit.logged.schema.json

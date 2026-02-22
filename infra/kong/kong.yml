@@ -1,0 +1,40 @@
+_format_version: "3.0"
+services:
+  - name: market-data
+    url: http://market-data:8011
+    routes:
+      - name: market-data-route
+        paths:
+          - /market
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 120
+          policy: local
+
+  - name: workflow-api
+    url: http://workflow-api:8012
+    routes:
+      - name: workflow-route
+        paths:
+          - /workflow
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 120
+          policy: local
+
+  - name: genai-api
+    url: http://genai-api:8013
+    routes:
+      - name: genai-route
+        paths:
+          - /genai
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 60
+          policy: local

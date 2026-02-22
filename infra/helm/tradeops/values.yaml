@@ -1,0 +1,25 @@
+namespace: tradeops
+
+image:
+  repository: tradeops
+  tag: latest
+
+env:
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: tradeops
+  POSTGRES_USER: tradeops
+  POSTGRES_PASSWORD: tradeops
+  KAFKA_BOOTSTRAP: redpanda:9092
+  LLM_PROVIDER: mock
+
+services:
+  marketData:
+    enabled: true
+    port: 8011
+  workflowApi:
+    enabled: true
+    port: 8012
+  genaiApi:
+    enabled: true
+    port: 8013

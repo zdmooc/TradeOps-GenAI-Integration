@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: market-data
+  template:
+    metadata:
+      labels:
+        app: market-data
+    spec:
+      containers:
+        - name: market-data
+          image: "{{ .Values.image.repository }}/market-data:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: "{{ $v }}"
+            {{- end }}
+            - name: PORT
+              value: "{{ .Values.services.marketData.port }}"
+          ports:
+            - containerPort: {{ .Values.services.marketData.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: market-data
+spec:
+  selector:
+    app: market-data
+  ports:
+    - port: {{ .Values.services.marketData.port }}
+      targetPort: {{ .Values.services.marketData.port }}

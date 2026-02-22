@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-api
+  template:
+    metadata:
+      labels:
+        app: genai-api
+    spec:
+      containers:
+        - name: genai-api
+          image: "{{ .Values.image.repository }}/genai-api:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: "{{ $v }}"
+            {{- end }}
+            - name: PORT
+              value: "{{ .Values.services.genaiApi.port }}"
+          ports:
+            - containerPort: {{ .Values.services.genaiApi.port }}

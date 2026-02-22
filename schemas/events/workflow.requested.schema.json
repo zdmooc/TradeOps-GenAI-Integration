@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "workflow.requested",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "correlation_id",
+    "payload"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "BUY",
+            "SELL"
+          ]
+        },
+        "qty": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

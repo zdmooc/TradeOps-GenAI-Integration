@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: market-data
+    static_configs:
+      - targets: ["market-data:8011"]
+  - job_name: workflow-api
+    static_configs:
+      - targets: ["workflow-api:8012"]
+  - job_name: genai-api
+    static_configs:
+      - targets: ["genai-api:8013"]
