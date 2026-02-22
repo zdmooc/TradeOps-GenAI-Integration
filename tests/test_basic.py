@@ -1,5 +1,4 @@
 from services.genai_api.rag import SimpleRAG
-import os
 import tempfile
 from pathlib import Path
 import json

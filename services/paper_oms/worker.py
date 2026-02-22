@@ -1,4 +1,5 @@
-import uuid, json, random
+import random
+import uuid
 from datetime import datetime, timezone
 from services.common.logging import setup_logging
 from services.common.kafka import consumer, consume_forever, publish

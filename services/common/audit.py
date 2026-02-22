@@ -1,4 +1,5 @@
-import json, hashlib
+import hashlib
+import json
 from typing import Any, Dict
 from .db import execute
 from .kafka import publish
