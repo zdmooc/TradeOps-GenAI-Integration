@@ -1,8 +1,0 @@
-signal-engine-1  | 2026-02-22T14:15:27+0000 INFO signal-engine signal generated symbol=AAPL side=BUY price=160.4 corr=90d5bced-aa41-44a1-b514-08e40e820e5e
-signal-engine-1  | 2026-02-22T14:15:27+0000 INFO signal-engine signal generated symbol=MSFT side=SELL price=193.5 corr=169e8a24-80e3-469f-8bb0-c36e0be330fa
-signal-engine-1  | 2026-02-22T14:15:27+0000 INFO signal-engine signal generated symbol=TSLA side=SELL price=127.9 corr=9b17500e-c1f0-4b06-a605-39f021c4812e
-signal-engine-1  | 2026-02-22T14:15:27+0000 INFO signal-engine signal generated symbol=NVDA side=SELL price=144.6 corr=393a66bc-371d-417f-9952-1fb104f87985
-signal-engine-1  | 2026-02-22T14:27:09+0000 INFO signal-engine signal generated symbol=AAPL side=BUY price=160.4 corr=0c72effa-ab22-4112-8669-9ce68b30f45c
-signal-engine-1  | 2026-02-22T14:27:09+0000 INFO signal-engine signal generated symbol=MSFT side=SELL price=193.5 corr=48c59356-510f-406f-9305-92ec873b4bf2
-signal-engine-1  | 2026-02-22T14:27:09+0000 INFO signal-engine signal generated symbol=TSLA side=SELL price=127.9 corr=cc9de4ce-3f1a-445d-b2ac-720ea80c6e96
-signal-engine-1  | 2026-02-22T14:27:10+0000 INFO signal-engine signal generated symbol=NVDA side=SELL price=144.6 corr=e776e676-ff2e-4921-9cd6-78039ead4b72
