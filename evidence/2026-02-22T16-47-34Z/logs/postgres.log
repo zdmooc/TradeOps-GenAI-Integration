@@ -1,0 +1,166 @@
+postgres-1  | The files belonging to this database system will be owned by user "postgres".
+postgres-1  | This user must also own the server process.
+postgres-1  | 
+postgres-1  | The database cluster will be initialized with locale "en_US.utf8".
+postgres-1  | The default database encoding has accordingly been set to "UTF8".
+postgres-1  | The default text search configuration will be set to "english".
+postgres-1  | 
+postgres-1  | Data page checksums are disabled.
+postgres-1  | 
+postgres-1  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+postgres-1  | creating subdirectories ... ok
+postgres-1  | selecting dynamic shared memory implementation ... posix
+postgres-1  | selecting default max_connections ... 100
+postgres-1  | selecting default shared_buffers ... 128MB
+postgres-1  | selecting default time zone ... Etc/UTC
+postgres-1  | creating configuration files ... ok
+postgres-1  | running bootstrap script ... ok
+postgres-1  | performing post-bootstrap initialization ... ok
+postgres-1  | syncing data to disk ... ok
+postgres-1  | 
+postgres-1  | 
+postgres-1  | Success. You can now start the database server using:
+postgres-1  | 
+postgres-1  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+postgres-1  | 
+postgres-1  | initdb: warning: enabling "trust" authentication for local connections
+postgres-1  | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+postgres-1  | waiting for server to start....2026-02-22 14:00:45.951 UTC [48] LOG:  starting PostgreSQL 16.12 (Debian 16.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres-1  | 2026-02-22 14:00:45.968 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2026-02-22 14:00:45.993 UTC [51] LOG:  database system was shut down at 2026-02-22 14:00:44 UTC
+postgres-1  | 2026-02-22 14:00:46.008 UTC [48] LOG:  database system is ready to accept connections
+postgres-1  |  done
+postgres-1  | server started
+postgres-1  | 2026-02-22 14:00:46.431 UTC [66] FATAL:  database "tradeops" does not exist
+postgres-1  | CREATE DATABASE
+postgres-1  | 
+postgres-1  | 
+postgres-1  | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/init.sql
+postgres-1  | CREATE TABLE
+postgres-1  | CREATE TABLE
+postgres-1  | CREATE TABLE
+postgres-1  | CREATE INDEX
+postgres-1  | CREATE INDEX
+postgres-1  | 
+postgres-1  | 
+postgres-1  | waiting for server to shut down....2026-02-22 14:00:47.182 UTC [48] LOG:  received fast shutdown request
+postgres-1  | 2026-02-22 14:00:47.268 UTC [48] LOG:  aborting any active transactions
+postgres-1  | 2026-02-22 14:00:47.313 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+postgres-1  | 2026-02-22 14:00:47.314 UTC [49] LOG:  shutting down
+postgres-1  | 2026-02-22 14:00:47.340 UTC [49] LOG:  checkpoint starting: shutdown immediate
+postgres-1  | 2026-02-22 14:00:48.131 UTC [49] LOG:  checkpoint complete: wrote 936 buffers (5.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.079 s, sync=0.674 s, total=0.817 s; sync files=316, longest=0.047 s, average=0.003 s; distance=4335 kB, estimate=4335 kB; lsn=0/192E688, redo lsn=0/192E688
+postgres-1  | 2026-02-22 14:00:48.155 UTC [48] LOG:  database system is shut down
+postgres-1  |  done
+postgres-1  | server stopped
+postgres-1  | 
+postgres-1  | PostgreSQL init process complete; ready for start up.
+postgres-1  | 
+postgres-1  | 2026-02-22 14:00:48.354 UTC [1] LOG:  starting PostgreSQL 16.12 (Debian 16.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres-1  | 2026-02-22 14:00:48.495 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres-1  | 2026-02-22 14:00:48.606 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+postgres-1  | 2026-02-22 14:00:48.715 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2026-02-22 14:00:48.731 UTC [74] LOG:  database system was shut down at 2026-02-22 14:00:48 UTC
+postgres-1  | 2026-02-22 14:00:48.744 UTC [1] LOG:  database system is ready to accept connections
+postgres-1  | 2026-02-22 14:05:48.765 UTC [72] LOG:  checkpoint starting: time
+postgres-1  | 2026-02-22 14:05:53.622 UTC [72] LOG:  checkpoint complete: wrote 51 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.828 s, sync=0.013 s, total=4.858 s; sync files=24, longest=0.005 s, average=0.001 s; distance=135 kB, estimate=135 kB; lsn=0/1950538, redo lsn=0/1950500
+postgres-1  | 2026-02-22 14:15:48.763 UTC [72] LOG:  checkpoint starting: time
+postgres-1  | 2026-02-22 14:15:49.514 UTC [72] LOG:  checkpoint complete: wrote 8 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.708 s, sync=0.009 s, total=0.751 s; sync files=8, longest=0.005 s, average=0.002 s; distance=4 kB, estimate=122 kB; lsn=0/19515A8, redo lsn=0/1951570
+postgres-1  | 2026-02-22 14:20:48.597 UTC [72] LOG:  checkpoint starting: time
+postgres-1  | 2026-02-22 14:20:49.529 UTC [72] LOG:  checkpoint complete: wrote 10 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.907 s, sync=0.009 s, total=0.933 s; sync files=10, longest=0.005 s, average=0.001 s; distance=5 kB, estimate=110 kB; lsn=0/1952AC8, redo lsn=0/1952A90
+postgres-1  | 2026-02-22 14:29:51.553 UTC [2915] ERROR:  relation "audit_log" does not exist at character 64
+postgres-1  | 2026-02-22 14:29:51.553 UTC [2915] STATEMENT:  select audit_id, kind, ref_id, correlation_id, created_at from audit_log order by audit_id desc limit 10;
+postgres-1  | 2026-02-22 14:30:48.667 UTC [72] LOG:  checkpoint starting: time
+postgres-1  | 2026-02-22 14:30:49.608 UTC [72] LOG:  checkpoint complete: wrote 10 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.909 s, sync=0.011 s, total=0.942 s; sync files=10, longest=0.005 s, average=0.002 s; distance=7 kB, estimate=100 kB; lsn=0/19549A0, redo lsn=0/1954968
+postgres-1  | 2026-02-22 14:33:41.408 UTC [3349] ERROR:  column w.order_id does not exist at character 421
+postgres-1  | 2026-02-22 14:33:41.408 UTC [3349] STATEMENT:  
+postgres-1  | 	select
+postgres-1  | 	  w.workflow_id,
+postgres-1  | 	  w.status,
+postgres-1  | 	  w.order_id,
+postgres-1  | 	  ar.audit_id as genai_audit_id,
+postgres-1  | 	  ar.correlation_id as genai_corr,
+postgres-1  | 	  ar.created_at as genai_at,
+postgres-1  | 	  of.audit_id as filled_audit_id,
+postgres-1  | 	  of.correlation_id as filled_corr,
+postgres-1  | 	  of.created_at as filled_at
+postgres-1  | 	from workflows w
+postgres-1  | 	left join audit_logs ar
+postgres-1  | 	  on ar.kind='genai.review' and ar.ref_id = w.workflow_id::text
+postgres-1  | 	left join audit_logs of
+postgres-1  | 	  on of.kind='order.filled' and of.ref_id = w.order_id::text
+postgres-1  | 	order by w.created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 14:34:02.533 UTC [3394] ERROR:  column "symbol" does not exist at character 30
+postgres-1  | 2026-02-22 14:34:02.533 UTC [3394] STATEMENT:  
+postgres-1  | 	select workflow_id, status, symbol, side, qty, created_at
+postgres-1  | 	from workflows
+postgres-1  | 	order by created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 14:34:20.831 UTC [3440] ERROR:  column "filled_price" does not exist at character 46
+postgres-1  | 2026-02-22 14:34:20.831 UTC [3440] HINT:  Perhaps you meant to reference the column "orders.fill_price".
+postgres-1  | 2026-02-22 14:34:20.831 UTC [3440] STATEMENT:  
+postgres-1  | 	select order_id, symbol, side, qty, status, filled_price, created_at
+postgres-1  | 	from orders
+postgres-1  | 	order by created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 14:34:40.507 UTC [3485] ERROR:  column w.order_id does not exist at character 267
+postgres-1  | 2026-02-22 14:34:40.507 UTC [3485] STATEMENT:  
+postgres-1  | 	select
+postgres-1  | 	  w.workflow_id,
+postgres-1  | 	  extract(epoch from (of.created_at - ar.created_at)) as seconds_review_to_filled
+postgres-1  | 	from workflows w
+postgres-1  | 	join audit_logs ar on ar.kind='genai.review' and ar.ref_id = w.workflow_id::text
+postgres-1  | 	join audit_logs of on of.kind='order.filled' and of.ref_id = w.order_id::text
+postgres-1  | 	order by w.created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 14:40:48.749 UTC [72] LOG:  checkpoint starting: time
+postgres-1  | 2026-02-22 14:40:49.581 UTC [72] LOG:  checkpoint complete: wrote 9 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.808 s, sync=0.007 s, total=0.833 s; sync files=9, longest=0.004 s, average=0.001 s; distance=7 kB, estimate=91 kB; lsn=0/1956988, redo lsn=0/1956950
+postgres-1  | 2026-02-22 15:07:51.915 UTC [6689] ERROR:  column "symbol" does not exist at character 46
+postgres-1  | 2026-02-22 15:07:51.915 UTC [6689] STATEMENT:  
+postgres-1  | 	select
+postgres-1  | 	  workflow_id,
+postgres-1  | 	  status,
+postgres-1  | 	  payload->>symbol as symbol,
+postgres-1  | 	  payload->>side   as side,
+postgres-1  | 	  (payload->>qty)::numeric as qty,
+postgres-1  | 	  created_at
+postgres-1  | 	from workflows
+postgres-1  | 	order by created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 15:08:42.543 UTC [6795] ERROR:  syntax error at or near "order" at character 530
+postgres-1  | 2026-02-22 15:08:42.543 UTC [6795] STATEMENT:  
+postgres-1  | 	select
+postgres-1  | 	  w.workflow_id,
+postgres-1  | 	  w.status as workflow_status,
+postgres-1  | 	  o.order_id,
+postgres-1  | 	  o.status as order_status,
+postgres-1  | 	  o.symbol, o.side, o.qty, o.fill_price,
+postgres-1  | 	  ar.audit_id as genai_audit_id,
+postgres-1  | 	  ar.correlation_id as genai_corr,
+postgres-1  | 	  ar.created_at as genai_at,
+postgres-1  | 	  of.audit_id as filled_audit_id,
+postgres-1  | 	  of.correlation_id as filled_corr,
+postgres-1  | 	  of.created_at as filled_at
+postgres-1  | 	from workflows w
+postgres-1  | 	left join orders o
+postgres-1  | 	  on o.workflow_id = w.workflow_id
+postgres-1  | 	left join audit_logs ar
+postgres-1  | 	  on ar.kind=genai.review and ar.ref_id = w.workflow_id::text
+postgres-1  | 	left join audit_logs of
+postgres-1  | 	  on of.kind=order.filled and of.ref_id = o.order_id::text
+postgres-1  | 	order by w.created_at desc
+postgres-1  | 	limit 10;
+postgres-1  | 2026-02-22 15:09:02.069 UTC [6839] ERROR:  syntax error at or near "order" at character 306
+postgres-1  | 2026-02-22 15:09:02.069 UTC [6839] STATEMENT:  
+postgres-1  | 	select
+postgres-1  | 	  w.workflow_id,
+postgres-1  | 	  round(extract(epoch from (of.created_at - ar.created_at))::numeric, 3) as seconds_review_to_filled
+postgres-1  | 	from workflows w
+postgres-1  | 	join orders o
+postgres-1  | 	  on o.workflow_id = w.workflow_id
+postgres-1  | 	join audit_logs ar
+postgres-1  | 	  on ar.kind=genai.review and ar.ref_id = w.workflow_id::text
+postgres-1  | 	join audit_logs of
+postgres-1  | 	  on of.kind=order.filled and of.ref_id = o.order_id::text
+postgres-1  | 	order by w.created_at desc
+postgres-1  | 	limit 10;

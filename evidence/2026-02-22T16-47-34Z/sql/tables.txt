@@ -1,0 +1,8 @@
+           List of relations
+ Schema |    Name    | Type  |  Owner   
+--------+------------+-------+----------
+ public | audit_logs | table | tradeops
+ public | orders     | table | tradeops
+ public | workflows  | table | tradeops
+(3 rows)
+

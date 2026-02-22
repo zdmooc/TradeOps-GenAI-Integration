@@ -1,0 +1,402 @@
+name: tradeops-genai-integration
+services:
+  genai-api:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/genai_api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      PORT: "8013"
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      RAG_CORPUS_PATH: /app/rag_corpus
+      SERVICE_NAME: genai-api
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8013
+        published: "8013"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration\rag_corpus
+        target: /app/rag_corpus
+        read_only: true
+        bind:
+          create_host_path: true
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+    image: grafana/grafana:11.2.0
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration\infra\observability\grafana\provisioning
+        target: /etc/grafana/provisioning
+        read_only: true
+        bind:
+          create_host_path: true
+  kong:
+    depends_on:
+      genai-api:
+        condition: service_started
+        required: true
+      market-data:
+        condition: service_started
+        required: true
+      workflow-api:
+        condition: service_started
+        required: true
+    environment:
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_LOG_LEVEL: info
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+    image: kong:3.7
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8000"
+        protocol: tcp
+      - mode: ingress
+        target: 8001
+        published: "8001"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration\infra\kong\kong.yml
+        target: /kong/declarative/kong.yml
+        read_only: true
+        bind:
+          create_host_path: true
+  market-data:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/market_data/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      PORT: "8011"
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: market-data
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8011
+        published: "8011"
+        protocol: tcp
+  notifier:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/notifier/Dockerfile
+    depends_on:
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: notifier
+    networks:
+      default: null
+  paper-oms:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/paper_oms/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: paper-oms
+    networks:
+      default: null
+  postgres:
+    environment:
+      POSTGRES_DB: tradeops
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_USER: tradeops
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U tradeops -d tradeops
+      timeout: 3s
+      interval: 5s
+      retries: 20
+    image: postgres:16
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5433"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data
+        volume: {}
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration\infra\postgres\init.sql
+        target: /docker-entrypoint-initdb.d/init.sql
+        read_only: true
+        bind:
+          create_host_path: true
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9090
+        published: "9090"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration\infra\observability\prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+        read_only: true
+        bind:
+          create_host_path: true
+  redpanda:
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092
+    image: redpandadata/redpanda:v24.2.7
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9092
+        published: "9092"
+        protocol: tcp
+  risk-engine:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/risk_engine/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: risk-engine
+    networks:
+      default: null
+  signal-engine:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/signal_engine/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: signal-engine
+    networks:
+      default: null
+  tools:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/tools/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+    networks:
+      default: null
+    volumes:
+      - type: bind
+        source: C:\workspaces\2026\TradeOps-GenAI-Integration
+        target: /work
+        bind:
+          create_host_path: true
+    working_dir: /work
+  workflow-api:
+    build:
+      context: C:\workspaces\2026\TradeOps-GenAI-Integration
+      dockerfile: services/workflow_api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redpanda:
+        condition: service_started
+        required: true
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      AZURE_OPENAI_DEPLOYMENT: ""
+      AZURE_OPENAI_ENDPOINT: ""
+      ENV: local
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KONG_ADMIN_URL: http://kong:8001
+      LLM_PROVIDER: mock
+      LOG_LEVEL: INFO
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: gpt-4o-mini
+      PORT: "8012"
+      POSTGRES_DB: tradeops
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: <redacted>
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: tradeops
+      SERVICE_NAME: workflow-api
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8012
+        published: "8012"
+        protocol: tcp
+networks:
+  default:
+    name: tradeops-genai-integration_default
+volumes:
+  pgdata:
+    name: tradeops-genai-integration_pgdata
