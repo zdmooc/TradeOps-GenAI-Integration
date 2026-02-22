@@ -1,0 +1,14 @@
+NAME                                         IMAGE                                      COMMAND                  SERVICE         CREATED       STATUS                 PORTS
+tradeops-genai-integration-genai-api-1       tradeops-genai-integration-genai-api       "python -m services.…"   genai-api       3 hours ago   Up 3 hours             0.0.0.0:8013->8013/tcp, [::]:8013->8013/tcp
+tradeops-genai-integration-grafana-1         grafana/grafana:11.2.0                     "/run.sh"                grafana         3 hours ago   Up 3 hours             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+tradeops-genai-integration-kong-1            kong:3.7                                   "/docker-entrypoint.…"   kong            3 hours ago   Up 3 hours (healthy)   0.0.0.0:8000-8001->8000-8001/tcp, [::]:8000-8001->8000-8001/tcp
+tradeops-genai-integration-market-data-1     tradeops-genai-integration-market-data     "python -m services.…"   market-data     3 hours ago   Up 3 hours             0.0.0.0:8011->8011/tcp, [::]:8011->8011/tcp
+tradeops-genai-integration-notifier-1        tradeops-genai-integration-notifier        "python -m services.…"   notifier        3 hours ago   Up 3 hours             
+tradeops-genai-integration-paper-oms-1       tradeops-genai-integration-paper-oms       "python -m services.…"   paper-oms       3 hours ago   Up 3 hours             
+tradeops-genai-integration-postgres-1        postgres:16                                "docker-entrypoint.s…"   postgres        3 hours ago   Up 3 hours (healthy)   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+tradeops-genai-integration-prometheus-1      prom/prometheus:v2.55.0                    "/bin/prometheus --c…"   prometheus      3 hours ago   Up 3 hours             0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+tradeops-genai-integration-redpanda-1        redpandadata/redpanda:v24.2.7              "/entrypoint.sh redp…"   redpanda        3 hours ago   Up 3 hours             0.0.0.0:9092->9092/tcp, [::]:9092->9092/tcp
+tradeops-genai-integration-risk-engine-1     tradeops-genai-integration-risk-engine     "python -m services.…"   risk-engine     3 hours ago   Up 3 hours             
+tradeops-genai-integration-signal-engine-1   tradeops-genai-integration-signal-engine   "python -m services.…"   signal-engine   3 hours ago   Up 3 hours             
+tradeops-genai-integration-tools-1           tradeops-genai-integration-tools           "sleep infinity"         tools           3 hours ago   Up 3 hours             
+tradeops-genai-integration-workflow-api-1    tradeops-genai-integration-workflow-api    "python -m services.…"   workflow-api    3 hours ago   Up 3 hours             0.0.0.0:8012->8012/tcp, [::]:8012->8012/tcp

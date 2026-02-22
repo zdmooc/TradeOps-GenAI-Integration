@@ -1,0 +1,41 @@
+kong-1  | 2026/02/22 14:00:56 [warn] 1#0: the "user" directive makes sense only if the master process runs with super-user privileges, ignored in /usr/local/kong/nginx.conf:7
+kong-1  | nginx: [warn] the "user" directive makes sense only if the master process runs with super-user privileges, ignored in /usr/local/kong/nginx.conf:7
+kong-1  | 2026/02/22 14:00:56 [info] 1#0: [lua] node.lua:294: new(): kong node-id: 1b2efcaf-915b-47fa-8b3d-854484208db0
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: [lua] init.lua:788: init(): [request-debug] token for request debugging: 2b79e586-5037-4b8d-8af6-6427d492cfa6
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: using the "epoll" event method
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: openresty/1.25.3.1
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: OS: Linux 6.6.87.2-microsoft-standard-WSL2
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker processes
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1331
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1332
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1333
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1334
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1335
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1336
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1337
+kong-1  | 2026/02/22 14:00:58 [notice] 1#0: start worker process 1338
+kong-1  | 2026/02/22 14:00:58 [notice] 1335#0: *4 [lua] globalpatches.lua:75: sleep(): executing a blocking 'sleep' (0.001 seconds), context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [notice] 1336#0: *3 [lua] init.lua:266: purge(): [DB cache] purging (local) cache, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [notice] 1336#0: *3 [lua] init.lua:266: purge(): [DB cache] purging (local) cache, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [notice] 1336#0: *3 [kong] init.lua:593 declarative config loaded from /kong/declarative/kong.yml, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1335#0: *4 [kong] handler.lua:90 [acme] acme renew timer started on worker 4, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1331#0: *1 [kong] handler.lua:90 [acme] acme renew timer started on worker 0, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1336#0: *3 [kong] handler.lua:90 [acme] acme renew timer started on worker 5, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1332#0: *2 [kong] handler.lua:90 [acme] acme renew timer started on worker 1, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1337#0: *8 [kong] handler.lua:90 [acme] acme renew timer started on worker 6, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1333#0: *5 [kong] handler.lua:90 [acme] acme renew timer started on worker 2, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1334#0: *6 [kong] handler.lua:90 [acme] acme renew timer started on worker 3, context: init_worker_by_lua*
+kong-1  | 2026/02/22 14:00:58 [info] 1338#0: *7 [kong] handler.lua:90 [acme] acme renew timer started on worker 7, context: init_worker_by_lua*
+kong-1  | 172.21.0.1 - - [22/Feb/2026:14:24:30 +0000] "GET /market/health HTTP/1.1" 200 15 "-" "curl/8.12.1" kong_request_id: "c53097629636e9587cbceb3056046231"
+kong-1  | 2026/02/22 14:24:30 [info] 1331#0: *7193 client 172.21.0.1 closed keepalive connection
+kong-1  | 172.21.0.1 - - [22/Feb/2026:14:24:35 +0000] "GET /workflow/health HTTP/1.1" 200 15 "-" "curl/8.12.1" kong_request_id: "96124a37b21219645e0b44439d548370"
+kong-1  | 2026/02/22 14:24:35 [info] 1331#0: *7197 client 172.21.0.1 closed keepalive connection
+kong-1  | 172.21.0.1 - - [22/Feb/2026:14:24:40 +0000] "GET /genai/health HTTP/1.1" 200 37 "-" "curl/8.12.1" kong_request_id: "bbb8b412d37d322a89881c56b5eec479"
+kong-1  | 2026/02/22 14:24:40 [info] 1331#0: *7201 client 172.21.0.1 closed keepalive connection
+kong-1  | 172.21.0.1 - - [22/Feb/2026:16:47:59 +0000] "GET /market/health HTTP/1.1" 200 15 "-" "curl/8.12.1" kong_request_id: "753b1f22e43d7f3ab3069f09ffbddf0a"
+kong-1  | 2026/02/22 16:47:59 [info] 1331#0: *25570 client 172.21.0.1 closed keepalive connection
+kong-1  | 172.21.0.1 - - [22/Feb/2026:16:48:04 +0000] "GET /workflow/health HTTP/1.1" 200 15 "-" "curl/8.12.1" kong_request_id: "4671373afadc78430814dc35ea7a7e45"
+kong-1  | 2026/02/22 16:48:04 [info] 1331#0: *25573 client 172.21.0.1 closed keepalive connection
+kong-1  | 172.21.0.1 - - [22/Feb/2026:16:48:09 +0000] "GET /genai/health HTTP/1.1" 200 37 "-" "curl/8.12.1" kong_request_id: "6998de48b7e1030ceef8406fea63c443"
+kong-1  | 2026/02/22 16:48:09 [info] 1331#0: *25576 client 172.21.0.1 closed keepalive connection

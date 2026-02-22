@@ -1,0 +1,14 @@
+CONTAINER                                    REPOSITORY                                 TAG                 PLATFORM            IMAGE ID            SIZE                CREATED
+tradeops-genai-integration-genai-api-1       tradeops-genai-integration-genai-api       latest              linux/amd64         1c74a231548e        505MB               3 hours ago
+tradeops-genai-integration-grafana-1         grafana/grafana                            11.2.0              linux/amd64         de903bc9ce7c        478MB               292 years ago
+tradeops-genai-integration-kong-1            kong                                       3.7                 linux/amd64         8735a1e440df        299MB               292 years ago
+tradeops-genai-integration-market-data-1     tradeops-genai-integration-market-data     latest              linux/amd64         ff427a062064        505MB               3 hours ago
+tradeops-genai-integration-notifier-1        tradeops-genai-integration-notifier        latest              linux/amd64         263c6f367889        505MB               3 hours ago
+tradeops-genai-integration-paper-oms-1       tradeops-genai-integration-paper-oms       latest              linux/amd64         424d90a50cc6        505MB               3 hours ago
+tradeops-genai-integration-postgres-1        postgres                                   16                  linux/amd64         b8c80b87c813        451MB               292 years ago
+tradeops-genai-integration-prometheus-1      prom/prometheus                            v2.55.0             linux/amd64         e72eb055c3de        290MB               292 years ago
+tradeops-genai-integration-redpanda-1        redpandadata/redpanda                      v24.2.7             linux/amd64         72164c62fbfd        425MB               292 years ago
+tradeops-genai-integration-risk-engine-1     tradeops-genai-integration-risk-engine     latest              linux/amd64         e39ec710c41b        505MB               3 hours ago
+tradeops-genai-integration-signal-engine-1   tradeops-genai-integration-signal-engine   latest              linux/amd64         b36e2d60bd00        505MB               3 hours ago
+tradeops-genai-integration-tools-1           tradeops-genai-integration-tools           latest              linux/amd64         3921924b89d3        505MB               3 hours ago
+tradeops-genai-integration-workflow-api-1    tradeops-genai-integration-workflow-api    latest              linux/amd64         15c45c7effc5        505MB               3 hours ago
