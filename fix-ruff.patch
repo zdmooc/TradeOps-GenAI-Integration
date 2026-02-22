@@ -1,0 +1,50 @@
+diff --git a/services/common/audit.py b/services/common/audit.py
+index 0000000..0000000 100644
+--- a/services/common/audit.py
++++ b/services/common/audit.py
+@@ -1,3 +1,4 @@
+-import json, hashlib
++import hashlib
++import json
+ from typing import Any, Dict
+ from .db import execute
+
+diff --git a/services/genai_api/llm.py b/services/genai_api/llm.py
+index 0000000..0000000 100644
+--- a/services/genai_api/llm.py
++++ b/services/genai_api/llm.py
+@@ -1,3 +1 @@
+-import os
+-from typing import Dict, Any
+ from services.common.config import settings
+
+diff --git a/services/paper_oms/worker.py b/services/paper_oms/worker.py
+index 0000000..0000000 100644
+--- a/services/paper_oms/worker.py
++++ b/services/paper_oms/worker.py
+@@ -1,3 +1,4 @@
+-import uuid, json, random
++import random
++import uuid
+ from datetime import datetime, timezone
+ from services.common.logging import setup_logging
+
+diff --git a/services/risk_engine/worker.py b/services/risk_engine/worker.py
+index 0000000..0000000 100644
+--- a/services/risk_engine/worker.py
++++ b/services/risk_engine/worker.py
+@@ -1,3 +1,3 @@
+-import uuid, json
++import uuid
+ from datetime import datetime, timezone
+ from services.common.logging import setup_logging
+
+diff --git a/tests/test_basic.py b/tests/test_basic.py
+index 0000000..0000000 100644
+--- a/tests/test_basic.py
++++ b/tests/test_basic.py
+@@ -1,4 +1,3 @@
+ from services.genai_api.rag import SimpleRAG
+-import os
+ import tempfile
+ from pathlib import Path
