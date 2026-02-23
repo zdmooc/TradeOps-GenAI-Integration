@@ -5,3 +5,4 @@ extend-exclude = ["infra/helm"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
