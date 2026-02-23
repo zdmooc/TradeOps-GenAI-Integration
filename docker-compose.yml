@@ -172,6 +172,32 @@ services:
     volumes:
       - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
 
+  qdrant:
+    image: qdrant/qdrant:v1.9.7
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  rag-api:
+    build:
+      context: .
+      dockerfile: services/rag_api/Dockerfile
+    env_file: .env
+    environment:
+      SERVICE_NAME: rag-api
+      PORT: 8014
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: tradeops_kb
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+    ports:
+      - "8014:8014"
+    volumes:
+      - ./rag_corpus:/app/rag_corpus:ro
+      - ./docs/knowledge_base:/app/docs/knowledge_base:ro
+    depends_on:
+      - qdrant
+
   tools:
     build:
       context: .
@@ -188,3 +214,4 @@ services:
 
 volumes:
   pgdata:
+  qdrant_data:
