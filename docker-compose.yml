@@ -179,6 +179,20 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  mcp-server:
+    build:
+      context: .
+      dockerfile: services/mcp_server/Dockerfile
+    env_file: .env
+    environment:
+      SERVICE_NAME: mcp-server
+      PORT: 8016
+    ports:
+      - "8016:8016"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   rag-api:
     build:
       context: .
