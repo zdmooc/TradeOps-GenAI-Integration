@@ -2,6 +2,9 @@ CREATE TABLE IF NOT EXISTS workflows (
   workflow_id UUID PRIMARY KEY,
   status TEXT NOT NULL,
   payload JSONB NOT NULL,
+  confidence_score NUMERIC NULL,
+  decision TEXT NULL,
+  reviewer TEXT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -28,4 +31,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_ref ON audit_logs(ref_id);
+CREATE INDEX IF NOT EXISTS idx_audit_kind ON audit_logs(kind);
+CREATE INDEX IF NOT EXISTS idx_audit_correlation ON audit_logs(correlation_id);
 CREATE INDEX IF NOT EXISTS idx_workflows_status ON workflows(status);
+CREATE INDEX IF NOT EXISTS idx_workflows_decision ON workflows(decision);

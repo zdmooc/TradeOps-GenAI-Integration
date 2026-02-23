@@ -74,9 +74,12 @@ run system_git_diff              git diff
 run_to "http/health_market.txt"   bash -lc 'curl -sS http://localhost:8000/market/health || true'
 run_to "http/health_workflow.txt" bash -lc 'curl -sS http://localhost:8000/workflow/health || true'
 run_to "http/health_genai.txt"    bash -lc 'curl -sS http://localhost:8000/genai/health || true'
+run_to "http/health_rag_api.txt"   bash -lc 'curl -sS http://localhost:8014/health || true'
+run_to "http/health_agent.txt"     bash -lc 'curl -sS http://localhost:8015/health || true'
+run_to "http/health_mcp.txt"       bash -lc 'curl -sS http://localhost:8016/health || true'
 
 # ---------- Logs (tail 250) ----------
-for svc in postgres redpanda kong market-data workflow-api genai-api signal-engine risk-engine paper-oms notifier prometheus grafana tools; do
+for svc in postgres redpanda kong market-data workflow-api genai-api rag-api agent-controller mcp-server qdrant signal-engine risk-engine paper-oms notifier prometheus grafana tools; do
   run_to "logs/${svc}.log" docker compose logs --no-color --tail=250 "${svc}"
 done
 
@@ -199,6 +202,51 @@ join audit_logs af
 order by w.created_at desc
 limit 1000"
 
+# ---------- Agent / MCP / RAG evidence ----------
+sql_txt "workflows_agent_decisions" "
+select
+  workflow_id,
+  status,
+  decision,
+  confidence_score,
+  reviewer,
+  payload->>'symbol' as symbol,
+  payload->>'side'   as side,
+  (payload->>'qty')::numeric as qty,
+  created_at
+from workflows
+where decision is not null
+order by created_at desc
+limit 50;"
+sql_csv "workflows_agent_decisions" "
+select
+  workflow_id,
+  status,
+  decision,
+  confidence_score,
+  reviewer,
+  payload->>'symbol' as symbol,
+  payload->>'side'   as side,
+  (payload->>'qty')::numeric as qty,
+  created_at
+from workflows
+where decision is not null
+order by created_at desc
+limit 500"
+
+sql_txt "audit_agent_mcp_rag" "
+select audit_id, kind, ref_id, correlation_id, hash, created_at
+from audit_logs
+where kind like 'agent.%' or kind like 'mcp.%' or kind like 'rag.%'
+order by audit_id desc
+limit 50;"
+sql_csv "audit_agent_mcp_rag" "
+select audit_id, kind, ref_id, correlation_id, hash, created_at
+from audit_logs
+where kind like 'agent.%' or kind like 'mcp.%' or kind like 'rag.%'
+order by audit_id desc
+limit 500"
+
 # ---------- Human-readable summary ----------
 cat > "${OUT}/SUMMARY.md" <<EOF
 # Evidence bundle: ${TS}
@@ -209,9 +257,12 @@ cat > "${OUT}/SUMMARY.md" <<EOF
 - Counts by kind: sql/counts_by_kind.txt
 - Chain (workflow ↔ genai ↔ filled): sql/chain_workflow_genai_filled.txt
 - Latency review → filled: sql/latency_review_to_filled.txt
+- Agent decisions: sql/workflows_agent_decisions.txt
+- Agent/MCP/RAG audit: sql/audit_agent_mcp_rag.txt
 - Compose status: system_compose_ps.out
 - Gateway health: http/health_*.txt
-- Logs: logs/*.log
+- Service health: http/health_rag_api.txt, http/health_agent.txt, http/health_mcp.txt
+- Logs: logs/*.log (includes rag-api, agent-controller, mcp-server, qdrant)
 
 ## Notes
 - If you plan to share this folder externally, review \`system_compose_config_redacted.out\` and logs for any sensitive values.

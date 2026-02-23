@@ -1,4 +1,4 @@
-.PHONY: up down logs ps demo reset lint test
+.PHONY: up down logs ps demo demo-agent evidence reset lint test
 
 up:
 	docker compose up -d --build
@@ -17,6 +17,12 @@ demo:
 	docker compose exec tools python scripts/demo_request_trade.py
 	docker compose exec tools python scripts/demo_approve_trade.py
 	docker compose exec tools python scripts/demo_show_audit.py
+
+demo-agent:
+	docker compose exec tools python scripts/demo_agentic_trade.py
+
+evidence:
+	bash scripts/export_evidence.sh
 
 reset:
 	docker compose down -v

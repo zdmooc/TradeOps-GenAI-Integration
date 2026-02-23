@@ -179,6 +179,27 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  agent-controller:
+    build:
+      context: .
+      dockerfile: services/agent_controller/Dockerfile
+    env_file: .env
+    environment:
+      SERVICE_NAME: agent-controller
+      PORT: 8015
+      RAG_API_URL: http://rag-api:8014
+      MCP_SERVER_URL: http://mcp-server:8016
+      CONFIDENCE_THRESHOLD: "0.7"
+    ports:
+      - "8015:8015"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rag-api:
+        condition: service_started
+      mcp-server:
+        condition: service_started
+
   mcp-server:
     build:
       context: .
