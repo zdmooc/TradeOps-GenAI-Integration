@@ -1,0 +1,11 @@
+{
+  "dataset_id": "i5-synthetic-signal-quality-v1",
+  "scope": "SYNTHETIC_TEST_ONLY",
+  "records": 480,
+  "seed": 20260911,
+  "start_time": "2026-01-05T08:00:00Z",
+  "frequency_minutes": 5,
+  "label_horizon_minutes": 30,
+  "generator_version": "stable-logit-v1",
+  "purpose": "Deterministic ML calibration, leakage, drift and walk-forward validation only"
+}

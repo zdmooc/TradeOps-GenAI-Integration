@@ -1,0 +1,50 @@
+{
+  "experiment_id": "i5-signal-quality-v1",
+  "dataset": "data/ml/i5_signal_quality_dataset.json",
+  "dataset_scope": "SYNTHETIC_TEST_ONLY",
+  "target": "tp_before_sl_quality_label",
+  "feature_contract": "i5-v1",
+  "seed": 20260911,
+  "split": {
+    "train_fraction": 0.50,
+    "validation_fraction": 0.20,
+    "calibration_fraction": 0.15,
+    "test_fraction": 0.15,
+    "shuffle": false
+  },
+  "baseline_models": [
+    "sklearn_logistic",
+    "sklearn_hist_gradient_boosting",
+    "xgboost",
+    "lightgbm"
+  ],
+  "model_selection_metric": "validation_roc_auc_then_brier",
+  "calibration": {
+    "method": "PLATT_LOGISTIC",
+    "fit_role": "CALIBRATION_ONLY",
+    "final_metrics_role": "TEST_ONLY"
+  },
+  "probability_qualification": {
+    "minimum_test_records": 40,
+    "maximum_ece": 0.15,
+    "positive_brier_skill_required": true,
+    "roc_auc_above_random_required": true,
+    "synthetic_scope_suffix_required": true
+  },
+  "walk_forward": {
+    "train_records": 100,
+    "validation_records": 30,
+    "calibration_records": 30,
+    "test_records": 30,
+    "step_records": 30,
+    "single_class_calibration_behavior": "SCORE_ONLY"
+  },
+  "drift": {
+    "psi_bins": 5,
+    "watch_psi": 0.10,
+    "alert_psi": 0.25,
+    "watch_standardized_mean_shift": 0.5,
+    "alert_standardized_mean_shift": 1.0,
+    "alert_demotes_probability": true
+  }
+}
