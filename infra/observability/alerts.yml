@@ -1,0 +1,38 @@
+groups:
+  - name: tradeops-i8-slo
+    rules:
+      - alert: TradeOpsHighHttp5xxRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(http_requests_total[5m])), 0.001) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TradeOps HTTP 5xx rate is above 2%"
+      - alert: TradeOpsHighHttpP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TradeOps HTTP p95 latency is above 1 second"
+      - alert: TradeOpsSecurityDenialSurge
+        expr: sum(increase(tradeops_security_denials_total[5m])) > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TradeOps security denials increased sharply"
+      - alert: TradeOpsLlmErrors
+        expr: sum(increase(tradeops_llm_requests_total{status="error"}[5m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TradeOps LLM request errors detected"

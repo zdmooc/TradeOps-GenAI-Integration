@@ -1,0 +1,59 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "created": "2026-09-11T00:00:00Z",
+    "creators": [
+      "Tool: tradeops-i8-sbom"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://tradeops.local/spdx/1c0088435a743ad704884b8b42551a33107d35e7e6d35b026365464414626f30",
+  "name": "TradeOps-GenAI-Integration-python-dependencies",
+  "packages": [
+    {"SPDXID":"SPDXRef-Package-aiokafka","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"aiokafka","versionInfo":"0.11.0"},
+    {"SPDXID":"SPDXRef-Package-fastapi","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"fastapi","versionInfo":"0.115.0"},
+    {"SPDXID":"SPDXRef-Package-httpx","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"httpx","versionInfo":"0.27.2"},
+    {"SPDXID":"SPDXRef-Package-langgraph","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"langgraph","versionInfo":"1.2.11"},
+    {"SPDXID":"SPDXRef-Package-lightgbm","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"lightgbm","versionInfo":"4.7.0"},
+    {"SPDXID":"SPDXRef-Package-lightstreamer-client-lib","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"lightstreamer-client-lib","versionInfo":"2.2.3"},
+    {"SPDXID":"SPDXRef-Package-mlflow","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"mlflow","versionInfo":"3.16.0"},
+    {"SPDXID":"SPDXRef-Package-numpy","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"numpy","versionInfo":"2.0.2"},
+    {"SPDXID":"SPDXRef-Package-opentelemetry-api","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"opentelemetry-api","versionInfo":"1.44.0"},
+    {"SPDXID":"SPDXRef-Package-opentelemetry-exporter-otlp-proto-http","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"opentelemetry-exporter-otlp-proto-http","versionInfo":"1.44.0"},
+    {"SPDXID":"SPDXRef-Package-opentelemetry-sdk","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"opentelemetry-sdk","versionInfo":"1.44.0"},
+    {"SPDXID":"SPDXRef-Package-prometheus-client","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"prometheus-client","versionInfo":"0.20.0"},
+    {"SPDXID":"SPDXRef-Package-psycopg2-binary","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"psycopg2-binary","versionInfo":"2.9.9"},
+    {"SPDXID":"SPDXRef-Package-pydantic-settings","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"pydantic-settings","versionInfo":"2.4.0"},
+    {"SPDXID":"SPDXRef-Package-PyJWT","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"PyJWT","versionInfo":"2.13.0"},
+    {"SPDXID":"SPDXRef-Package-pytest","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"pytest","versionInfo":"8.3.3"},
+    {"SPDXID":"SPDXRef-Package-python-multipart","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"python-multipart","versionInfo":"0.0.9"},
+    {"SPDXID":"SPDXRef-Package-ruff","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"ruff","versionInfo":"0.6.9"},
+    {"SPDXID":"SPDXRef-Package-scikit-learn","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"scikit-learn","versionInfo":"1.5.2"},
+    {"SPDXID":"SPDXRef-Package-uvicorn","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"uvicorn","versionInfo":"0.30.6"},
+    {"SPDXID":"SPDXRef-Package-xgboost","copyrightText":"NOASSERTION","downloadLocation":"NOASSERTION","filesAnalyzed":false,"licenseConcluded":"NOASSERTION","licenseDeclared":"NOASSERTION","name":"xgboost","versionInfo":"3.2.0"}
+  ],
+  "relationships": [
+    {"relatedSpdxElement":"SPDXRef-Package-aiokafka","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-fastapi","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-httpx","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-langgraph","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-lightgbm","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-lightstreamer-client-lib","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-mlflow","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-numpy","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-opentelemetry-api","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-opentelemetry-exporter-otlp-proto-http","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-opentelemetry-sdk","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-prometheus-client","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-psycopg2-binary","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-pydantic-settings","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-PyJWT","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-pytest","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-python-multipart","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-ruff","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-scikit-learn","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-uvicorn","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"},
+    {"relatedSpdxElement":"SPDXRef-Package-xgboost","relationshipType":"DESCRIBES","spdxElementId":"SPDXRef-DOCUMENT"}
+  ],
+  "spdxVersion": "SPDX-2.3"
+}

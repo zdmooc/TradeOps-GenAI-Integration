@@ -1,0 +1,54 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP request rate by service",
+      "targets": [{"expr": "sum(rate(http_requests_total[5m])) by (service)", "legendFormat": "{{service}}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 latency",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))", "legendFormat": "{{service}}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Decision outcomes",
+      "targets": [{"expr": "sum(rate(tradeops_decision_proposals_total[5m])) by (decision, execution_mode)", "legendFormat": "{{decision}}/{{execution_mode}}"}],
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Fusion gate failures",
+      "targets": [{"expr": "sum(rate(tradeops_decision_gate_failures_total[5m])) by (gate)", "legendFormat": "{{gate}}"}],
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Security denials",
+      "targets": [{"expr": "sum(rate(tradeops_security_denials_total[5m])) by (boundary, reason)", "legendFormat": "{{boundary}}/{{reason}}"}],
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Estimated LLM tokens",
+      "targets": [{"expr": "sum(rate(tradeops_llm_tokens_estimated_total[5m])) by (provider, direction)", "legendFormat": "{{provider}}/{{direction}}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+    },
+    {
+      "type": "timeseries",
+      "title": "Risk outcomes",
+      "targets": [{"expr": "sum(rate(tradeops_risk_decisions_total[5m])) by (status)", "legendFormat": "{{status}}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["tradeops", "i8", "observability"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "title": "TradeOps I8 - Observability, Security and LLMOps",
+  "version": 1
+}

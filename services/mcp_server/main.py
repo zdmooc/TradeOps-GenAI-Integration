@@ -1,9 +1,4 @@
-"""Governed tool boundary for agent-accessible capabilities.
-
-The existing HTTP compatibility endpoint is retained, but every call now goes
-through server-side authentication, scope authorization, strict argument
-validation, rate limiting, timeouts, audit redaction and HITL policy.
-"""
+"""Governed tool boundary with I8 observable authentication and authorization."""
 
 from __future__ import annotations
 
@@ -14,62 +9,62 @@ from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel, Field
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from pydantic import BaseModel, Field
 
 from services.common.audit import log_audit
 from services.common.logging import setup_logging
 from services.common.metrics import install
-from services.mcp_server.governance import (
-    Principal,
-    StaticTokenAuthenticator,
-    ToolGovernor,
-    redact_sensitive,
-)
+from services.common.observability_metrics import SECURITY_DENIALS
+from services.common.otel import start_span
+from services.mcp_server.governance import Principal, ToolGovernor, redact_sensitive
 from services.mcp_server.state import MCPState
 from services.mcp_server.tools import TOOL_REGISTRY, execute_tool
+from services.security.identity import SecurityPrincipal, authenticate_authorization
 
 log = setup_logging("mcp-server")
-
-app = FastAPI(title="Governed Tool Server", version="0.2")
+app = FastAPI(title="Governed Tool Server", version="0.3")
 install(app, "mcp-server")
 
 _state = MCPState()
 _governor = ToolGovernor()
 
 
-def _build_authenticator() -> StaticTokenAuthenticator:
-    agent_token = os.getenv("MCP_AGENT_TOKEN", "")
-    reviewer_token = os.getenv("MCP_REVIEWER_TOKEN", "")
-    return StaticTokenAuthenticator(
-        {
-            agent_token: Principal(
-                name="agent-controller",
-                scopes=frozenset({"market.read", "risk.evaluate", "workflow.read"}),
+def _static_principals() -> dict[str, SecurityPrincipal]:
+    return {
+        os.getenv("MCP_AGENT_TOKEN", ""): SecurityPrincipal(
+            subject="agent-controller",
+            roles=frozenset({"agent"}),
+            scopes=frozenset({"market.read", "risk.evaluate", "workflow.read"}),
+            authn_method="static",
+        ),
+        os.getenv("MCP_REVIEWER_TOKEN", ""): SecurityPrincipal(
+            subject="human-reviewer",
+            roles=frozenset({"reviewer"}),
+            scopes=frozenset(
+                {
+                    "market.read",
+                    "risk.evaluate",
+                    "workflow.read",
+                    "audit.read",
+                    "paper.execute",
+                }
             ),
-            reviewer_token: Principal(
-                name="human-reviewer",
-                scopes=frozenset(
-                    {
-                        "market.read",
-                        "risk.evaluate",
-                        "workflow.read",
-                        "audit.read",
-                        "paper.execute",
-                    }
-                ),
-            ),
-        }
+            authn_method="static",
+        ),
+    }
+
+
+def _security_principal(authorization: str | None) -> SecurityPrincipal | None:
+    return authenticate_authorization(
+        authorization, static_principals=_static_principals()
     )
 
 
-def _bearer_token(authorization: str | None) -> str | None:
-    if not authorization:
+def _governor_principal(principal: SecurityPrincipal | None) -> Principal | None:
+    if principal is None:
         return None
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token.strip():
-        return None
-    return token.strip()
+    return Principal(name=principal.subject, scopes=principal.scopes)
 
 
 class ToolCallRequest(BaseModel):
@@ -98,21 +93,27 @@ class ToolListItem(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "mcp-server", "governed": True}
+    return {
+        "status": "ok",
+        "service": "mcp-server",
+        "governed": True,
+        "auth_modes": ["static", "oidc"],
+        "observability": "OTEL_PROMETHEUS_I8",
+    }
 
 
 @app.get("/metrics")
 def metrics():
     return PlainTextResponse(
-        generate_latest().decode("utf-8"),
-        media_type=CONTENT_TYPE_LATEST,
+        generate_latest().decode("utf-8"), media_type=CONTENT_TYPE_LATEST
     )
 
 
 @app.get("/tools")
 def list_tools(authorization: str | None = Header(default=None)):
-    principal = _build_authenticator().authenticate(_bearer_token(authorization))
+    principal = _security_principal(authorization)
     if principal is None:
+        SECURITY_DENIALS.labels(boundary="mcp-server", reason="UNAUTHENTICATED").inc()
         raise HTTPException(status_code=401, detail="valid bearer token required")
     items = [
         ToolListItem(
@@ -122,7 +123,7 @@ def list_tools(authorization: str | None = Header(default=None)):
         )
         for name, meta in TOOL_REGISTRY.items()
     ]
-    return {"tools": items, "principal": principal.name}
+    return {"tools": items, "principal": principal.subject}
 
 
 def _status_for_policy_code(code: str) -> int:
@@ -138,28 +139,39 @@ def _status_for_policy_code(code: str) -> int:
 
 
 @app.post("/call", response_model=ToolCallResponse)
-def call_tool(
-    req: ToolCallRequest,
-    authorization: str | None = Header(default=None),
-):
+def call_tool(req: ToolCallRequest, authorization: str | None = Header(default=None)):
     correlation_id = req.correlation_id or str(uuid.uuid4())
     workflow_id = req.workflow_id or ""
     _state.set_correlation_id(correlation_id)
 
-    principal = _build_authenticator().authenticate(_bearer_token(authorization))
-    execution = _governor.execute(
-        tool_name=req.tool,
-        arguments=req.arguments,
-        principal=principal,
-        tool_registry=TOOL_REGISTRY,
-        human_approved=req.human_approved,
-        executor=execute_tool,
-    )
+    security_principal = _security_principal(authorization)
+    principal = _governor_principal(security_principal)
+    with start_span(
+        "mcp.tool_call",
+        attributes={
+            "tradeops.tool.name": req.tool,
+            "tradeops.human_approved": req.human_approved,
+            "tradeops.authn_method": (
+                security_principal.authn_method if security_principal else "none"
+            ),
+        },
+    ) as span:
+        execution = _governor.execute(
+            tool_name=req.tool,
+            arguments=req.arguments,
+            principal=principal,
+            tool_registry=TOOL_REGISTRY,
+            human_approved=req.human_approved,
+            executor=execute_tool,
+        )
+        span.set_attribute("tradeops.tool.policy_code", execution.code)
+        span.set_attribute("tradeops.tool.allowed", execution.allowed)
 
     ref_id = workflow_id or correlation_id
     audit_data = {
         "tool": req.tool,
         "principal": principal.name if principal else "UNAUTHENTICATED",
+        "authn_method": security_principal.authn_method if security_principal else "none",
         "purpose": req.purpose,
         "human_approved": req.human_approved,
         "policy_code": execution.code,
@@ -177,6 +189,7 @@ def call_tool(
     )
 
     if not execution.allowed:
+        SECURITY_DENIALS.labels(boundary="mcp-server", reason=execution.code).inc()
         log.warning(
             "tool_denied tool=%s principal=%s code=%s corr=%s",
             req.tool,

@@ -1,9 +1,4 @@
-"""Agent Controller I7: governed assessment, deterministic fusion and HITL.
-
-I6 analysis remains available. I7 adds a persisted decision proposal/review workflow.
-No decision is auto-approved: eligible proposals become REVIEW_REQUIRED and require
-an authenticated human reviewer before SHADOW or PAPER execution.
-"""
+"""Agent Controller I8: governed assessment, HITL and observable identity boundary."""
 
 from __future__ import annotations
 
@@ -14,8 +9,9 @@ from typing import Any
 import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel, Field
+from opentelemetry.trace import SpanKind
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from pydantic import BaseModel, Field
 
 from services.agent_controller.contracts import AgentContext, Direction
 from services.agent_controller.graph import run_agent_graph
@@ -23,6 +19,8 @@ from services.agent_controller.rag_governance import RagPolicy, assess_rag_hits
 from services.common.audit import log_audit
 from services.common.logging import setup_logging
 from services.common.metrics import install
+from services.common.observability_metrics import SECURITY_DENIALS
+from services.common.otel import current_correlation_id, inject_headers, start_span
 from services.decision_fusion.models import DecisionInput, ExecutionMode, ReviewDecision
 from services.decision_fusion.policy import FusionPolicy, fuse_decision
 from services.decision_fusion.store import PostgresDecisionStore
@@ -32,9 +30,10 @@ from services.decision_fusion.workflow import (
     open_case,
     review_case,
 )
+from services.security.identity import SecurityPrincipal, authenticate_authorization
 
 log = setup_logging("agent-controller")
-app = FastAPI(title="Agent Controller", version="0.3")
+app = FastAPI(title="Agent Controller", version="0.4")
 install(app, "agent-controller")
 
 RAG_API_URL = os.getenv("RAG_API_URL", "http://rag-api:8014")
@@ -105,13 +104,50 @@ def _parse_direction(value: str) -> Direction:
         return Direction.UNKNOWN
 
 
+def _static_principals() -> dict[str, SecurityPrincipal]:
+    return {
+        os.getenv("MCP_AGENT_TOKEN", ""): SecurityPrincipal(
+            subject="agent-controller",
+            roles=frozenset({"agent"}),
+            scopes=frozenset({"market.read", "risk.evaluate", "workflow.read"}),
+            authn_method="static",
+        ),
+        os.getenv("MCP_REVIEWER_TOKEN", ""): SecurityPrincipal(
+            subject="human-reviewer",
+            roles=frozenset({"reviewer"}),
+            scopes=frozenset(
+                {"market.read", "risk.evaluate", "workflow.read", "audit.read", "paper.execute"}
+            ),
+            authn_method="static",
+        ),
+    }
+
+
+def _principal(authorization: str | None, role: str | None = None) -> SecurityPrincipal | None:
+    return authenticate_authorization(
+        authorization,
+        static_principals=_static_principals(),
+        required_role=role,
+    )
+
+
+def _require_role(authorization: str | None, role: str) -> str:
+    principal = _principal(authorization, role)
+    if principal is None:
+        SECURITY_DENIALS.labels(boundary="agent-controller", reason=f"missing_{role}_role").inc()
+        raise HTTPException(status_code=401, detail=f"valid {role} bearer token required")
+    return principal.subject
+
+
 def _retrieve_rag(question: str) -> list[dict[str, Any]]:
     try:
-        response = httpx.post(
-            f"{RAG_API_URL}/query",
-            json={"question": question, "top_k": 5},
-            timeout=3.0,
-        )
+        with start_span("rag.query", kind=SpanKind.CLIENT):
+            response = httpx.post(
+                f"{RAG_API_URL}/query",
+                headers=inject_headers(),
+                json={"question": question, "top_k": 5},
+                timeout=3.0,
+            )
         response.raise_for_status()
         payload = response.json()
         hits = payload.get("hits", [])
@@ -119,24 +155,6 @@ def _retrieve_rag(question: str) -> list[dict[str, Any]]:
     except Exception as exc:
         log.warning("RAG retrieval failed closed: %s", exc)
         return []
-
-
-def _bearer_token(authorization: str | None) -> str | None:
-    if not authorization:
-        return None
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token.strip():
-        return None
-    return token.strip()
-
-
-def _require_role(authorization: str | None, role: str) -> str:
-    token = _bearer_token(authorization)
-    env_name = "MCP_AGENT_TOKEN" if role == "agent" else "MCP_REVIEWER_TOKEN"
-    expected = os.getenv(env_name, "")
-    if not expected or token != expected:
-        raise HTTPException(status_code=401, detail=f"valid {role} bearer token required")
-    return "agent-controller" if role == "agent" else "human-reviewer"
 
 
 def _audit(kind: str, case_payload: dict[str, Any], correlation_id: str) -> str:
@@ -156,6 +174,8 @@ def health():
         "mode": "ANALYSIS_PLUS_HITL",
         "framework": "LangGraph",
         "execution": "SHADOW_OR_PAPER_AFTER_HUMAN_APPROVAL",
+        "observability": "OTEL_PROMETHEUS_I8",
+        "auth_modes": ["static", "oidc"],
     }
 
 
@@ -166,10 +186,12 @@ def metrics():
 
 @app.post("/agent/assessment", response_model=AgentAssessmentResponse)
 def agent_assessment(req: AgentAssessmentRequest):
-    correlation_id = str(uuid.uuid4())
+    correlation_id = current_correlation_id() or str(uuid.uuid4())
     hits = req.rag_hits
     if hits is None:
-        question = req.rag_question or f"{req.symbol} trading setup risk policy strategy runbook evidence"
+        question = req.rag_question or (
+            f"{req.symbol} trading setup risk policy strategy runbook evidence"
+        )
         hits = _retrieve_rag(question)
     rag = assess_rag_hits(hits, RagPolicy())
     context = AgentContext(
@@ -188,7 +210,8 @@ def agent_assessment(req: AgentAssessmentRequest):
         ml_score=req.ml_score,
         ml_probability_status=req.ml_probability_status,
     )
-    assessment = run_agent_graph(context)
+    with start_span("agent.assessment"):
+        assessment = run_agent_graph(context)
     payload = assessment.to_dict()
     payload["rag_evidence"] = list(context.rag_evidence)
     payload["ml_score"] = context.ml_score
@@ -235,8 +258,9 @@ def propose_decision(req: DecisionProposalRequest, authorization: str | None = H
 
 @app.get("/decision/{proposal_id}", response_model=CaseResponse)
 def get_decision(proposal_id: str, authorization: str | None = Header(default=None)):
-    token = _bearer_token(authorization)
-    if token not in {os.getenv("MCP_AGENT_TOKEN", ""), os.getenv("MCP_REVIEWER_TOKEN", "")} or not token:
+    principal = _principal(authorization)
+    if principal is None or not principal.roles.intersection({"agent", "reviewer"}):
+        SECURITY_DENIALS.labels(boundary="agent-controller", reason="decision_read").inc()
         raise HTTPException(status_code=401, detail="valid bearer token required")
     case = _decision_store.get(proposal_id)
     if case is None:
@@ -271,27 +295,30 @@ def review_decision(
 
 def _execute_paper(case) -> dict[str, Any]:
     token = os.getenv("MCP_REVIEWER_TOKEN", "")
+    if os.getenv("TRADEOPS_AUTH_MODE", "static").strip().lower() == "oidc":
+        token = os.getenv("OIDC_REVIEWER_ACCESS_TOKEN", "")
     if not token:
-        raise WorkflowError("MCP reviewer token is not configured")
+        raise WorkflowError("reviewer execution token is not configured")
     item = case.proposal.input
-    response = httpx.post(
-        f"{MCP_SERVER_URL}/call",
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "tool": "oms.place_order",
-            "arguments": {
-                "symbol": item.symbol,
-                "side": "BUY" if item.direction.upper() == "LONG" else "SELL",
-                "qty": item.qty,
+    with start_span("mcp.oms.place_order", kind=SpanKind.CLIENT):
+        response = httpx.post(
+            f"{MCP_SERVER_URL}/call",
+            headers=inject_headers({"Authorization": f"Bearer {token}"}),
+            json={
+                "tool": "oms.place_order",
+                "arguments": {
+                    "symbol": item.symbol,
+                    "side": "BUY" if item.direction.upper() == "LONG" else "SELL",
+                    "qty": item.qty,
+                    "workflow_id": case.proposal.proposal_id,
+                },
+                "correlation_id": case.proposal.correlation_id,
                 "workflow_id": case.proposal.proposal_id,
+                "purpose": "i7-hitl-approved-paper",
+                "human_approved": True,
             },
-            "correlation_id": case.proposal.correlation_id,
-            "workflow_id": case.proposal.proposal_id,
-            "purpose": "i7-hitl-approved-paper",
-            "human_approved": True,
-        },
-        timeout=5.0,
-    )
+            timeout=5.0,
+        )
     if response.status_code >= 400:
         raise WorkflowError(f"governed paper execution failed: HTTP {response.status_code}")
     result = response.json().get("result")

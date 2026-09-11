@@ -14,4 +14,6 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
       - run: ruff check .
+      - run: python scripts/security_audit.py
+      - run: python scripts/generate_sbom.py --check
       - run: pytest -q

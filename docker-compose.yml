@@ -161,16 +161,26 @@ services:
       - "9090:9090"
     volumes:
       - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
 
   grafana:
     image: grafana/grafana:11.2.0
     ports:
       - "3000:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-locally}
     volumes:
       - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.160.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./infra/observability/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
 
   qdrant:
     image: qdrant/qdrant:v1.9.7
@@ -199,6 +209,8 @@ services:
         condition: service_started
       mcp-server:
         condition: service_started
+      otel-collector:
+        condition: service_started
 
   mcp-server:
     build:
@@ -213,6 +225,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
 
   rag-api:
     build:
