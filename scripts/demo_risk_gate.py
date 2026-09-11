@@ -8,13 +8,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from services.risk_engine.adapter import evaluate_payload
-
-
 FIXTURE = ROOT / "data" / "replay" / "i3_risk_scenarios.json"
 
 
 def main() -> None:
+    from services.risk_engine.adapter import evaluate_payload
+
     scenarios = json.loads(FIXTURE.read_text(encoding="utf-8"))
     for scenario in scenarios:
         decision = evaluate_payload(scenario)
