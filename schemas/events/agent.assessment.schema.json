@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tradeops.local/schemas/agent.assessment.schema.json",
+  "title": "AgenticAssessment",
+  "type": "object",
+  "required": [
+    "symbol",
+    "status",
+    "direction",
+    "findings",
+    "execution_allowed",
+    "decision_scope"
+  ],
+  "properties": {
+    "symbol": {"type": "string", "minLength": 1},
+    "status": {"enum": ["SUPPORTED", "UNKNOWN", "DATA_STALE", "CONFLICT", "VETO"]},
+    "direction": {"enum": ["LONG", "SHORT", "NEUTRAL", "UNKNOWN"]},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent", "status", "direction", "evidence_quality", "reasons", "evidence"],
+        "properties": {
+          "agent": {"type": "string"},
+          "status": {"enum": ["SUPPORTED", "UNKNOWN", "DATA_STALE", "CONFLICT", "VETO"]},
+          "direction": {"enum": ["LONG", "SHORT", "NEUTRAL", "UNKNOWN"]},
+          "evidence_quality": {"type": "number", "minimum": 0, "maximum": 1},
+          "reasons": {"type": "array", "items": {"type": "string"}},
+          "evidence": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "unresolved": {"type": "array", "items": {"type": "string"}},
+    "execution_allowed": {"const": false},
+    "decision_scope": {"const": "ANALYSIS_ONLY"}
+  },
+  "additionalProperties": true
+}
