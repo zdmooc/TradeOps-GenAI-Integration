@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maya.local/schemas/market.event.schema.json",
+  "title": "Canonical MarketEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id", "instrument", "event_time", "ingest_time", "source",
+    "market_status", "event_type", "stale", "metadata", "spread"
+  ],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "instrument": {"type": "string", "minLength": 1},
+    "event_time": {"type": "string", "format": "date-time"},
+    "ingest_time": {"type": "string", "format": "date-time"},
+    "source": {"type": "string", "minLength": 1},
+    "bid": {"type": ["number", "null"], "minimum": 0},
+    "ask": {"type": ["number", "null"], "minimum": 0},
+    "last": {"type": ["number", "null"], "minimum": 0},
+    "spread": {"type": ["number", "null"]},
+    "market_status": {"type": "string"},
+    "event_type": {"enum": ["TICK", "BAR"]},
+    "resolution": {"type": ["string", "null"]},
+    "source_sequence": {"type": ["string", "null"]},
+    "latency_ms": {"type": ["number", "null"], "minimum": 0},
+    "stale": {"type": "boolean"},
+    "metadata": {"type": "object"}
+  },
+  "anyOf": [
+    {"required": ["bid"]},
+    {"required": ["ask"]},
+    {"required": ["last"]}
+  ]
+}
