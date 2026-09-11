@@ -3,14 +3,15 @@ from fastapi.testclient import TestClient
 from services.agent_controller.main import app
 
 
-def test_health_endpoint_reports_analysis_only_langgraph():
+def test_health_endpoint_reports_analysis_plus_hitl_langgraph():
     client = TestClient(app)
     response = client.get("/health")
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "ok"
-    assert payload["mode"] == "ANALYSIS_ONLY"
+    assert payload["mode"] == "ANALYSIS_PLUS_HITL"
     assert payload["framework"] == "LangGraph"
+    assert payload["execution"] == "SHADOW_OR_PAPER_AFTER_HUMAN_APPROVAL"
 
 
 def test_autonomous_trade_endpoint_is_disabled():
