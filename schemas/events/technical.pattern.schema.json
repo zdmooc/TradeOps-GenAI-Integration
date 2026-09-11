@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maya.local/schemas/technical.pattern.schema.json",
+  "title": "Deterministic Technical Pattern Signal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pattern",
+    "direction",
+    "timeframe",
+    "detected_at",
+    "entry_reference",
+    "invalidation",
+    "preconditions",
+    "invalidation_rule",
+    "evidence",
+    "lookback"
+  ],
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "enum": [
+        "BREAKOUT_RETEST",
+        "FAILED_BREAKOUT",
+        "PULLBACK",
+        "SUPPORT_RESISTANCE_REJECTION",
+        "COMPRESSION_EXPANSION",
+        "GAP",
+        "LIQUIDITY_SWEEP"
+      ]
+    },
+    "direction": {"type": "string", "enum": ["LONG", "SHORT"]},
+    "timeframe": {"type": "string", "minLength": 1},
+    "detected_at": {"type": "string", "format": "date-time"},
+    "entry_reference": {"type": "number"},
+    "invalidation": {"type": "number"},
+    "preconditions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "invalidation_rule": {"type": "string", "minLength": 1},
+    "evidence": {"type": "object"},
+    "lookback": {"type": "integer", "minimum": 1}
+  }
+}
