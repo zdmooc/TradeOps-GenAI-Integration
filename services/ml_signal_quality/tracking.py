@@ -90,4 +90,7 @@ def log_and_register_mlflow(
 
 
 def local_file_tracking_uri(directory: str | Path) -> str:
-    return Path(directory).resolve().as_uri()
+    root = Path(directory).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    database = (root / "mlflow.db").as_posix()
+    return f"sqlite:///{database}"
