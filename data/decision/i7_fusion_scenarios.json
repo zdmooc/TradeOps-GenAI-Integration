@@ -1,0 +1,45 @@
+{
+  "scope": "SYNTHETIC_POLICY_TEST_ONLY",
+  "policy_version": "i7-v1",
+  "scenarios": [
+    {
+      "id": "review-required-shadow",
+      "input": {
+        "assessment_status": "SUPPORTED",
+        "risk_status": "ACCEPT",
+        "event_age_ms": 800,
+        "evidence_quality": 0.88,
+        "rr": 2.4,
+        "historical_expectancy_r": 0.18,
+        "historical_trade_count": 64,
+        "regime": "TREND_UP",
+        "ml_probability_status": "CALIBRATED_OUT_OF_SAMPLE_SYNTHETIC"
+      },
+      "expected": {"decision": "REVIEW_REQUIRED", "execution_mode": "SHADOW"}
+    },
+    {
+      "id": "risk-veto-terminal",
+      "input": {"risk_status": "VETO"},
+      "expected": {"decision": "NO_TRADE", "failed_gate": "risk"}
+    },
+    {
+      "id": "stale-data-no-trade",
+      "input": {"event_age_ms": 9000},
+      "expected": {"decision": "NO_TRADE", "failed_gate": "freshness"}
+    },
+    {
+      "id": "negative-expectancy-no-trade",
+      "input": {"historical_expectancy_r": -0.12},
+      "expected": {"decision": "NO_TRADE", "failed_gate": "historical_expectancy"}
+    },
+    {
+      "id": "paper-requires-human",
+      "input": {"risk_status": "ACCEPT"},
+      "expected": {
+        "decision": "REVIEW_REQUIRED",
+        "human_approval_required": true,
+        "execution_allowed": false
+      }
+    }
+  ]
+}
