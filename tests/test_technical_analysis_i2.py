@@ -31,7 +31,7 @@ UTC = timezone.utc
 BASE = datetime(2026, 9, 11, 12, 0, tzinfo=UTC)
 
 
-def bar(i, o, h, l, c, v=100.0, tf="M1"):
+def bar(i, o, h, low, c, v=100.0, tf="M1"):
     return Bar(
         instrument="IX.D.DAX.IFM.IP",
         timeframe=tf,
@@ -39,7 +39,7 @@ def bar(i, o, h, l, c, v=100.0, tf="M1"):
         end_time=BASE + timedelta(minutes=i + 1),
         open=float(o),
         high=float(h),
-        low=float(l),
+        low=float(low),
         close=float(c),
         volume=float(v),
         source="TEST",
@@ -93,9 +93,9 @@ def test_market_structure_labels_hh_hl_bullish():
     highs = [102, 105, 103, 108, 104, 111, 106, 114, 108]
     lows = [98, 99, 97, 101, 99, 104, 102, 107, 105]
     bars = []
-    for i, (h, l) in enumerate(zip(highs, lows)):
-        mid = (h + l) / 2
-        bars.append(bar(i, mid, h, l, mid))
+    for i, (high, low) in enumerate(zip(highs, lows)):
+        mid = (high + low) / 2
+        bars.append(bar(i, mid, high, low, mid))
     structure = classify_structure(bars, left=1, right=1)
     labels = [s.label for s in structure.swings]
     assert "HH" in labels

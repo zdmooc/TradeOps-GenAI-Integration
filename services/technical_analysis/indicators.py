@@ -63,14 +63,14 @@ def rsi(closes: Sequence[float], period: int = 14) -> list[float | None]:
     avg_gain = _wilder(gains[1:], period)
     avg_loss = _wilder(losses[1:], period)
     for i in range(period, len(closes)):
-        g = avg_gain[i - 1]
-        l = avg_loss[i - 1]
-        if g is None or l is None:
+        gain = avg_gain[i - 1]
+        loss = avg_loss[i - 1]
+        if gain is None or loss is None:
             continue
-        if l == 0:
-            result[i] = 100.0 if g > 0 else 50.0
+        if loss == 0:
+            result[i] = 100.0 if gain > 0 else 50.0
         else:
-            rs = g / l
+            rs = gain / loss
             result[i] = 100.0 - 100.0 / (1.0 + rs)
     return result
 
@@ -115,12 +115,12 @@ def adx(
 
     for i in range(n):
         tr = atr_series[i]
-        p = plus_smoothed[i]
-        m = minus_smoothed[i]
-        if tr is None or p is None or m is None or tr == 0:
+        plus = plus_smoothed[i]
+        minus = minus_smoothed[i]
+        if tr is None or plus is None or minus is None or tr == 0:
             continue
-        plus_di[i] = 100.0 * p / tr
-        minus_di[i] = 100.0 * m / tr
+        plus_di[i] = 100.0 * plus / tr
+        minus_di[i] = 100.0 * minus / tr
         denom = plus_di[i] + minus_di[i]
         dx[i] = 0.0 if denom == 0 else 100.0 * abs(plus_di[i] - minus_di[i]) / denom
 
@@ -146,9 +146,9 @@ def macd(
     fast_series = ema(closes, fast)
     slow_series = ema(closes, slow)
     macd_line: list[float | None] = [None] * len(closes)
-    for i, (f, s) in enumerate(zip(fast_series, slow_series)):
-        if f is not None and s is not None:
-            macd_line[i] = f - s
+    for i, (fast_value, slow_value) in enumerate(zip(fast_series, slow_series)):
+        if fast_value is not None and slow_value is not None:
+            macd_line[i] = fast_value - slow_value
 
     valid = [float(x) for x in macd_line if x is not None]
     signal_valid = ema(valid, signal)
