@@ -9,6 +9,12 @@ import numpy as np
 from .models import SignalQualityExperimentReport
 
 
+SKOPS_TRUSTED_TYPES = [
+    "services.ml_signal_quality.calibration.CalibratedSignalQualityModel",
+    "services.ml_signal_quality.calibration.PlattCalibrator",
+]
+
+
 @dataclass(frozen=True, slots=True)
 class MlflowTrackingResult:
     run_id: str
@@ -56,6 +62,7 @@ def log_and_register_mlflow(
             signature=signature,
             input_example=example_matrix[:2],
             registered_model_name=registered_model_name,
+            skops_trusted_types=SKOPS_TRUSTED_TYPES,
         )
         run_id = run.info.run_id
 
