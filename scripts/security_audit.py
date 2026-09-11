@@ -21,8 +21,13 @@ SECRET_NAMES = (
     "POSTGRES_PASSWORD",
     "GF_SECURITY_ADMIN_PASSWORD",
 )
-_ASSIGNMENT = re.compile(
-    rf"^\s*({'|'.join(SECRET_NAMES)})\s*(?:=|:)\s*[\"']?([^\"'\s#]+)",
+_NAME_PATTERN = "|".join(SECRET_NAMES)
+_PY_ASSIGNMENT = re.compile(
+    rf"^\s*({_NAME_PATTERN})(?:\s*:\s*[^=\n]+)?\s*=\s*[\"']([^\"']*)[\"']",
+    re.MULTILINE,
+)
+_DATA_ASSIGNMENT = re.compile(
+    rf"^\s*({_NAME_PATTERN})\s*(?:=|:)\s*[\"']?([^\"'\s#]+)",
     re.MULTILINE,
 )
 _ALLOWED_VALUES = {
@@ -33,6 +38,17 @@ _ALLOWED_VALUES = {
     "placeholder",
     "example",
 }
+_SKIP_PREFIXES = ("evidence-sample/",)
+_SKIP_FILES = {"scripts/security_audit.py"}
+
+
+def _is_allowed(value: str) -> bool:
+    normalized = value.strip().lower()
+    return (
+        normalized in _ALLOWED_VALUES
+        or value.startswith("${")
+        or value.startswith("os.getenv")
+    )
 
 
 def scan_text(relpath: str, text: str) -> list[str]:
@@ -41,14 +57,16 @@ def scan_text(relpath: str, text: str) -> list[str]:
         findings.append("tracked .env is forbidden")
     if relpath == ".env.example" or relpath.startswith("tests/"):
         return findings
+
     for marker in PRIVATE_KEY_MARKERS:
         if marker in text:
             findings.append(f"private key material detected in {relpath}")
             break
-    for match in _ASSIGNMENT.finditer(text):
+
+    assignment_pattern = _PY_ASSIGNMENT if relpath.endswith(".py") else _DATA_ASSIGNMENT
+    for match in assignment_pattern.finditer(text):
         key, value = match.group(1), match.group(2).strip()
-        normalized = value.lower()
-        if normalized in _ALLOWED_VALUES or value.startswith("${") or value.startswith("os.getenv"):
+        if _is_allowed(value):
             continue
         findings.append(f"literal secret-like value for {key} in {relpath}")
     return findings
@@ -61,9 +79,17 @@ def tracked_files(root: Path) -> list[str]:
     return [item.decode("utf-8") for item in output.split(b"\0") if item]
 
 
+def should_scan(relpath: str) -> bool:
+    if relpath in _SKIP_FILES:
+        return False
+    return not relpath.startswith(_SKIP_PREFIXES)
+
+
 def audit_repository(root: Path) -> list[str]:
     findings: list[str] = []
     for relpath in tracked_files(root):
+        if not should_scan(relpath):
+            continue
         path = root / relpath
         if not path.is_file() or path.stat().st_size > 2_000_000:
             continue

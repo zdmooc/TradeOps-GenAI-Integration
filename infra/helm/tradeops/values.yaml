@@ -9,7 +9,7 @@ env:
   POSTGRES_PORT: "5432"
   POSTGRES_DB: tradeops
   POSTGRES_USER: tradeops
-  POSTGRES_PASSWORD: tradeops
+  POSTGRES_PASSWORD: change-me-locally
   KAFKA_BOOTSTRAP: redpanda:9092
   LLM_PROVIDER: mock
 
