@@ -1,0 +1,32 @@
+{
+  "protocol_id": "i4-deterministic-backtest-v1",
+  "dataset": "data/replay/i4_backtest_dataset.json",
+  "execution": {
+    "signal_timing": "bar_close",
+    "entry_timing": "next_bar_open",
+    "ambiguity_policy": "STOP_FIRST",
+    "costs": ["half_spread_each_side", "slippage_each_side", "commission_each_order"],
+    "risk_gate": "only risk_status=APPROVED is executable"
+  },
+  "validation": {
+    "chronological_train_fraction": 0.75,
+    "walk_forward_train_bars": 6,
+    "walk_forward_test_bars": 3,
+    "walk_forward_step_bars": 3,
+    "random_shuffle": false
+  },
+  "required_metrics": [
+    "trade_count",
+    "win_rate_pct",
+    "total_pnl",
+    "average_r",
+    "expectancy_r",
+    "profit_factor",
+    "max_drawdown",
+    "max_drawdown_pct"
+  ],
+  "required_breakdowns": ["regime", "session", "timeframe", "pattern"],
+  "baseline": "buy_and_hold_same_cost_model",
+  "seed": null,
+  "notes": "Synthetic fixture validates mechanics only. It is not evidence of strategy profitability."
+}

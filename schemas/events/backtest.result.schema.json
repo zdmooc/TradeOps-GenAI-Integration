@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maya.local/schemas/backtest.result.schema.json",
+  "title": "BacktestResult",
+  "type": "object",
+  "required": ["dataset_id", "dataset_sha256", "config_sha256", "trades", "metrics", "breakdowns", "baseline"],
+  "properties": {
+    "dataset_id": {"type": "string", "minLength": 1},
+    "dataset_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "trades": {"type": "array", "items": {"type": "object"}},
+    "skipped_signals": {"type": "array", "items": {"type": "string"}},
+    "metrics": {
+      "type": "object",
+      "required": ["trade_count", "win_rate_pct", "total_pnl", "average_r", "expectancy_r", "profit_factor", "max_drawdown", "max_drawdown_pct"],
+      "properties": {
+        "trade_count": {"type": "integer", "minimum": 0},
+        "win_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "total_pnl": {"type": "number"},
+        "average_r": {"type": "number"},
+        "expectancy_r": {"type": "number"},
+        "profit_factor": {"type": ["number", "null"]},
+        "max_drawdown": {"type": "number", "minimum": 0},
+        "max_drawdown_pct": {"type": "number", "minimum": 0}
+      }
+    },
+    "breakdowns": {"type": "object"},
+    "baseline": {"type": "object"}
+  },
+  "additionalProperties": true
+}

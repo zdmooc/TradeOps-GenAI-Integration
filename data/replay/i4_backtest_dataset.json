@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "dataset_id": "i4-synthetic-dax-m1-v1",
+    "version": "1.0.0",
+    "source": "SYNTHETIC_LABELLED",
+    "instrument": "IX.D.DAX.IFM.IP",
+    "timeframe": "M1",
+    "start": "2026-09-11T12:00:00Z",
+    "end": "2026-09-11T12:12:00Z",
+    "synthetic": true,
+    "purpose": "Deterministic I4 execution, cost, metric and split validation only"
+  },
+  "config": {
+    "initial_equity": 10000.0,
+    "spread_bps": 2.0,
+    "slippage_bps": 1.0,
+    "commission_per_order": 0.5,
+    "ambiguity_policy": "STOP_FIRST"
+  },
+  "bars": [
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:00:00Z","end_time":"2026-09-11T12:01:00Z","open":100.0,"high":100.5,"low":99.8,"close":100.2,"volume":1000},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:01:00Z","end_time":"2026-09-11T12:02:00Z","open":100.2,"high":101.0,"low":99.6,"close":100.8,"volume":1100},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:02:00Z","end_time":"2026-09-11T12:03:00Z","open":100.8,"high":102.2,"low":100.6,"close":101.9,"volume":1400},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:03:00Z","end_time":"2026-09-11T12:04:00Z","open":101.9,"high":102.4,"low":101.5,"close":102.0,"volume":1000},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:04:00Z","end_time":"2026-09-11T12:05:00Z","open":102.0,"high":102.5,"low":101.0,"close":101.5,"volume":1200},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:05:00Z","end_time":"2026-09-11T12:06:00Z","open":101.5,"high":103.2,"low":101.2,"close":102.8,"volume":1600},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:06:00Z","end_time":"2026-09-11T12:07:00Z","open":102.8,"high":103.0,"low":100.8,"close":101.2,"volume":1800},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:07:00Z","end_time":"2026-09-11T12:08:00Z","open":101.1,"high":101.8,"low":100.7,"close":101.5,"volume":900},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:08:00Z","end_time":"2026-09-11T12:09:00Z","open":101.5,"high":102.5,"low":100.9,"close":102.2,"volume":1250},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:09:00Z","end_time":"2026-09-11T12:10:00Z","open":102.2,"high":103.2,"low":102.0,"close":103.0,"volume":1500},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:10:00Z","end_time":"2026-09-11T12:11:00Z","open":103.0,"high":103.5,"low":102.0,"close":102.5,"volume":1300},
+    {"instrument":"IX.D.DAX.IFM.IP","timeframe":"M1","start_time":"2026-09-11T12:11:00Z","end_time":"2026-09-11T12:12:00Z","open":102.5,"high":103.0,"low":100.9,"close":101.2,"volume":1700}
+  ],
+  "signals": [
+    {"signal_id":"I4-S1","instrument":"IX.D.DAX.IFM.IP","side":"LONG","generated_at":"2026-09-11T12:01:00Z","stop":99.0,"target":102.0,"quantity":10,"point_value":1.0,"pattern":"BREAKOUT_RETEST","regime":"TREND_UP","session":"EUROPE","timeframe":"M1","risk_status":"APPROVED"},
+    {"signal_id":"I4-VETO","instrument":"IX.D.DAX.IFM.IP","side":"LONG","generated_at":"2026-09-11T12:02:00Z","stop":99.0,"target":103.0,"quantity":10,"point_value":1.0,"pattern":"PULLBACK","regime":"TREND_UP","session":"EUROPE","timeframe":"M1","risk_status":"VETOED"},
+    {"signal_id":"I4-S2","instrument":"IX.D.DAX.IFM.IP","side":"SHORT","generated_at":"2026-09-11T12:04:00Z","stop":103.0,"target":100.0,"quantity":10,"point_value":1.0,"pattern":"FAILED_BREAKOUT","regime":"RANGE","session":"EUROPE","timeframe":"M1","risk_status":"APPROVED"},
+    {"signal_id":"I4-S3","instrument":"IX.D.DAX.IFM.IP","side":"LONG","generated_at":"2026-09-11T12:07:00Z","stop":100.0,"target":103.0,"quantity":10,"point_value":1.0,"pattern":"PULLBACK","regime":"TREND_UP","session":"US_OVERLAP","timeframe":"M1","risk_status":"APPROVED"},
+    {"signal_id":"I4-S4","instrument":"IX.D.DAX.IFM.IP","side":"SHORT","generated_at":"2026-09-11T12:10:00Z","stop":104.0,"target":101.0,"quantity":10,"point_value":1.0,"pattern":"LIQUIDITY_SWEEP","regime":"RANGE","session":"US_OVERLAP","timeframe":"M1","risk_status":"APPROVED"}
+  ]
+}
