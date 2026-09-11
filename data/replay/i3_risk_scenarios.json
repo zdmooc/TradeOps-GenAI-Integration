@@ -1,0 +1,42 @@
+[
+  {
+    "name": "approved_trend_pullback",
+    "risk_intent": {
+      "instrument": "IX.D.DAX.IFM.IP",
+      "side": "LONG",
+      "strategy": "PULLBACK",
+      "entry": 100.0,
+      "stop": 99.5,
+      "quantity": 10.0
+    },
+    "risk_state": {"equity": 100000.0, "spread_bps": 2.0},
+    "regime": {
+      "regime": "TREND_UP",
+      "timeframe": "M5",
+      "allowed_strategies": ["PULLBACK", "BREAKOUT", "TREND_FOLLOW"]
+    },
+    "expected_status": "APPROVED"
+  },
+  {
+    "name": "veto_stale_and_wide_spread",
+    "risk_intent": {
+      "instrument": "IX.D.DAX.IFM.IP",
+      "side": "LONG",
+      "strategy": "PULLBACK",
+      "entry": 100.0,
+      "stop": 99.5,
+      "quantity": 10.0
+    },
+    "risk_state": {
+      "equity": 100000.0,
+      "spread_bps": 25.0,
+      "market_data_age_seconds": 15.0
+    },
+    "regime": {
+      "regime": "TREND_UP",
+      "timeframe": "M5",
+      "allowed_strategies": ["PULLBACK"]
+    },
+    "expected_status": "VETOED"
+  }
+]

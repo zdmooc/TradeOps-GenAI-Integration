@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maya.local/schemas/risk.decision.schema.json",
+  "title": "Deterministic Risk Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "approved", "status", "regime", "veto_reasons", "circuit_breaker", "metrics"
+  ],
+  "properties": {
+    "approved": {"type": "boolean"},
+    "status": {"enum": ["APPROVED", "VETOED"]},
+    "regime": {"type": "string"},
+    "veto_reasons": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "KILL_SWITCH_ACTIVE", "FEED_DEGRADED", "DAILY_LOSS_LIMIT",
+          "MAX_CONSECUTIVE_LOSSES", "RISK_PER_TRADE_LIMIT",
+          "GROSS_EXPOSURE_LIMIT", "CONCENTRATION_LIMIT", "CORRELATION_LIMIT",
+          "VOLATILITY_LIMIT", "EVENT_WINDOW_BLOCKED", "SPREAD_LIMIT",
+          "SLIPPAGE_LIMIT", "STALE_MARKET_DATA", "UNKNOWN_REGIME",
+          "STRATEGY_NOT_ALLOWED_IN_REGIME"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "circuit_breaker": {"type": "boolean"},
+    "metrics": {"type": "object", "additionalProperties": {"type": "number"}}
+  }
+}

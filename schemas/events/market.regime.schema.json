@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maya.local/schemas/market.regime.schema.json",
+  "title": "Market Regime Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["regime", "instrument", "timeframe", "allowed_strategies", "evidence"],
+  "properties": {
+    "regime": {
+      "enum": [
+        "TREND_UP", "TREND_DOWN", "RANGE", "HIGH_VOLATILITY",
+        "LOW_VOLATILITY", "BREAKOUT", "POST_EVENT", "RISK_ON",
+        "RISK_OFF", "UNKNOWN"
+      ]
+    },
+    "instrument": {"type": "string", "minLength": 1},
+    "timeframe": {"type": "string", "minLength": 1},
+    "allowed_strategies": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "evidence": {"type": "object"}
+  }
+}
