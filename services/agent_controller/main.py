@@ -1,53 +1,89 @@
-"""Agent Controller – FastAPI service implementing an Agentic AI trade processor.
+"""Agent Controller I6.
 
-POST /agent/trade  – submit a trade for autonomous agent processing
-GET  /health       – liveness probe
+The service produces governed analysis-only assessments from deterministic,
+ML, RAG and risk evidence. Autonomous order placement is intentionally disabled.
 """
 
-import json
-import uuid
-from typing import Optional
+from __future__ import annotations
 
-from fastapi import FastAPI
+import os
+import uuid
+from typing import Any
+
+import httpx
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-from services.common.db import execute
+from services.agent_controller.contracts import AgentContext, Direction
+from services.agent_controller.graph import run_agent_graph
+from services.agent_controller.rag_governance import RagPolicy, assess_rag_hits
 from services.common.logging import setup_logging
 from services.common.metrics import install
-from services.agent_controller.graph import run_agent_graph
 
 log = setup_logging("agent-controller")
 
-app = FastAPI(title="Agent Controller", version="0.1")
+app = FastAPI(title="Agent Controller", version="0.2")
 install(app, "agent-controller")
 
-
-# ── Schemas ──────────────────────────────────────────────────────────
-
-class AgentTradeRequest(BaseModel):
-    symbol: str = Field(..., examples=["AAPL"])
-    side: str = Field(..., pattern="^(BUY|SELL)$")
-    qty: float = Field(..., gt=0)
-    reason: str = Field(..., min_length=3)
+RAG_API_URL = os.getenv("RAG_API_URL", "http://rag-api:8014")
 
 
-class AgentTradeResponse(BaseModel):
-    workflow_id: str
+class AgentAssessmentRequest(BaseModel):
+    symbol: str = Field(..., min_length=1)
+    event_age_ms: float | None = Field(default=None, ge=0)
+    max_freshness_ms: float = Field(default=5_000.0, gt=0)
+    market_direction: str = Field(default="UNKNOWN")
+    technical_structure: str = Field(default="UNKNOWN")
+    pattern_directions: list[str] = Field(default_factory=list)
+    macro_state: str = Field(default="UNKNOWN")
+    event_risk: bool = False
+    risk_status: str = Field(default="UNKNOWN")
+    risk_reasons: list[str] = Field(default_factory=list)
+    rag_question: str | None = None
+    rag_hits: list[dict[str, Any]] | None = None
+    ml_score: float | None = Field(default=None, ge=0, le=1)
+    ml_probability_status: str = Field(default="SCORE_ONLY")
+
+
+class AgentAssessmentResponse(BaseModel):
     correlation_id: str
-    decision: str
-    confidence_score: float
-    order_id: Optional[str] = None
-    fill_price: Optional[float] = None
-    status: str
+    assessment: dict[str, Any]
+    rag_rejected: list[str]
 
 
-# ── Endpoints ────────────────────────────────────────────────────────
+def _parse_direction(value: str) -> Direction:
+    try:
+        return Direction(value.upper())
+    except ValueError:
+        return Direction.UNKNOWN
+
+
+def _retrieve_rag(question: str) -> list[dict[str, Any]]:
+    try:
+        response = httpx.post(
+            f"{RAG_API_URL}/query",
+            json={"question": question, "top_k": 5},
+            timeout=3.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        hits = payload.get("hits", [])
+        return hits if isinstance(hits, list) else []
+    except Exception as exc:
+        log.warning("RAG retrieval failed closed: %s", exc)
+        return []
+
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "agent-controller"}
+    return {
+        "status": "ok",
+        "service": "agent-controller",
+        "mode": "ANALYSIS_ONLY",
+        "framework": "LangGraph",
+    }
 
 
 @app.get("/metrics")
@@ -58,63 +94,63 @@ def metrics():
     )
 
 
-@app.post("/agent/trade", response_model=AgentTradeResponse)
-def agent_trade(req: AgentTradeRequest):
-    """Submit a trade for autonomous agent processing.
-
-    The agent controller:
-    1. Creates a workflow (status=REQUESTED)
-    2. Runs the LangGraph: PLAN → RETRIEVE → TOOL_CALLS → EVALUATE → DECIDE
-    3. If APPROVE: places the order via MCP/OMS
-    4. Returns the full result
-    """
-    workflow_id = str(uuid.uuid4())
+@app.post("/agent/assessment", response_model=AgentAssessmentResponse)
+def agent_assessment(req: AgentAssessmentRequest):
     correlation_id = str(uuid.uuid4())
-    payload = req.model_dump()
+    hits = req.rag_hits
+    if hits is None:
+        question = req.rag_question or (
+            f"{req.symbol} trading setup risk policy strategy runbook evidence"
+        )
+        hits = _retrieve_rag(question)
 
-    # Create workflow
-    execute(
-        "INSERT INTO workflows(workflow_id, status, payload) VALUES (%s, %s, %s)",
-        (workflow_id, "REQUESTED", json.dumps(payload)),
+    rag = assess_rag_hits(hits, RagPolicy())
+    context = AgentContext(
+        symbol=req.symbol.upper(),
+        event_age_ms=req.event_age_ms,
+        max_freshness_ms=req.max_freshness_ms,
+        market_direction=_parse_direction(req.market_direction),
+        technical_structure=req.technical_structure,
+        pattern_directions=tuple(
+            _parse_direction(item) for item in req.pattern_directions
+        ),
+        macro_state=req.macro_state,
+        event_risk=req.event_risk,
+        risk_status=req.risk_status,
+        risk_reasons=tuple(req.risk_reasons),
+        rag_status=rag.status,
+        rag_evidence=rag.evidence,
+        ml_score=req.ml_score,
+        ml_probability_status=req.ml_probability_status,
     )
-    log.info("workflow created wf=%s corr=%s", workflow_id, correlation_id)
-
-    # Run the agent graph
-    state = run_agent_graph(
-        symbol=req.symbol,
-        side=req.side,
-        qty=req.qty,
-        reason=req.reason,
-        workflow_id=workflow_id,
-        correlation_id=correlation_id,
-    )
-
-    # Build response
-    order_id = state.order_result.get("order_id") if state.order_result else None
-    fill_price = state.order_result.get("fill_price") if state.order_result else None
-
-    # Determine final status
-    if state.decision == "APPROVE" and order_id:
-        final_status = "FILLED"
-    elif state.decision == "APPROVE":
-        final_status = "APPROVED"
-    else:
-        final_status = state.decision
-
+    assessment = run_agent_graph(context)
+    payload = assessment.to_dict()
+    payload["rag_evidence"] = list(context.rag_evidence)
+    payload["ml_score"] = context.ml_score
+    payload["ml_probability_status"] = context.ml_probability_status
     log.info(
-        "agent trade completed wf=%s decision=%s confidence=%.4f order=%s",
-        workflow_id,
-        state.decision,
-        state.confidence_score,
-        order_id,
+        "assessment corr=%s symbol=%s status=%s direction=%s",
+        correlation_id,
+        context.symbol,
+        assessment.status.value,
+        assessment.direction.value,
+    )
+    return AgentAssessmentResponse(
+        correlation_id=correlation_id,
+        assessment=payload,
+        rag_rejected=list(rag.rejected),
     )
 
-    return AgentTradeResponse(
-        workflow_id=workflow_id,
-        correlation_id=correlation_id,
-        decision=state.decision,
-        confidence_score=state.confidence_score,
-        order_id=order_id,
-        fill_price=fill_price,
-        status=final_status,
+
+@app.post("/agent/trade")
+def autonomous_trade_disabled():
+    raise HTTPException(
+        status_code=409,
+        detail={
+            "code": "AUTONOMOUS_EXECUTION_DISABLED",
+            "message": (
+                "I6 agent workflows are analysis-only. Use /agent/assessment. "
+                "Human approval/fusion execution belongs to I7."
+            ),
+        },
     )
