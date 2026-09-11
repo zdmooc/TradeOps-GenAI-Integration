@@ -1,0 +1,79 @@
+{
+  "version": "i6-v1",
+  "scope": "SYNTHETIC_POLICY_TEST_ONLY",
+  "scenarios": [
+    {
+      "name": "aligned-long",
+      "context": {
+        "symbol": "DAX",
+        "event_age_ms": 100,
+        "market_direction": "LONG",
+        "technical_structure": "BULLISH",
+        "pattern_directions": ["LONG"],
+        "macro_state": "RISK_ON",
+        "event_risk": false,
+        "risk_status": "ACCEPT",
+        "risk_reasons": [],
+        "rag_status": "SUPPORTED",
+        "rag_evidence": ["risk-policy.md@0.9000"],
+        "ml_score": 0.72,
+        "ml_probability_status": "CALIBRATED_OUT_OF_SAMPLE_SYNTHETIC"
+      },
+      "expected": {"status": "SUPPORTED", "direction": "LONG"}
+    },
+    {
+      "name": "technical-pattern-disagreement",
+      "context": {
+        "symbol": "DAX",
+        "event_age_ms": 100,
+        "market_direction": "LONG",
+        "technical_structure": "BULLISH",
+        "pattern_directions": ["SHORT"],
+        "macro_state": "RISK_ON",
+        "event_risk": false,
+        "risk_status": "ACCEPT",
+        "risk_reasons": [],
+        "rag_status": "SUPPORTED",
+        "rag_evidence": ["strategy-governance.md@0.8500"],
+        "ml_score": 0.55,
+        "ml_probability_status": "SCORE_ONLY"
+      },
+      "expected": {"status": "CONFLICT", "direction": "UNKNOWN"}
+    },
+    {
+      "name": "stale-market",
+      "context": {
+        "symbol": "DAX",
+        "event_age_ms": 7000,
+        "max_freshness_ms": 5000,
+        "market_direction": "LONG",
+        "technical_structure": "BULLISH",
+        "pattern_directions": ["LONG"],
+        "macro_state": "RISK_ON",
+        "event_risk": false,
+        "risk_status": "ACCEPT",
+        "risk_reasons": [],
+        "rag_status": "SUPPORTED",
+        "rag_evidence": ["data-stale-runbook.md@0.9500"]
+      },
+      "expected": {"status": "DATA_STALE", "direction": "UNKNOWN"}
+    },
+    {
+      "name": "risk-veto",
+      "context": {
+        "symbol": "DAX",
+        "event_age_ms": 100,
+        "market_direction": "LONG",
+        "technical_structure": "BULLISH",
+        "pattern_directions": ["LONG"],
+        "macro_state": "RISK_ON",
+        "event_risk": false,
+        "risk_status": "VETO",
+        "risk_reasons": ["spread too wide"],
+        "rag_status": "SUPPORTED",
+        "rag_evidence": ["risk-policy.md@0.9500"]
+      },
+      "expected": {"status": "VETO", "direction": "NEUTRAL"}
+    }
+  ]
+}
