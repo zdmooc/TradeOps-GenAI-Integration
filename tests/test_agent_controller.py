@@ -1,118 +1,70 @@
-"""Smoke tests for the Agent Controller (unit-level, no Docker needed)."""
+from fastapi.testclient import TestClient
 
-from unittest.mock import patch
-
-
-def test_agent_state_init():
-    """AgentState initialises with correct defaults."""
-    from services.agent_controller.graph import AgentState
-
-    state = AgentState(
-        symbol="AAPL",
-        side="BUY",
-        qty=100,
-        reason="test",
-        workflow_id="wf-1",
-        correlation_id="corr-1",
-    )
-    assert state.symbol == "AAPL"
-    assert state.decision == "DENY"
-    assert state.confidence_score == 0.0
+from services.agent_controller.main import app
 
 
-def test_node_plan_creates_plan():
-    """node_plan populates state.plan and calls log_audit."""
-    from services.agent_controller.graph import AgentState, node_plan
-
-    state = AgentState(
-        symbol="MSFT", side="SELL", qty=50, reason="rebalance",
-        workflow_id="wf-2", correlation_id="corr-2",
-    )
-    with patch("services.agent_controller.graph.log_audit") as mock_audit:
-        result = node_plan(state)
-        assert result.plan["symbol"] == "MSFT"
-        assert len(result.plan["steps"]) == 5
-        mock_audit.assert_called_once()
-
-
-def test_node_evaluate_high_confidence():
-    """node_evaluate gives high confidence when risk passes."""
-    from services.agent_controller.graph import AgentState, node_evaluate
-
-    state = AgentState(
-        symbol="AAPL", side="BUY", qty=100, reason="test",
-        workflow_id="wf-3", correlation_id="corr-3",
-    )
-    state.risk_result = {"passed": True, "violations": []}
-    state.rag_hits = [{"score": 0.85, "source": "test.md", "text": "rule"}]
-    state.price_result = {"last": 150.0}
-
-    with patch("services.agent_controller.graph.log_audit"):
-        result = node_evaluate(state)
-        assert result.confidence_score >= 0.7
-
-
-def test_node_evaluate_low_confidence():
-    """node_evaluate gives low confidence when risk fails."""
-    from services.agent_controller.graph import AgentState, node_evaluate
-
-    state = AgentState(
-        symbol="AAPL", side="BUY", qty=50000, reason="test",
-        workflow_id="wf-4", correlation_id="corr-4",
-    )
-    state.risk_result = {"passed": False, "violations": ["qty too high", "notional too high"]}
-    state.rag_hits = []
-    state.price_result = {"last": 150.0}
-
-    with patch("services.agent_controller.graph.log_audit"):
-        result = node_evaluate(state)
-        assert result.confidence_score < 0.7
-
-
-def test_node_decide_approve():
-    """node_decide sets APPROVE when confidence >= threshold and risk passed."""
-    from services.agent_controller.graph import AgentState, node_decide
-
-    state = AgentState(
-        symbol="AAPL", side="BUY", qty=100, reason="test",
-        workflow_id="wf-5", correlation_id="corr-5",
-    )
-    state.confidence_score = 0.85
-    state.risk_result = {"passed": True}
-
-    with (
-        patch("services.agent_controller.graph.execute"),
-        patch("services.agent_controller.graph.log_audit"),
-    ):
-        result = node_decide(state)
-        assert result.decision == "APPROVE"
-
-
-def test_node_decide_needs_human():
-    """node_decide sets NEEDS_HUMAN when confidence < threshold."""
-    from services.agent_controller.graph import AgentState, node_decide
-
-    state = AgentState(
-        symbol="AAPL", side="BUY", qty=100, reason="test",
-        workflow_id="wf-6", correlation_id="corr-6",
-    )
-    state.confidence_score = 0.5
-    state.risk_result = {"passed": True}
-
-    with (
-        patch("services.agent_controller.graph.execute"),
-        patch("services.agent_controller.graph.log_audit"),
-    ):
-        result = node_decide(state)
-        assert result.decision == "NEEDS_HUMAN"
-
-
-def test_health_endpoint():
-    """GET /health returns 200."""
-    from fastapi.testclient import TestClient
-    from services.agent_controller.main import app
-
+def test_health_endpoint_reports_analysis_only_langgraph():
     client = TestClient(app)
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
+    response = client.get("/health")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert payload["mode"] == "ANALYSIS_ONLY"
+    assert payload["framework"] == "LangGraph"
+
+
+def test_autonomous_trade_endpoint_is_disabled():
+    client = TestClient(app)
+    response = client.post("/agent/trade")
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "AUTONOMOUS_EXECUTION_DISABLED"
+
+
+def test_assessment_endpoint_returns_structured_analysis():
+    client = TestClient(app)
+    response = client.post(
+        "/agent/assessment",
+        json={
+            "symbol": "DAX",
+            "event_age_ms": 100,
+            "market_direction": "LONG",
+            "technical_structure": "BULLISH",
+            "pattern_directions": ["LONG"],
+            "macro_state": "RISK_ON",
+            "risk_status": "ACCEPT",
+            "rag_hits": [
+                {
+                    "source": "risk-policy.md",
+                    "text": "Risk veto is terminal and cannot be overridden by agents.",
+                    "score": 0.9,
+                }
+            ],
+            "ml_score": 0.72,
+            "ml_probability_status": "CALIBRATED_OUT_OF_SAMPLE_SYNTHETIC",
+        },
+    )
+    assert response.status_code == 200
+    assessment = response.json()["assessment"]
+    assert assessment["status"] == "SUPPORTED"
+    assert assessment["direction"] == "LONG"
+    assert assessment["execution_allowed"] is False
+    assert assessment["decision_scope"] == "ANALYSIS_ONLY"
+
+
+def test_assessment_endpoint_surfaces_conflict():
+    client = TestClient(app)
+    response = client.post(
+        "/agent/assessment",
+        json={
+            "symbol": "DAX",
+            "event_age_ms": 100,
+            "market_direction": "LONG",
+            "technical_structure": "BULLISH",
+            "pattern_directions": ["SHORT"],
+            "macro_state": "RISK_ON",
+            "risk_status": "ACCEPT",
+            "rag_hits": [],
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["assessment"]["status"] == "CONFLICT"
