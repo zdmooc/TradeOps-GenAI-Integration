@@ -50,7 +50,11 @@ class VectorStore:
             self._client = QdrantClient(url=qdrant_url, timeout=10)
         if _EMBEDDINGS_AVAILABLE:
             self._model = SentenceTransformer(embedding_model)
-            self.vector_size = self._model.get_sentence_embedding_dimension()  # type: ignore[union-attr]
+            # sentence-transformers >=6 renamed this accessor.
+            if hasattr(self._model, "get_embedding_dimension"):
+                self.vector_size = self._model.get_embedding_dimension()
+            else:
+                self.vector_size = self._model.get_sentence_embedding_dimension()
 
     # ── Collection management ────────────────────────────────────────
 
@@ -85,13 +89,16 @@ class VectorStore:
             log.warning("no-embeddings mode – returning empty results for query: %s", query[:80])
             return []
         vec = self._model.encode(query).tolist()
-        hits = self._client.search(
+        # Qdrant 1.19 removed the deprecated /points/search endpoint. Use the
+        # unified query API exposed by qdrant-client 1.19 instead.
+        response = self._client.query_points(
             collection_name=self.collection,
-            query_vector=vec,
+            query=vec,
             limit=top_k,
+            with_payload=True,
         )
         results: List[Dict[str, Any]] = []
-        for h in hits:
+        for h in response.points:
             results.append(
                 {
                     "source": (h.payload or {}).get("source", "unknown"),
