@@ -25,9 +25,9 @@ The program's main decisions are:
 | Deterministic risk | terminal veto with explicit reasons | tested in CI |
 | Auditability | correlation/proposal/review/order lineage | tested in CI |
 | Security | least privilege, scope validation, secret hygiene, SBOM | tested in CI; live federation pending |
-| Availability | probes, bounded replicas, policy/GitOps contracts | configured/tested; live failover pending |
+| Availability | probes, bounded replicas, policy/GitOps contracts | live single-pod recreation recovery verified on CRC; no HA/failover claim |
 | Model governance | feature contract + qualification gate | tested in CI |
-| Recovery | explicit RTO/RPO to be business-set and measured | pending measurement |
+| Recovery | lab RTO 30 s for the measured stateless pod-recreation drill; RPO only where state loss is applicable | baseline 15.301 s; verified run 14.302 s and RTO PASS |
 | Performance | no invented p95/p99/throughput | pending live benchmark |
 | Cost | tagged/scoped Azure foundation, explicit teardown discipline | design/CI only; measured spend pending |
 | Carbon | GreenOps measurement required before claim | pending measurement |
@@ -46,6 +46,52 @@ At least one controlled deployed-environment exercise must capture:
 - comparison with the declared RTO/RPO for that lab.
 
 The repository must not invent an RTO/RPO value merely to satisfy the gate.
+
+## Measured CRC resilience evidence — 2026-09-12
+
+Two controlled local CRC drills are retained as live operational evidence.
+
+### Baseline drill
+
+Evidence: `evidence/graduation/live/resilience/20260912T202019Z/`
+
+- workload: `tradeops/agent-controller`;
+- failure: deletion of exactly one running pod with `--wait=false`;
+- old pod UID: `3d74507e-5587-448f-b327-938ee39452cf`;
+- replacement pod UID: `36852c97-db41-46ae-b8e2-754493446a60`;
+- observed recovery: **15.301 s**;
+- no RTO target was set for this first run, so the result is explicitly `NOT_EVALUATED` against a target;
+- secret scan: `O5_SECRET_SCAN_PASS`.
+
+This first run is the measured baseline and is not retroactively used to invent a target.
+
+### Predeclared-RTO verification drill
+
+Evidence: `evidence/graduation/live/resilience/20260912T202740Z/`
+
+Before the second failure injection, the lab RTO target was set to **30 seconds**.
+
+- old pod UID: `36852c97-db41-46ae-b8e2-754493446a60`;
+- replacement pod UID: `eb799a0e-b21a-4348-8f75-47bdf0cfdcba`;
+- observed recovery: **14.302 s**;
+- declared lab RTO: **30 s**;
+- RTO result: **PASS**;
+- route probes observed HTTP `503` during recreation and HTTP `200` once the replacement pod was Ready;
+- secret scan: `O5_SECRET_SCAN_PASS`.
+
+The two drills demonstrate repeatable recovery around 15 seconds for this specific single-pod stateless failure mode. They do **not** prove multi-node HA, zone failure recovery, database recovery, broker recovery, or disaster recovery.
+
+### RPO and data-loss scope
+
+RPO is not applicable to this specific drill because the injected failure only recreated a stateless application pod and did not fail a persistent store. No claim of measured persistent-data loss or zero-data-loss recovery is made.
+
+The evidence summaries intentionally retain:
+
+- `rpo_applicable=false`;
+- `data_loss_claim=NOT_MEASURED_NOT_APPLICABLE_TO_THIS_DRILL`;
+- `provider_cost_claim=NOT_MEASURED_ON_LOCAL_CRC`;
+- `carbon_claim=NOT_MEASURED`;
+- `full_resilience_finops_greenops_gate_claim=false`.
 
 ## FinOps evidence required
 
@@ -75,4 +121,6 @@ Cost reduction must not automatically be relabelled as carbon reduction.
 
 ## Current status
 
-The design, IaC tags, resource limits and teardown discipline are present, but measured resilience, cost and carbon evidence are not. Therefore `RESILIENCE_FINOPS_GREENOPS_VERIFIED` remains `PARTIAL` in I12.
+Measured local CRC resilience evidence is now operationally verified: baseline recovery was 15.301 s and the second controlled failure recovered in 14.302 s against a predeclared 30 s lab RTO, which passed. The exercise is intentionally scoped to a stateless single-pod recreation, so RPO is not applicable and no persistent-data recovery claim is made.
+
+Azure provider cost and carbon evidence are still unmeasured. Therefore `RESILIENCE_FINOPS_GREENOPS_VERIFIED` remains `PARTIAL`; the resilience portion is evidenced, while FinOps and GreenOps remain graduation blockers within the combined criterion.

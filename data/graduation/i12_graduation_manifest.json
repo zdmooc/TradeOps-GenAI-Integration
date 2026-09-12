@@ -127,9 +127,19 @@
     {
       "id": "RESILIENCE_FINOPS_GREENOPS_VERIFIED",
       "status": "PARTIAL",
-      "evidence_class": "DESIGNED",
-      "evidence_refs": ["repo:docs/20-azure-aro-enterprise-target.md", "repo:docs/24-adr-nfr-resilience-finops-greenops.md"],
-      "notes": "Policies and targets are documented. Measured resilience drills, RTO/RPO, Azure cost and carbon evidence remain pending."
+      "evidence_class": "OPERATIONAL",
+      "verified_at": "2026-09-12T20:28:09Z",
+      "evidence_refs": [
+        "repo:evidence/graduation/live/resilience/20260912T202019Z/00-summary.txt",
+        "repo:evidence/graduation/live/resilience/20260912T202019Z/11-recovery-probes.tsv",
+        "repo:evidence/graduation/live/resilience/20260912T202019Z/18-secret-scan.txt",
+        "repo:evidence/graduation/live/resilience/20260912T202740Z/00-summary.txt",
+        "repo:evidence/graduation/live/resilience/20260912T202740Z/11-recovery-probes.tsv",
+        "repo:evidence/graduation/live/resilience/20260912T202740Z/18-secret-scan.txt",
+        "repo:docs/20-azure-aro-enterprise-target.md",
+        "repo:docs/24-adr-nfr-resilience-finops-greenops.md"
+      ],
+      "notes": "Live CRC controlled-failure evidence now measures resilience: a 15.301 s baseline recovery and a second 14.302 s recovery against a 30 s RTO target declared before the second drill, which passed. The drill recreated one stateless agent-controller pod and observed HTTP 503 to 200 recovery; RPO is not applicable to this pod-only failure because no persistent-store failure was injected. Azure provider cost and carbon evidence remain unmeasured, so the combined criterion remains PARTIAL."
     },
     {
       "id": "INTERVIEW_DEMO_PACK",
