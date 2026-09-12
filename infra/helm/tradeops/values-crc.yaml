@@ -4,13 +4,78 @@ global:
     tag: i9
     pullPolicy: IfNotPresent
 
+# CRC is a single-node developer environment. Keep stateful dependencies
+# ephemeral here so arbitrary OpenShift UIDs are not blocked by hostPath PVC
+# ownership, while the default chart keeps PVC-backed storage.
+crc:
+  ephemeralPlatformStorage: true
+
+apps:
+  market-data:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  workflow-api:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  genai-api:
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  rag-api:
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: "1", memory: 1Gi}
+  agent-controller:
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  mcp-server:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  risk-engine:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  paper-oms:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  notifier:
+    resources:
+      requests: {cpu: 10m, memory: 32Mi}
+      limits: {cpu: 100m, memory: 128Mi}
+
 platform:
   postgres:
     storage: 1Gi
+    resources:
+      requests: {cpu: 25m, memory: 128Mi}
+      limits: {cpu: 250m, memory: 512Mi}
   redpanda:
     storage: 1Gi
+    resources:
+      requests: {cpu: 100m, memory: 384Mi}
+      limits: {cpu: 500m, memory: 1Gi}
   qdrant:
     storage: 1Gi
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  otelCollector:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+  prometheus:
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 250m, memory: 512Mi}
+  grafana:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
 
 routes:
   enabled: true
