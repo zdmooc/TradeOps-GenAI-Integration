@@ -58,6 +58,8 @@ def validate_platform() -> list[str]:
         errors.append("legacy signal-engine must remain explicitly disabled")
     if "tag: latest" in values or ":latest" in values:
         errors.append("Helm values must not use latest image tags")
+    if "image: qdrant/qdrant:v1.19.0" not in values:
+        errors.append("Qdrant server must stay aligned with qdrant-client 1.19.0")
 
     crc_values = _read("infra/helm/tradeops/values-crc.yaml")
     for required in (
