@@ -1,0 +1,2 @@
+NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE   NOMINATED NODE   READINESS GATES
+agent-controller-656b7d989-fgnkd   1/1     Running   0          5h29m   10.217.0.145   crc    <none>           <none>

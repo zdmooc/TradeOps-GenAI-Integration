@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+date: Sat, 12 Sep 2026 20:20:53 GMT
+server: uvicorn
+content-length: 215
+content-type: application/json
+x-correlation-id: abca0dc8-57ed-4bce-b848-0dc24f8f34b7
+x-trace-id: 2227419ddf4e0a632aa6c139d424cc8f
+set-cookie: 21cf1d203d319e20666a9e014b234d50=647ee472b689e94fdd5bc3daddf6749d; path=/; HttpOnly; Secure; SameSite=None
+

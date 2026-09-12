@@ -1,0 +1,21 @@
+LAST SEEN   TYPE      REASON             OBJECT                                  MESSAGE
+7m36s       Normal    Killing            pod/agent-controller-656b7d989-fgnkd    Stopping container agent-controller
+7m35s       Warning   Unhealthy          pod/agent-controller-656b7d989-fgnkd    Readiness probe failed: Get "http://10.217.0.145:8015/health": dial tcp 10.217.0.145:8015: connect: connection refused
+7m35s       Normal    Scheduled          pod/agent-controller-656b7d989-pbpz7    Successfully assigned tradeops/agent-controller-656b7d989-pbpz7 to crc
+7m35s       Normal    AddedInterface     pod/agent-controller-656b7d989-pbpz7    Add eth0 [10.217.0.157/23] from ovn-kubernetes
+7m35s       Normal    Pulling            pod/agent-controller-656b7d989-pbpz7    Pulling image "image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime:i9"
+7m35s       Normal    Pulled             pod/agent-controller-656b7d989-pbpz7    Successfully pulled image "image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime:i9" in 234ms (234ms including waiting). Image size: 2896331579 bytes.
+7m35s       Normal    SuccessfulCreate   replicaset/agent-controller-656b7d989   Created pod: agent-controller-656b7d989-pbpz7
+7m34s       Normal    Created            pod/agent-controller-656b7d989-pbpz7    Container created
+7m34s       Normal    Started            pod/agent-controller-656b7d989-pbpz7    Container started
+7m30s       Warning   Unhealthy          pod/agent-controller-656b7d989-pbpz7    Startup probe failed: Get "http://10.217.0.157:8015/health": dial tcp 10.217.0.157:8015: connect: connection refused
+16s         Normal    Killing            pod/agent-controller-656b7d989-pbpz7    Stopping container agent-controller
+16s         Normal    Scheduled          pod/agent-controller-656b7d989-zvqzz    Successfully assigned tradeops/agent-controller-656b7d989-zvqzz to crc
+16s         Normal    SuccessfulCreate   replicaset/agent-controller-656b7d989   Created pod: agent-controller-656b7d989-zvqzz
+15s         Warning   Unhealthy          pod/agent-controller-656b7d989-pbpz7    Readiness probe failed: Get "http://10.217.0.157:8015/health": dial tcp 10.217.0.157:8015: connect: connection refused
+15s         Normal    Pulling            pod/agent-controller-656b7d989-zvqzz    Pulling image "image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime:i9"
+15s         Normal    AddedInterface     pod/agent-controller-656b7d989-zvqzz    Add eth0 [10.217.0.158/23] from ovn-kubernetes
+14s         Normal    Pulled             pod/agent-controller-656b7d989-zvqzz    Successfully pulled image "image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime:i9" in 369ms (369ms including waiting). Image size: 2896331579 bytes.
+14s         Normal    Created            pod/agent-controller-656b7d989-zvqzz    Container created
+14s         Normal    Started            pod/agent-controller-656b7d989-zvqzz    Container started
+11s         Warning   Unhealthy          pod/agent-controller-656b7d989-zvqzz    Startup probe failed: Get "http://10.217.0.158:8015/health": dial tcp 10.217.0.158:8015: connect: connection refused

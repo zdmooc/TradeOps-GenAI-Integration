@@ -1,0 +1,5 @@
+failure_injection_start_utc=2026-09-12T20:20:35.752205Z
+old_pod=agent-controller-656b7d989-fgnkd
+old_uid=3d74507e-5587-448f-b327-938ee39452cf
+action=oc delete pod --wait=false
+pod "agent-controller-656b7d989-fgnkd" deleted

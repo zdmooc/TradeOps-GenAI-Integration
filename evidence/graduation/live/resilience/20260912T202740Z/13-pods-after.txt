@@ -1,0 +1,2 @@
+NAME                               READY   STATUS    RESTARTS   AGE   IP             NODE   NOMINATED NODE   READINESS GATES
+agent-controller-656b7d989-zvqzz   1/1     Running   0          15s   10.217.0.158   crc    <none>           <none>

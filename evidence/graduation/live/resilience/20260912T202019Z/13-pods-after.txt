@@ -1,0 +1,2 @@
+NAME                               READY   STATUS    RESTARTS   AGE   IP             NODE   NOMINATED NODE   READINESS GATES
+agent-controller-656b7d989-pbpz7   1/1     Running   0          17s   10.217.0.157   crc    <none>           <none>

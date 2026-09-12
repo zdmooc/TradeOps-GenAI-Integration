@@ -1,0 +1,39 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    meta.helm.sh/release-name: tradeops
+    meta.helm.sh/release-namespace: tradeops
+    openshift.io/host.generated: "true"
+  creationTimestamp: "2026-09-12T11:01:15Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: agent-controller
+    app.kubernetes.io/part-of: tradeops
+  name: agent-controller
+  namespace: tradeops
+  resourceVersion: "894324"
+  uid: 4250f466-7544-41e8-bce5-bee331dfb20c
+spec:
+  host: agent-controller-tradeops.apps-crc.testing
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: agent-controller
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress:
+  - conditions:
+    - lastTransitionTime: "2026-09-12T11:01:15Z"
+      status: "True"
+      type: Admitted
+    host: agent-controller-tradeops.apps-crc.testing
+    routerCanonicalHostname: router-default.apps-crc.testing
+    routerName: default
+    wildcardPolicy: None

@@ -1,0 +1,2 @@
+NAME   CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+crc    1818m        23%      17636Mi         74%         
