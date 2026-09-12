@@ -118,6 +118,8 @@ def validate_platform() -> list[str]:
     for required in (
         "values: [market-data, genai-api, rag-api]",
         "port: 53",
+        "port: 5353",
+        "kubernetes.io/metadata.name: openshift-dns",
     ):
         if required not in network:
             errors.append(f"CRC application egress policy incomplete: {required}")
