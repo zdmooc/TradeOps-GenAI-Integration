@@ -123,9 +123,15 @@ def validate_platform() -> list[str]:
         errors.append("Argo CD must pin the repository branch explicitly")
 
     dockerfile = _read("Dockerfile.openshift")
-    for pin in ("sentence-transformers==6.0.1", "qdrant-client==1.19.0"):
+    for pin in (
+        "torch==2.14.0+cpu",
+        "sentence-transformers==6.0.1",
+        "qdrant-client==1.19.0",
+    ):
         if pin not in dockerfile:
             errors.append(f"OpenShift runtime image dependency is not pinned: {pin}")
+    if "https://download.pytorch.org/whl/cpu" not in dockerfile:
+        errors.append("OpenShift CRC image must use the CPU-only PyTorch wheel index")
     if "chgrp -R 0 /app" not in dockerfile or "chmod -R g=u /app" not in dockerfile:
         errors.append("OpenShift arbitrary-UID compatibility permissions are missing")
 
