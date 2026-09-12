@@ -53,13 +53,13 @@ def test_i11_required_finops_tags_exist():
         assert tag in value
 
 
-def test_i11_aro_target_is_private_managed_identity_and_explicitly_sized():
+def test_i11_aro_target_is_private_managed_identity_and_explicitly_sized_for_rhoai():
     value = text("scripts/i11_aro_create.sh")
     assert "--enable-mi true" in value
     assert "--apiserver-visibility Private" in value
     assert "--ingress-visibility Private" in value
     assert 'ARO_MASTER_VM_SIZE="${ARO_MASTER_VM_SIZE:-Standard_D8s_v5}"' in value
-    assert 'ARO_WORKER_VM_SIZE="${ARO_WORKER_VM_SIZE:-Standard_D4s_v5}"' in value
+    assert 'ARO_WORKER_VM_SIZE="${ARO_WORKER_VM_SIZE:-Standard_D8s_v5}"' in value
     assert 'ARO_WORKER_COUNT="${ARO_WORKER_COUNT:-3}"' in value
     assert 'ARO_WORKER_DISK_GB="${ARO_WORKER_DISK_GB:-128}"' in value
     assert "--master-vm-size" in value
