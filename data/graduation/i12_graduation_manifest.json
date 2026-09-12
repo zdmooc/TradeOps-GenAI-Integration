@@ -73,10 +73,22 @@
     },
     {
       "id": "OBSERVABILITY_SECURITY_LIVE",
-      "status": "PARTIAL",
-      "evidence_class": "CI",
-      "evidence_refs": ["repo:docs/17-observability-security-llmops.md", "ci:34654382558"],
-      "notes": "OpenTelemetry, metrics, alerts, identity and security controls are tested in CI, but retained live end-to-end telemetry evidence is pending."
+      "status": "SATISFIED",
+      "evidence_class": "OPERATIONAL",
+      "verified_at": "2026-09-12T15:09:08Z",
+      "evidence_refs": [
+        "repo:evidence/graduation/live/observability/20260912T150908Z/00-summary.txt",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/08-trace-header-check.txt",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/10-unauthorized-status.txt",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/11-prometheus-up.json",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/12-security-denial-metric.json",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/14-otel-check.txt",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/15-runtime-security.txt",
+        "repo:evidence/graduation/live/observability/20260912T150908Z/16-secret-scan.txt",
+        "repo:docs/17-observability-security-llmops.md",
+        "ci:34701316653"
+      ],
+      "notes": "Live CRC evidence proves correlation and trace headers, unauthenticated access denial, six Prometheus targets UP, security-denial metrics, OpenTelemetry trace export, runtime security controls and retained secret-scan output."
     },
     {
       "id": "OPENSHIFT_AZURE_DEPLOYMENT",

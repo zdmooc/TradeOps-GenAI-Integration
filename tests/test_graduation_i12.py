@@ -61,10 +61,10 @@ def test_current_manifest_is_deliberately_not_graduated():
     assert report.status == "NOT_GRADUATED"
     assert report.errors == ()
     assert report.paper_shadow_valid_outcomes == 0
+    assert "OBSERVABILITY_SECURITY_LIVE" in report.satisfied
     assert report.blockers == (
         "LIVE_MULTI_SOURCE_REPLAY",
         "PAPER_SHADOW_100_OUTCOMES",
-        "OBSERVABILITY_SECURITY_LIVE",
         "OPENSHIFT_AZURE_DEPLOYMENT",
         "RESILIENCE_FINOPS_GREENOPS_VERIFIED",
     )
