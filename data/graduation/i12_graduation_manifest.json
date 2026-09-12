@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "program": "AI Solution Architect — Agentic AI & Real-Time Trading Systems",
+  "as_of": "2026-09-12",
+  "probabilistic_production_claim": false,
+  "paper_shadow": {
+    "required_outcomes": 100,
+    "records_path": "evidence/graduation/paper-shadow-records.jsonl"
+  },
+  "criteria": [
+    {
+      "id": "LIVE_MULTI_SOURCE_REPLAY",
+      "status": "PARTIAL",
+      "evidence_class": "OFFLINE_CI",
+      "evidence_refs": ["repo:docs/10-market-data-replay.md", "ci:34642186132"],
+      "notes": "Canonical replay and IG adapters are tested offline. A second independent live source plus captured live replay evidence are still required."
+    },
+    {
+      "id": "DATA_QUALITY_ENGINE",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/10-market-data-replay.md", "ci:34642186132"],
+      "notes": "Stale, duplicate, out-of-order, future timestamp, missing price and spread-quality controls are tested."
+    },
+    {
+      "id": "TECHNICAL_PATTERN_REGIME",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/11-technical-analysis-patterns.md", "repo:docs/12-market-regime-risk.md", "ci:34644295181"],
+      "notes": "Deterministic indicators, patterns, structure and market-regime classification are covered by CI."
+    },
+    {
+      "id": "BACKTEST_OOS_WALKFORWARD",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/13-backtesting-experiment-discipline.md", "ci:34645138469"],
+      "notes": "Reproducible event-driven mechanics, explicit costs, chronological OOS and walk-forward contracts are tested. This does not assert real-market alpha."
+    },
+    {
+      "id": "ML_CALIBRATION_IF_PROBABILISTIC",
+      "status": "NOT_APPLICABLE",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/14-ml-signal-quality.md", "ci:34646841551"],
+      "notes": "No production probabilistic claim is made. Existing calibration evidence is synthetic and remains lab-only."
+    },
+    {
+      "id": "SPECIALIZED_AGENTS_CONFLICT",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/15-agentic-rag-mcp.md", "ci:34648593641"],
+      "notes": "Specialized agents preserve UNKNOWN, DATA_STALE, CONFLICT and terminal deterministic VETO states."
+    },
+    {
+      "id": "SECURE_MCP_TOOL_BOUNDARY",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/15-agentic-rag-mcp.md", "ci:34648593641"],
+      "notes": "Authentication, scopes, allowlist, validation, rate limits, timeouts and audit redaction fail closed in tests."
+    },
+    {
+      "id": "DETERMINISTIC_RISK_HITL",
+      "status": "SATISFIED",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/12-market-regime-risk.md", "repo:docs/16-decision-fusion-hitl.md", "ci:34650953035"],
+      "notes": "Deterministic risk remains authoritative and review approval is separated from agent identity."
+    },
+    {
+      "id": "PAPER_SHADOW_100_OUTCOMES",
+      "status": "PENDING",
+      "evidence_class": "OPERATIONAL",
+      "evidence_refs": ["repo:evidence/graduation/README.md"],
+      "notes": "No synthetic fixture is accepted. One hundred unique PAPER/SHADOW signals on live or recorded real-market input must be closed with realized-R outcome evidence."
+    },
+    {
+      "id": "OBSERVABILITY_SECURITY_LIVE",
+      "status": "PARTIAL",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/17-observability-security-llmops.md", "ci:34654382558"],
+      "notes": "OpenTelemetry, metrics, alerts, identity and security controls are tested in CI, but retained live end-to-end telemetry evidence is pending."
+    },
+    {
+      "id": "OPENSHIFT_AZURE_DEPLOYMENT",
+      "status": "PARTIAL",
+      "evidence_class": "CI",
+      "evidence_refs": ["repo:docs/18-openshift-crc-gitops.md", "repo:docs/19-openshift-ai-model-serving.md", "repo:docs/20-azure-aro-enterprise-target.md", "ci:34682673257"],
+      "notes": "CRC/RHOAI/ARO deployment contracts are tested, but live cluster deployment and verification evidence remain pending."
+    },
+    {
+      "id": "RESILIENCE_FINOPS_GREENOPS_VERIFIED",
+      "status": "PARTIAL",
+      "evidence_class": "DESIGNED",
+      "evidence_refs": ["repo:docs/20-azure-aro-enterprise-target.md", "repo:docs/24-adr-nfr-resilience-finops-greenops.md"],
+      "notes": "Policies and targets are documented. Measured resilience drills, RTO/RPO, Azure cost and carbon evidence remain pending."
+    },
+    {
+      "id": "INTERVIEW_DEMO_PACK",
+      "status": "SATISFIED",
+      "evidence_class": "DOCUMENTED",
+      "evidence_refs": ["repo:docs/22-interview-demo-pack.md"],
+      "notes": "A 30-minute architecture/interview demonstration sequence is versioned with explicit non-claims."
+    },
+    {
+      "id": "BANK_INSURANCE_TRANSPOSITION",
+      "status": "SATISFIED",
+      "evidence_class": "DOCUMENTED",
+      "evidence_refs": ["repo:docs/23-enterprise-transposition.md"],
+      "notes": "Trading capabilities are mapped to banking, payments, fraud, insurance, cybersecurity and real-time decisioning patterns."
+    }
+  ]
+}

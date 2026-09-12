@@ -30,4 +30,5 @@ jobs:
       - run: terraform validate -no-color
         working-directory: infra/azure-enterprise/terraform
       - run: python scripts/i11_validate_azure_target.py
+      - run: python scripts/i12_graduation_check.py --expect-status NOT_GRADUATED
       - run: pytest -q
