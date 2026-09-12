@@ -66,6 +66,7 @@ def validate_platform() -> list[str]:
     for required in (
         "ephemeralPlatformStorage: true",
         "HF_HOME: /tmp/huggingface",
+        "pullPolicy: Always",
     ):
         if required not in crc_values:
             errors.append(f"CRC runtime value missing: {required}")
