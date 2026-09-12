@@ -93,7 +93,9 @@ spec:
 ---
 # OpenShift BuildConfig pods are created dynamically and carry
 # openshift.io/build.name. They must reach Git/PyPI/base registries over HTTPS,
-# the Kubernetes API over 443, and the internal image registry on 5000.
+# the Kubernetes API, and the internal image registry. OVN can evaluate egress
+# after Service DNAT, so the Kubernetes Service VIP :443 can appear to policy as
+# the API backend :6443. Permit both ports for build pods only.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -112,6 +114,8 @@ spec:
       ports:
         - protocol: TCP
           port: 443
+        - protocol: TCP
+          port: 6443
     - to:
         - namespaceSelector:
             matchLabels:
