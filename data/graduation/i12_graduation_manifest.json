@@ -81,9 +81,19 @@
     {
       "id": "OPENSHIFT_AZURE_DEPLOYMENT",
       "status": "PARTIAL",
-      "evidence_class": "CI",
-      "evidence_refs": ["repo:docs/18-openshift-local-gitops.md", "repo:docs/19-openshift-ai-model-serving.md", "repo:docs/20-azure-aro-enterprise-target.md", "ci:34682673257"],
-      "notes": "CRC/RHOAI/ARO deployment contracts are tested, but live cluster deployment and verification evidence remain pending."
+      "evidence_class": "OPERATIONAL",
+      "verified_at": "2026-09-12T14:54:40Z",
+      "evidence_refs": [
+        "repo:evidence/graduation/live/crc/20260912T145440Z/00-summary.txt",
+        "repo:evidence/graduation/live/crc/20260912T145440Z/06-verify.txt",
+        "repo:evidence/graduation/live/crc/20260912T145440Z/17-rag-image-digest.txt",
+        "repo:evidence/graduation/live/crc/20260912T145440Z/18-rag-e2e.txt",
+        "repo:evidence/graduation/live/crc/20260912T145440Z/19-secret-scan.txt",
+        "repo:docs/19-openshift-ai-model-serving.md",
+        "repo:docs/20-azure-aro-enterprise-target.md",
+        "ci:34700609229"
+      ],
+      "notes": "OpenShift Local/CRC is verified live: I9 rollout, routes, policies, RAG image digest, end-to-end ingest/query, node health and secret-scan evidence are retained. The combined criterion remains PARTIAL because live RHOAI model serving and Azure/ARO deployment verification are still pending."
     },
     {
       "id": "RESILIENCE_FINOPS_GREENOPS_VERIFIED",
