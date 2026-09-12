@@ -31,9 +31,7 @@ spec:
   podSelector: {}
   policyTypes: [Egress]
   egress:
-    # CRC/OpenShift DNS can be reached through host-networked resolver paths
-    # that are not reliably matched by namespaceSelector alone. Restrict the
-    # broad destination to DNS ports only.
+    # Service-VIP path: clients send DNS to port 53.
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
@@ -42,6 +40,18 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
+    # OpenShift DNS pods listen on target port 5353. Depending on where OVN
+    # applies policy relative to Service DNAT, the post-DNAT destination port
+    # can be 5353 instead of 53. Restrict that backend path to openshift-dns.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-dns
+      ports:
+        - protocol: UDP
+          port: 5353
+        - protocol: TCP
+          port: 5353
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
