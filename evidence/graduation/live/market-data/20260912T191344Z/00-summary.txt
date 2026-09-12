@@ -1,0 +1,12 @@
+timestamp_utc=20260912T191344Z
+git_commit=6800247e1c78733fbcdc5bb9dd48ebe263edb746
+evidence_class=LIVE_OPERATIONAL
+ig_environment=live
+ig_epic=CS.D.BITCOIN.CFD.IP
+kraken_pair=XBTUSD
+sources=IG_REST,KRAKEN_REST
+captured_events=40
+accepted_events=40
+deterministic_replay=true
+secret_scan=PASS
+verification=LIVE_MULTI_SOURCE_REPLAY_PASS

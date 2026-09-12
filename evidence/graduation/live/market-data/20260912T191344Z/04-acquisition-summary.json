@@ -1,0 +1,24 @@
+{
+  "captured_at": "2026-09-12T19:13:44.265968Z",
+  "ig": {
+    "authenticated_account_present": true,
+    "environment": "live",
+    "epic": "CS.D.BITCOIN.CFD.IP",
+    "events": 20,
+    "latest_age_seconds": 44.266,
+    "latest_event_time": "2026-09-12T19:13:00Z"
+  },
+  "kraken": {
+    "committed_only": true,
+    "events": 20,
+    "latest_age_seconds": 104.266,
+    "latest_event_time": "2026-09-12T19:12:00Z",
+    "pair": "XBTUSD"
+  },
+  "max_source_age_seconds": 1800.0,
+  "source_count": 2,
+  "sources": [
+    "IG_REST",
+    "KRAKEN_REST"
+  ]
+}

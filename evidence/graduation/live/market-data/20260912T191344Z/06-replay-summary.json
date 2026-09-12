@@ -1,0 +1,12 @@
+{
+  "accepted": 40,
+  "captured": 40,
+  "deterministic_second_run_equal": true,
+  "first_event_time": "2026-09-12T18:53:00Z",
+  "last_event_time": "2026-09-12T19:13:00Z",
+  "rejected": 0,
+  "sources": [
+    "IG_REST",
+    "KRAKEN_REST"
+  ]
+}
