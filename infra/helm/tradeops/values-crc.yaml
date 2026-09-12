@@ -2,7 +2,10 @@ global:
   image:
     repository: image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime
     tag: i9
-    pullPolicy: IfNotPresent
+    # CRC reuses a mutable local ImageStream tag during iterative builds.
+    # Always pull it so a rollout after a successful BuildConfig consumes the
+    # new digest instead of the node's cached previous i9 image.
+    pullPolicy: Always
 
 # CRC is a single-node developer environment. Keep stateful dependencies
 # ephemeral here so arbitrary OpenShift UIDs are not blocked by hostPath PVC
