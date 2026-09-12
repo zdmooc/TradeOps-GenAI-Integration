@@ -49,3 +49,4 @@ def test_o5_resilience_drill_captures_operational_evidence():
 
     assert "oc -n \"$NAMESPACE\" delete pod \"$OLD_POD\" --wait=false" in text
     assert 'evidence_class=LIVE_OPERATIONAL' in text
+    assert '| OLD_UID="$OLD_UID" python -c' in text

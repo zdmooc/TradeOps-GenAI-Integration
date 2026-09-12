@@ -115,8 +115,8 @@ while true; do
 
   HTTP_CODE="$(curl -sSk -o /dev/null -w '%{http_code}' "https://${AGENT_HOST}/health" || true)"
   POD_INFO="$(
-    OLD_UID="$OLD_UID" oc -n "$NAMESPACE" get pods -l "$LABEL" -o json 2>/dev/null \
-      | python -c '
+    oc -n "$NAMESPACE" get pods -l "$LABEL" -o json 2>/dev/null \
+      | OLD_UID="$OLD_UID" python -c '
 import json, os, sys
 data = json.load(sys.stdin)
 old_uid = os.environ["OLD_UID"]
