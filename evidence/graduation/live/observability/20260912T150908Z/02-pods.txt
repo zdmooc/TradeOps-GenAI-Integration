@@ -1,0 +1,16 @@
+NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE   NOMINATED NODE   READINESS GATES
+agent-controller-656b7d989-fgnkd   1/1     Running   0          18m     10.217.0.145   crc    <none>           <none>
+genai-api-668d94c967-tztds         1/1     Running   0          18m     10.217.0.143   crc    <none>           <none>
+grafana-574f9bd5dd-wqbvd           1/1     Running   0          18m     10.217.0.150   crc    <none>           <none>
+market-data-74787d9b7f-vxc8c       1/1     Running   0          18m     10.217.0.141   crc    <none>           <none>
+mcp-server-fd6c8b856-lt6jj         1/1     Running   0          18m     10.217.0.146   crc    <none>           <none>
+notifier-7db85f9d46-dz4js          1/1     Running   0          18m     10.217.0.149   crc    <none>           <none>
+otel-collector-7f67cb765d-2qrwm    1/1     Running   0          3h41m   10.217.0.104   crc    <none>           <none>
+paper-oms-76c8667549-8jvhh         1/1     Running   0          18m     10.217.0.148   crc    <none>           <none>
+postgres-0                         1/1     Running   0          18m     10.217.0.140   crc    <none>           <none>
+prometheus-76db5f955c-jvc64        1/1     Running   0          3h41m   10.217.0.106   crc    <none>           <none>
+qdrant-0                           1/1     Running   0          147m    10.217.0.121   crc    <none>           <none>
+rag-api-5fc75b94c8-6dfqc           1/1     Running   0          18m     10.217.0.144   crc    <none>           <none>
+redpanda-0                         1/1     Running   0          3h4m    10.217.0.116   crc    <none>           <none>
+risk-engine-57b8d65bd8-5jgtw       1/1     Running   0          18m     10.217.0.147   crc    <none>           <none>
+workflow-api-57497655bb-gtr82      1/1     Running   0          18m     10.217.0.142   crc    <none>           <none>

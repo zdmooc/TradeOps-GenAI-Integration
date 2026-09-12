@@ -1,0 +1,13 @@
+CRC VM:          Running
+OpenShift:       Running (v4.22.7)
+RAM Usage:       19.4GB of 25.19GB
+Disk Usage:      60.19GB of 85.29GB (Inside the CRC VM)
+Cache Usage:     94.41GB
+Cache Directory: C:\Users\HP 17 G3 Win 11 23H2\.crc\cache
+Client Version: 4.19.3
+Kustomize Version: v5.5.0
+Server Version: 4.22.7
+Kubernetes Version: v1.35.6
+NAME   STATUS   ROLES                         AGE   VERSION
+crc    Ready    control-plane,master,worker   46d   v1.35.6
+I9_CRC_PREFLIGHT_PASS

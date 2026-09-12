@@ -1,0 +1,8 @@
+timestamp_utc=20260912T150908Z
+git_commit=1b9cadc5b3f88280990803c203bf7818a01117b3
+namespace=tradeops
+agent_controller_route=https://agent-controller-tradeops.apps-crc.testing
+grafana_route=https://grafana-tradeops.apps-crc.testing
+correlation_id=o2-20260912T150908Z
+evidence_class=LIVE_OPERATIONAL
+verification=OBSERVABILITY_SECURITY_LIVE_PASS

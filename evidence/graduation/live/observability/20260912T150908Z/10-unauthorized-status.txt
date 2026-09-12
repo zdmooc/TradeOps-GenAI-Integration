@@ -1,0 +1,2 @@
+http_status=401
+O2_SECURITY_BOUNDARY_PASS

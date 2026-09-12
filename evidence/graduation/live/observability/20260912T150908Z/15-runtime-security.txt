@@ -1,0 +1,5 @@
+NAME               READY   AVAILABLE   SA                 AUTOMOUNT
+agent-controller   1       1           tradeops-runtime   false
+prometheus         1       1           <none>             <none>
+grafana            1       1           <none>             <none>
+otel-collector     1       1           <none>             <none>

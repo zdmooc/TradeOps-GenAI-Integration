@@ -1,0 +1,7 @@
+NAME                           POD-SELECTOR                                                        AGE
+allow-dns-egress               <none>                                                              6h8m
+allow-external-https-egress    app.kubernetes.io/name in (genai-api,market-data,rag-api)           6h8m
+allow-intra-namespace          <none>                                                              6h8m
+allow-openshift-build-egress   openshift.io/build.name                                             5h4m
+allow-router-ingress           app.kubernetes.io/name in (agent-controller,grafana,workflow-api)   6h8m
+default-deny                   <none>                                                              6h8m

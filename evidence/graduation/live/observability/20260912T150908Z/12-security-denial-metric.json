@@ -1,0 +1,1 @@
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"tradeops_security_denials_total","boundary":"agent-controller","instance":"agent-controller:8015","job":"tradeops-apis","reason":"decision_read"},"value":[1789225781.981,"1"]}]}}
