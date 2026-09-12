@@ -60,11 +60,11 @@ def test_current_manifest_is_deliberately_not_graduated():
     report = evaluate_manifest(load_manifest(MANIFEST), repo_root=ROOT)
     assert report.status == "NOT_GRADUATED"
     assert report.errors == ()
-    assert report.paper_shadow_valid_outcomes == 0
+    assert report.paper_shadow_valid_outcomes == 100
     assert "LIVE_MULTI_SOURCE_REPLAY" in report.satisfied
+    assert "PAPER_SHADOW_100_OUTCOMES" in report.satisfied
     assert "OBSERVABILITY_SECURITY_LIVE" in report.satisfied
     assert report.blockers == (
-        "PAPER_SHADOW_100_OUTCOMES",
         "OPENSHIFT_AZURE_DEPLOYMENT",
         "RESILIENCE_FINOPS_GREENOPS_VERIFIED",
     )

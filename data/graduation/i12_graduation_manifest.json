@@ -74,10 +74,19 @@
     },
     {
       "id": "PAPER_SHADOW_100_OUTCOMES",
-      "status": "PENDING",
+      "status": "SATISFIED",
       "evidence_class": "OPERATIONAL",
-      "evidence_refs": ["repo:evidence/graduation/README.md"],
-      "notes": "No synthetic fixture is accepted. One hundred unique PAPER/SHADOW signals on live or recorded real-market input must be closed with realized-R outcome evidence."
+      "verified_at": "2026-09-12T19:27:33Z",
+      "evidence_refs": [
+        "repo:evidence/graduation/paper-shadow-records.jsonl",
+        "repo:evidence/graduation/live/paper-shadow/20260912T192733Z/00-summary.txt",
+        "repo:evidence/graduation/live/paper-shadow/20260912T192733Z/01-kraken-real-market-capture.jsonl",
+        "repo:evidence/graduation/live/paper-shadow/20260912T192733Z/02-paper-shadow-records.jsonl",
+        "repo:evidence/graduation/live/paper-shadow/20260912T192733Z/03-summary.json",
+        "repo:docs/26-paper-shadow-100-outcomes.md",
+        "ci:34714040313"
+      ],
+      "notes": "Operational evidence contains 100 unique CLOSED SHADOW outcomes derived from recorded real-market Kraken XBTUSD bars, each with timezone-aware observation/close times, finite realized-R and retained evidence references. Execution remained shadow-only with no broker orders."
     },
     {
       "id": "OBSERVABILITY_SECURITY_LIVE",
