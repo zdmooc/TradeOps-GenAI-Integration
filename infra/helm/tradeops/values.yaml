@@ -15,6 +15,11 @@ global:
     OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     OTEL_SERVICE_NAMESPACE: tradeops
 
+# Default target keeps persistent state. The CRC overlay switches this to
+# ephemeral storage because OpenShift Local is a disposable single-node lab.
+crc:
+  ephemeralPlatformStorage: false
+
 serviceAccount:
   create: true
   name: tradeops-runtime
