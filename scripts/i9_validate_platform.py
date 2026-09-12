@@ -81,9 +81,18 @@ def validate_platform() -> list[str]:
         "name: allow-dns-egress",
         "name: allow-router-ingress",
         "name: allow-external-https-egress",
+        "name: allow-openshift-build-egress",
     ):
         if required not in network:
             errors.append(f"NetworkPolicy missing: {required}")
+    for required in (
+        "key: openshift.io/build.name",
+        "port: 443",
+        "port: 5000",
+        "kubernetes.io/metadata.name: openshift-image-registry",
+    ):
+        if required not in network:
+            errors.append(f"OpenShift build egress policy incomplete: {required}")
 
     for relpath in (
         "infra/openshift/policies/kyverno/require-resources.yaml",

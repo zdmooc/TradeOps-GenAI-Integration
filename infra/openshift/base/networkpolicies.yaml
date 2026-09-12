@@ -78,3 +78,32 @@ spec:
       ports:
         - protocol: TCP
           port: 443
+---
+# OpenShift BuildConfig pods are created dynamically and carry
+# openshift.io/build.name. They must reach Git/PyPI/base registries over HTTPS,
+# the Kubernetes API over 443, and the internal image registry on 5000.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-openshift-build-egress
+  namespace: tradeops
+spec:
+  podSelector:
+    matchExpressions:
+      - key: openshift.io/build.name
+        operator: Exists
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-image-registry
+      ports:
+        - protocol: TCP
+          port: 5000
