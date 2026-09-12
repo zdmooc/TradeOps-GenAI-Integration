@@ -1,0 +1,505 @@
+{{ if .Values.platform.postgres.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  labels:
+    app.kubernetes.io/name: postgres
+    {{- include "tradeops.labels" . | nindent 4 }}
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS workflows (
+      workflow_id UUID PRIMARY KEY,
+      status TEXT NOT NULL,
+      payload JSONB NOT NULL,
+      confidence_score NUMERIC NULL,
+      decision TEXT NULL,
+      reviewer TEXT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS orders (
+      order_id UUID PRIMARY KEY,
+      workflow_id UUID NOT NULL,
+      status TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      side TEXT NOT NULL,
+      qty NUMERIC NOT NULL,
+      fill_price NUMERIC,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      audit_id BIGSERIAL PRIMARY KEY,
+      kind TEXT NOT NULL,
+      ref_id TEXT NOT NULL,
+      data JSONB NOT NULL,
+      hash TEXT NOT NULL,
+      correlation_id UUID NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_ref ON audit_logs(ref_id);
+    CREATE INDEX IF NOT EXISTS idx_audit_kind ON audit_logs(kind);
+    CREATE INDEX IF NOT EXISTS idx_audit_correlation ON audit_logs(correlation_id);
+    CREATE INDEX IF NOT EXISTS idx_workflows_status ON workflows(status);
+    CREATE INDEX IF NOT EXISTS idx_workflows_decision ON workflows(decision);
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      securityContext:
+        {{- include "tradeops.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: postgres
+          image: {{ .Values.platform.postgres.image | quote }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.global.env.POSTGRES_DB | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.global.env.POSTGRES_USER | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretName }}
+                  key: POSTGRES_PASSWORD
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.postgres.resources | nindent 12 }}
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "tradeops", "-d", "tradeops"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.platform.postgres.storage }}
+---
+{{ end }}
+{{ if .Values.platform.redpanda.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda
+  labels:
+    app.kubernetes.io/name: redpanda
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: redpanda
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: kafka
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redpanda
+  labels:
+    app.kubernetes.io/name: redpanda
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  serviceName: redpanda
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redpanda
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redpanda
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      securityContext:
+        {{- include "tradeops.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: redpanda
+          image: {{ .Values.platform.redpanda.image | quote }}
+          args:
+            - redpanda
+            - start
+            - --overprovisioned
+            - --smp
+            - "1"
+            - --memory
+            - 512M
+            - --reserve-memory
+            - 0M
+            - --check=false
+            - --kafka-addr
+            - PLAINTEXT://0.0.0.0:9092
+            - --advertise-kafka-addr
+            - PLAINTEXT://redpanda:9092
+          ports:
+            - name: kafka
+              containerPort: 9092
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.redpanda.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: kafka
+            initialDelaySeconds: 8
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/redpanda/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.platform.redpanda.storage }}
+---
+{{ end }}
+{{ if .Values.platform.qdrant.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  labels:
+    app.kubernetes.io/name: qdrant
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: qdrant
+  ports:
+    - name: http
+      port: 6333
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant
+  labels:
+    app.kubernetes.io/name: qdrant
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  serviceName: qdrant
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qdrant
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      securityContext:
+        {{- include "tradeops.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: qdrant
+          image: {{ .Values.platform.qdrant.image | quote }}
+          ports:
+            - name: http
+              containerPort: 6333
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.qdrant.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /qdrant/storage
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.platform.qdrant.storage }}
+---
+{{ end }}
+{{ if .Values.platform.otelCollector.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch: {}
+    exporters:
+      debug:
+        verbosity: basic
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: otel-collector
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      containers:
+        - name: otel-collector
+          image: {{ .Values.platform.otelCollector.image | quote }}
+          args: ["--config=/etc/otelcol/config.yaml"]
+          ports:
+            - name: otlp-http
+              containerPort: 4318
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.otelCollector.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/part-of: tradeops
+spec:
+  selector:
+    app.kubernetes.io/name: otel-collector
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+---
+{{ end }}
+{{ if .Values.platform.prometheus.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: tradeops-apis
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - market-data:8011
+              - workflow-api:8012
+              - genai-api:8013
+              - rag-api:8014
+              - agent-controller:8015
+              - mcp-server:8016
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      containers:
+        - name: prometheus
+          image: {{ .Values.platform.prometheus.image | quote }}
+          args: ["--config.file=/etc/prometheus/prometheus.yml"]
+          ports:
+            - name: http
+              containerPort: 9090
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.prometheus.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: tradeops
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+---
+{{ end }}
+{{ if .Values.platform.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app.kubernetes.io/name: grafana
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grafana
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      containers:
+        - name: grafana
+          image: {{ .Values.platform.grafana.image | quote }}
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretName }}
+                  key: GRAFANA_ADMIN_PASSWORD
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.platform.grafana.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: tradeops
+spec:
+  selector:
+    app.kubernetes.io/name: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+{{ end }}

@@ -1,20 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tradeops-runtime
+  name: tradeops-platform
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   project: tradeops
   source:
     repoURL: https://github.com/zdmooc/TradeOps-GenAI-Integration.git
     targetRevision: main
-    path: infra/helm/tradeops
-    helm:
-      valueFiles:
-        - values.yaml
-        - values-crc.yaml
+    path: infra/openshift/overlays/crc
   destination:
     server: https://kubernetes.default.svc
     namespace: tradeops

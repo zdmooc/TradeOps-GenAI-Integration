@@ -1,25 +1,144 @@
-namespace: tradeops
+global:
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime
+    tag: i9
+    pullPolicy: IfNotPresent
+  secretName: tradeops-runtime-secrets
+  env:
+    ENV: openshift
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: tradeops
+    POSTGRES_USER: tradeops
+    KAFKA_BOOTSTRAP: redpanda:9092
+    LLM_PROVIDER: mock
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    OTEL_SERVICE_NAMESPACE: tradeops
 
-image:
-  repository: tradeops
-  tag: latest
+serviceAccount:
+  create: true
+  name: tradeops-runtime
 
-env:
-  POSTGRES_HOST: postgres
-  POSTGRES_PORT: "5432"
-  POSTGRES_DB: tradeops
-  POSTGRES_USER: tradeops
-  POSTGRES_PASSWORD: change-me-locally
-  KAFKA_BOOTSTRAP: redpanda:9092
-  LLM_PROVIDER: mock
-
-services:
-  marketData:
+apps:
+  market-data:
     enabled: true
+    module: services.market_data.run
     port: 8011
-  workflowApi:
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  workflow-api:
     enabled: true
+    module: services.workflow_api.run
     port: 8012
-  genaiApi:
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  genai-api:
     enabled: true
+    module: services.genai_api.run
     port: 8013
+    env:
+      RAG_CORPUS_PATH: /app/rag_corpus
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: "1", memory: 1Gi}
+  rag-api:
+    enabled: true
+    module: services.rag_api.run
+    port: 8014
+    env:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: tradeops_kb
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+    resources:
+      requests: {cpu: 300m, memory: 512Mi}
+      limits: {cpu: "2", memory: 2Gi}
+  agent-controller:
+    enabled: true
+    module: services.agent_controller.run
+    port: 8015
+    env:
+      RAG_API_URL: http://rag-api:8014
+      MCP_SERVER_URL: http://mcp-server:8016
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: "1", memory: 1Gi}
+  mcp-server:
+    enabled: true
+    module: services.mcp_server.run
+    port: 8016
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  risk-engine:
+    enabled: true
+    module: services.risk_engine.worker
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  paper-oms:
+    enabled: true
+    module: services.paper_oms.worker
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  notifier:
+    enabled: true
+    module: services.notifier.worker
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 256Mi}
+
+# The legacy signal-engine remains intentionally disabled: it contains the
+# pre-I2 demonstration signal logic and is not part of the target I9 runtime.
+legacySignalEngine:
+  enabled: false
+
+platform:
+  postgres:
+    enabled: true
+    image: postgres:16
+    storage: 2Gi
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 1Gi}
+  redpanda:
+    enabled: true
+    image: redpandadata/redpanda:v24.2.7
+    storage: 2Gi
+    resources:
+      requests: {cpu: 250m, memory: 768Mi}
+      limits: {cpu: "1", memory: 2Gi}
+  qdrant:
+    enabled: true
+    image: qdrant/qdrant:v1.9.7
+    storage: 2Gi
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 1Gi}
+  otelCollector:
+    enabled: true
+    image: otel/opentelemetry-collector-contrib:0.160.0
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 250m, memory: 512Mi}
+  prometheus:
+    enabled: true
+    image: prom/prometheus:v2.55.0
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 1Gi}
+  grafana:
+    enabled: true
+    image: grafana/grafana:11.2.0
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+
+routes:
+  enabled: true
+  services:
+    agent-controller: 8015
+    workflow-api: 8012
+    grafana: 3000

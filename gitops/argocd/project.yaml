@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: tradeops
+  namespace: argocd
+spec:
+  description: TradeOps local OpenShift/CRC GitOps project
+  sourceRepos:
+    - https://github.com/zdmooc/TradeOps-GenAI-Integration.git
+  destinations:
+    - namespace: tradeops
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: policies.kyverno.io
+      kind: ValidatingPolicy
+    - group: ""
+      kind: Namespace

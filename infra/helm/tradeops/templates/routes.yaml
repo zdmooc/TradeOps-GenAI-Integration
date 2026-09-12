@@ -1,0 +1,21 @@
+{{ if .Values.routes.enabled }}
+{{ range $name, $port := .Values.routes.services }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/part-of: tradeops
+spec:
+  to:
+    kind: Service
+    name: {{ $name }}
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+{{ end }}
+{{ end }}

@@ -16,4 +16,7 @@ jobs:
       - run: ruff check .
       - run: python scripts/security_audit.py
       - run: python scripts/generate_sbom.py --check
+      - run: helm lint infra/helm/tradeops -f infra/helm/tradeops/values-crc.yaml
+      - run: helm template tradeops infra/helm/tradeops --namespace tradeops -f infra/helm/tradeops/values.yaml -f infra/helm/tradeops/values-crc.yaml > /tmp/tradeops-i9.yaml
+      - run: python scripts/i9_validate_platform.py
       - run: pytest -q

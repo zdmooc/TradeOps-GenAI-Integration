@@ -1,0 +1,16 @@
+global:
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime
+    tag: i9
+    pullPolicy: IfNotPresent
+
+platform:
+  postgres:
+    storage: 1Gi
+  redpanda:
+    storage: 1Gi
+  qdrant:
+    storage: 1Gi
+
+routes:
+  enabled: true

@@ -1,0 +1,26 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: tradeops-require-resources
+spec:
+  validationActions: [Deny]
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments, statefulsets]
+  matchConditions:
+    - name: tradeops-namespace
+      expression: "object.metadata.namespace == 'tradeops'"
+  validations:
+    - message: Every container must define CPU/memory requests and limits.
+      expression: >-
+        object.spec.template.spec.containers.all(c,
+          has(c.resources) &&
+          has(c.resources.requests) &&
+          has(c.resources.requests.cpu) &&
+          has(c.resources.requests.memory) &&
+          has(c.resources.limits) &&
+          has(c.resources.limits.cpu) &&
+          has(c.resources.limits.memory))

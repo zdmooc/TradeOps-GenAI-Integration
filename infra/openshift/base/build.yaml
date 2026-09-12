@@ -1,0 +1,26 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: tradeops-runtime
+  namespace: tradeops
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: tradeops-runtime
+  namespace: tradeops
+spec:
+  runPolicy: SerialLatestOnly
+  source:
+    type: Git
+    git:
+      uri: https://github.com/zdmooc/TradeOps-GenAI-Integration.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile.openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: tradeops-runtime:i9
