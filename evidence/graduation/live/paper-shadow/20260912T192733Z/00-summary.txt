@@ -1,0 +1,11 @@
+timestamp_utc=20260912T192733Z
+git_commit=4ab2a0569052cc468bc373e0719a1524371520a8
+evidence_class=OPERATIONAL
+execution_mode=SHADOW_ONLY_NO_BROKER_ORDERS
+source=RECORDED_REAL_MARKET
+market_source=KRAKEN_REST
+pair=XBTUSD
+captured_bars=240
+closed_outcomes=100
+unique_signal_ids=100
+verification=PAPER_SHADOW_100_OUTCOMES_PASS

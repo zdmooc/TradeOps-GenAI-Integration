@@ -1,0 +1,23 @@
+{
+  "canonical_records_path": "evidence/graduation/paper-shadow-records.jsonl",
+  "captured_at": "2026-09-12T19:27:33.847974Z",
+  "captured_bars": 240,
+  "closed_outcomes": 100,
+  "evidence_class": "OPERATIONAL",
+  "execution_mode": "SHADOW_ONLY_NO_BROKER_ORDERS",
+  "flat": 6,
+  "graduation_source": "RECORDED_REAL_MARKET",
+  "horizon_bars": 3,
+  "latest_age_seconds": 93.848,
+  "latest_event_time": "2026-09-12T19:26:00Z",
+  "losses": 50,
+  "market_source": "KRAKEN_REST",
+  "max_realized_r": 1.55894519,
+  "mean_realized_r": -0.11566859,
+  "min_realized_r": -1.43413632,
+  "pair": "XBTUSD",
+  "strategy": "MOMENTUM_3BAR_ATR10_V1",
+  "unique_signal_ids": 100,
+  "verification": "PAPER_SHADOW_100_OUTCOMES_PASS",
+  "wins": 44
+}
