@@ -120,6 +120,7 @@ def validate_platform() -> list[str]:
     for required in (
         "key: openshift.io/build.name",
         "port: 443",
+        "port: 6443",
         "port: 5000",
         "kubernetes.io/metadata.name: openshift-image-registry",
     ):
