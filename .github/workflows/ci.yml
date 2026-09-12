@@ -12,6 +12,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.2"
       - run: pip install -r requirements.txt
       - run: ruff check .
       - run: python scripts/security_audit.py
@@ -20,4 +23,11 @@ jobs:
       - run: helm template tradeops infra/helm/tradeops --namespace tradeops -f infra/helm/tradeops/values.yaml -f infra/helm/tradeops/values-crc.yaml > /tmp/tradeops-i9.yaml
       - run: python scripts/i9_validate_platform.py
       - run: python scripts/i10_validate_ai_serving.py
+      - run: terraform fmt -check -recursive
+        working-directory: infra/azure-enterprise/terraform
+      - run: terraform init -backend=false -input=false
+        working-directory: infra/azure-enterprise/terraform
+      - run: terraform validate -no-color
+        working-directory: infra/azure-enterprise/terraform
+      - run: python scripts/i11_validate_azure_target.py
       - run: pytest -q
