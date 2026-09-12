@@ -53,11 +53,34 @@ def test_i11_required_finops_tags_exist():
         assert tag in value
 
 
-def test_i11_aro_target_is_private_and_managed_identity():
+def test_i11_aro_target_is_private_managed_identity_and_explicitly_sized():
     value = text("scripts/i11_aro_create.sh")
     assert "--enable-mi true" in value
     assert "--apiserver-visibility Private" in value
     assert "--ingress-visibility Private" in value
+    assert 'ARO_MASTER_VM_SIZE="${ARO_MASTER_VM_SIZE:-Standard_D8s_v5}"' in value
+    assert 'ARO_WORKER_VM_SIZE="${ARO_WORKER_VM_SIZE:-Standard_D4s_v5}"' in value
+    assert 'ARO_WORKER_COUNT="${ARO_WORKER_COUNT:-3}"' in value
+    assert 'ARO_WORKER_DISK_GB="${ARO_WORKER_DISK_GB:-128}"' in value
+    assert "--master-vm-size" in value
+    assert "--worker-vm-size" in value
+    assert "--worker-count" in value
+    assert "--worker-vm-disk-size-gb" in value
+
+
+def test_i11_aro_creation_is_fail_closed_for_cost():
+    value = text("scripts/i11_aro_create.sh")
+    assert 'ALLOW_AZURE_COST:-0' in value
+    assert "Refusing paid Azure creation" in value
+    assert "az aro validate" in value
+
+
+def test_i11_aro_destroy_is_fail_closed_and_can_destroy_foundation():
+    value = text("scripts/i11_aro_destroy.sh")
+    assert 'ALLOW_AZURE_DESTROY:-0' in value
+    assert 'ALLOW_AZURE_FOUNDATION_DESTROY:-0' in value
+    assert "terraform -chdir=infra/azure-enterprise/terraform plan -destroy" in value
+    assert "terraform -chdir=infra/azure-enterprise/terraform apply" in value
 
 
 def test_i11_aro_target_has_no_static_client_secret():

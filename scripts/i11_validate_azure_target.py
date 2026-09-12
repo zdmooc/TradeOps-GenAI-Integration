@@ -38,6 +38,12 @@ def main() -> None:
     )
     require(
         ROOT / "scripts" / "i11_aro_create.sh",
+        "ALLOW_AZURE_COST",
+        "az aro validate",
+        "--master-vm-size",
+        "--worker-vm-size",
+        "--worker-count",
+        "--worker-vm-disk-size-gb",
         "--enable-mi true",
         "--apiserver-visibility Private",
         "--ingress-visibility Private",
@@ -46,6 +52,14 @@ def main() -> None:
     forbidden = ("--client-secret", "client_secret", "AZURE_CLIENT_SECRET")
     if any(token in create_text for token in forbidden):
         raise SystemExit("I11 ARO creation helper must not use a static client secret")
+
+    require(
+        ROOT / "scripts" / "i11_aro_destroy.sh",
+        "ALLOW_AZURE_DESTROY",
+        "ALLOW_AZURE_FOUNDATION_DESTROY",
+        "terraform -chdir=infra/azure-enterprise/terraform plan -destroy",
+        "terraform -chdir=infra/azure-enterprise/terraform apply",
+    )
 
     require(
         ROOT / "docs" / "20-azure-aro-enterprise-target.md",
