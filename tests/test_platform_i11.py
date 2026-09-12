@@ -111,6 +111,23 @@ def test_i11_preflight_uses_aro_validate_and_version_check():
     assert "az aro get-versions" in value
 
 
+def test_i11_preflight_fails_closed_on_cli_providers_and_quota():
+    value = text("scripts/i11_aro_preflight.sh")
+    assert 'MIN_AZ_CLI_VERSION="${MIN_AZ_CLI_VERSION:-2.84.0}"' in value
+    for provider in (
+        "Microsoft.RedHatOpenShift",
+        "Microsoft.Compute",
+        "Microsoft.Storage",
+        "Microsoft.Authorization",
+    ):
+        assert provider in value
+    assert 'ARO_MIN_REGIONAL_VCPUS="${ARO_MIN_REGIONAL_VCPUS:-52}"' in value
+    assert 'ARO_MIN_DSV5_VCPUS="${ARO_MIN_DSV5_VCPUS:-52}"' in value
+    assert "standardDSv5Family" in value
+    assert "Insufficient regional vCPU quota" in value
+    assert "Insufficient Standard DSv5 family vCPU quota" in value
+
+
 def test_i11_foundry_is_optional_not_default_deployment():
     value = text("docs/20-azure-aro-enterprise-target.md")
     assert "Microsoft Foundry is optional" in value
