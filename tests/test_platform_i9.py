@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from scripts.i9_validate_platform import ROOT, EXPECTED_APPS, validate_platform
 
 
