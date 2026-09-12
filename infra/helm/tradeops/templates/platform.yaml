@@ -95,6 +95,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.global.secretName }}
                   key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           securityContext:
             {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
           resources:
@@ -113,6 +115,11 @@ spec:
         - name: init
           configMap:
             name: postgres-init
+        {{- if .Values.crc.ephemeralPlatformStorage }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -121,6 +128,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.postgres.storage }}
+  {{- end }}
 ---
 {{ end }}
 {{ if .Values.platform.redpanda.enabled }}
@@ -193,6 +201,16 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/redpanda/data
+            - name: config
+              mountPath: /etc/redpanda
+      volumes:
+        - name: config
+          emptyDir: {}
+        {{- if .Values.crc.ephemeralPlatformStorage }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -201,6 +219,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.redpanda.storage }}
+  {{- end }}
 ---
 {{ end }}
 {{ if .Values.platform.qdrant.enabled }}
@@ -258,6 +277,12 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /qdrant/storage
+      {{- if .Values.crc.ephemeralPlatformStorage }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+  {{- if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -266,6 +291,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.qdrant.storage }}
+  {{- end }}
 ---
 {{ end }}
 {{ if .Values.platform.otelCollector.enabled }}
@@ -387,7 +413,7 @@ spec:
       containers:
         - name: prometheus
           image: {{ .Values.platform.prometheus.image | quote }}
-          args: ["--config.file=/etc/prometheus/prometheus.yml"]
+          args: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
           ports:
             - name: http
               containerPort: 9090
@@ -404,10 +430,14 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
+            - name: data
+              mountPath: /prometheus
       volumes:
         - name: config
           configMap:
             name: prometheus-config
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
