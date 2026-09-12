@@ -1,0 +1,30 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: tradeops-ai-runtime
+  namespace: tradeops-ai
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: tradeops-ai-runtime
+  namespace: tradeops-ai
+spec:
+  runPolicy: Serial
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile.openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: tradeops-ai-runtime:i10
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi

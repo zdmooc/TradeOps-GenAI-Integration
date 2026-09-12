@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tradeops-ai
+  labels:
+    app.kubernetes.io/part-of: tradeops
+    tradeops.io/iteration: i10

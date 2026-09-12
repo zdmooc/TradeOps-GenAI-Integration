@@ -1,0 +1,32 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tradeops-ai-serving-slos
+  namespace: tradeops-ai
+  labels:
+    app.kubernetes.io/part-of: tradeops
+spec:
+  groups:
+    - name: tradeops-ai-serving
+      rules:
+        - alert: TradeOpsModelServingUnavailable
+          expr: sum(rate(tradeops_model_requests_total{status="unavailable"}[5m])) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Signal-quality model serving is unavailable
+        - alert: TradeOpsModelServingErrorRateHigh
+          expr: sum(rate(tradeops_model_requests_total{status=~"invalid|unavailable"}[10m])) / clamp_min(sum(rate(tradeops_model_requests_total[10m])), 0.001) > 0.01
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Signal-quality model error rate exceeds the initial 1 percent budget
+        - alert: TradeOpsModelServingP95High
+          expr: histogram_quantile(0.95, sum by (le) (rate(tradeops_model_request_seconds_bucket[10m]))) > 0.25
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Signal-quality p95 latency exceeds the initial 250 ms target

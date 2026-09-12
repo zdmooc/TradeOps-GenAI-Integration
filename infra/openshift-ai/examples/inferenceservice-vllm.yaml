@@ -1,0 +1,32 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: tradeops-llm
+  namespace: tradeops-ai
+  annotations:
+    openshift.io/display-name: TradeOps LLM
+    serving.kserve.io/deploymentMode: RawDeployment
+  labels:
+    opendatahub.io/dashboard: "true"
+    tradeops.io/iteration: i10
+spec:
+  predictor:
+    minReplicas: 2
+    maxReplicas: 4
+    model:
+      modelFormat:
+        name: vLLM
+      runtime: vllm-runtime
+      storageUri: s3://REPLACE-ME/tradeops-llm/
+      args:
+        - --max-model-len=4096
+        - --gpu-memory-utilization=0.90
+      resources:
+        requests:
+          cpu: "2"
+          memory: 16Gi
+          nvidia.com/gpu: "1"
+        limits:
+          cpu: "6"
+          memory: 32Gi
+          nvidia.com/gpu: "1"

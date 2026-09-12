@@ -1,0 +1,49 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: tradeops-mlflow-runtime
+  namespace: tradeops-ai
+  annotations:
+    openshift.io/display-name: TradeOps MLflow Signal Quality Runtime
+  labels:
+    opendatahub.io/dashboard: "true"
+spec:
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+  supportedModelFormats:
+    - name: tradeops-mlflow
+      version: "1"
+      autoSelect: false
+  containers:
+    - name: kserve-container
+      image: image-registry.openshift-image-registry.svc:5000/tradeops-ai/tradeops-ai-runtime:i10
+      imagePullPolicy: IfNotPresent
+      command: ["python", "-m", "services.model_serving.run"]
+      env:
+        - name: PORT
+          value: "8080"
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      readinessProbe:
+        httpGet:
+          path: /health/ready
+          port: 8080
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 6
+      livenessProbe:
+        httpGet:
+          path: /health/live
+          port: 8080
+        periodSeconds: 20
+        timeoutSeconds: 2
+        failureThreshold: 3
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi

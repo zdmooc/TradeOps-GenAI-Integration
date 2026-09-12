@@ -1,0 +1,55 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: tradeops-signal-quality
+  namespace: tradeops-ai
+  annotations:
+    openshift.io/display-name: TradeOps Signal Quality
+    serving.kserve.io/deploymentMode: RawDeployment
+  labels:
+    opendatahub.io/dashboard: "true"
+    tradeops.io/iteration: i10
+spec:
+  predictor:
+    minReplicas: 2
+    maxReplicas: 4
+    serviceAccountName: tradeops-model-serving
+    model:
+      modelFormat:
+        name: tradeops-mlflow
+        version: "1"
+      runtime: tradeops-mlflow-runtime
+      env:
+        - name: MODEL_NAME
+          value: tradeops-signal-quality
+        - name: MODEL_URI
+          valueFrom:
+            secretKeyRef:
+              name: tradeops-model-serving-config
+              key: model-uri
+        - name: MODEL_QUALIFICATION
+          valueFrom:
+            secretKeyRef:
+              name: tradeops-model-serving-config
+              key: qualification
+        - name: MODEL_SERVING_MODE
+          valueFrom:
+            secretKeyRef:
+              name: tradeops-model-serving-config
+              key: serving-mode
+        - name: MLFLOW_TRACKING_URI
+          valueFrom:
+            secretKeyRef:
+              name: tradeops-model-serving-config
+              key: mlflow-tracking-uri
+        - name: MLFLOW_K8S_INTEGRATION
+          value: "true"
+        - name: MLFLOW_TRACKING_AUTH
+          value: kubernetes-namespaced
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
