@@ -82,7 +82,7 @@
       "id": "OPENSHIFT_AZURE_DEPLOYMENT",
       "status": "PARTIAL",
       "evidence_class": "CI",
-      "evidence_refs": ["repo:docs/18-openshift-crc-gitops.md", "repo:docs/19-openshift-ai-model-serving.md", "repo:docs/20-azure-aro-enterprise-target.md", "ci:34682673257"],
+      "evidence_refs": ["repo:docs/18-openshift-local-gitops.md", "repo:docs/19-openshift-ai-model-serving.md", "repo:docs/20-azure-aro-enterprise-target.md", "ci:34682673257"],
       "notes": "CRC/RHOAI/ARO deployment contracts are tested, but live cluster deployment and verification evidence remain pending."
     },
     {
