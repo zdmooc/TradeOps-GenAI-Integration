@@ -57,11 +57,26 @@ identity      Prometheus
 
 Cluster provisioning uses ARO managed identities. Application access to Azure services uses workload identity/federated credentials. Static client secrets are not part of the target architecture.
 
-The versioned ARO helper uses `az aro create --enable-mi true` and private API/ingress. It deliberately does not store credentials in Git.
+The versioned ARO helper uses `az aro create --enable-mi true`. It deliberately does not store credentials in Git.
 
 ## Network
 
 The Terraform foundation defines dedicated master, worker and shared-service subnets. The enterprise target is private-by-default. Production routing, DNS forwarding, ExpressRoute/VPN, firewall policy and egress inspection belong to the landing-zone integration and must be validated in the consuming subscription.
+
+Azure documents two ARO visibility modes for both API and ingress. `Public` is externally reachable, while `Private` requires connected networking such as peered virtual networks or other connected subnets. The enterprise architecture remains private.
+
+### Ephemeral graduation-lab access profile
+
+The short-lived graduation lab is a separate operational profile. It may use public API and public ingress so the cluster can be administered from the local workstation without first purchasing and operating a VPN or jump-host path.
+
+This does **not** redefine the enterprise target. The helper defaults the lab variables to:
+
+- `ARO_API_VISIBILITY=Public`;
+- `ARO_INGRESS_VISIBILITY=Public`.
+
+Public exposure is fail-closed: `ALLOW_PUBLIC_LAB_ACCESS=1` must be explicitly set in addition to `ALLOW_AZURE_COST=1`. A private lab remains available by setting both visibility variables to `Private`; that mode requires connected networking before it is useful from the workstation.
+
+No sensitive or production data is allowed in the public graduation lab. Authentication, TLS, short runtime, immediate teardown, and evidence redaction remain mandatory.
 
 ## Secrets
 
@@ -86,6 +101,23 @@ No Foundry resource is automatically created by the default Terraform lab becaus
 
 Required tags include workload, environment, cost center, data classification and managed-by. The lab targets small foundation resources only. ARO and Foundry must be explicitly created and destroyed during dedicated sessions.
 
+The ARO creation helper now applies FinOps tags to the cluster and remains cost-gated. The read-only O5 evidence collector is `scripts/o5_azure_finops_greenops_capture.sh`.
+
+For FinOps it queries Azure Cost Management `ActualCost` at the lab resource-group scope for an explicitly supplied UTC window. The retained response is redacted before it can be committed. A provider response is evidence to review, not an automatic graduation claim; Cost Management data can be delayed.
+
+For GreenOps it queries the Azure Carbon Optimization API available-date-range endpoint and can optionally request an `ItemDetailsReport` scoped to the lab resource group for a provider-available month. Microsoft documents Carbon Optimization emissions as previous-month data that becomes available later in the following month, so same-day ARO runtime must not be presented as same-day provider carbon evidence.
+
+The carbon API requires appropriate Azure authorization (for example the Carbon Optimization Reader role for the intended scope). A failed or not-yet-available query remains an explicit non-proof, not a synthetic PASS.
+
+The evidence collector intentionally records:
+
+- a hashed subscription fingerprint instead of the raw subscription ID;
+- a redacted resource-group identifier in provider payloads;
+- resource inventory, ARO state and tags;
+- the exact Cost Management query window;
+- raw-provider-derived cost/carbon responses only after redaction;
+- `full_resilience_finops_greenops_gate_claim=false` and `automatic_graduation_claim=false` until manual evidence review.
+
 ## DR and resilience
 
 I11 documents a two-region enterprise pattern but does not claim active/active deployment. RTO/RPO remain business inputs. Cluster/data recovery, DNS failover and multi-region state replication require measured exercises before being marked VERIFIED.
@@ -100,5 +132,5 @@ I11 does not claim:
 - live Key Vault workload-identity access;
 - Azure Monitor ingestion from a real cluster;
 - a Microsoft Foundry deployment;
-- measured Azure cost, carbon or DR results;
+- measured Azure cost, carbon or DR results unless corresponding live evidence is retained and reviewed;
 - automated real-money execution.

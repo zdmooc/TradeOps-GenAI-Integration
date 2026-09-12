@@ -14,6 +14,10 @@ ARO_MASTER_VM_SIZE="${ARO_MASTER_VM_SIZE:-Standard_D8s_v5}"
 ARO_WORKER_VM_SIZE="${ARO_WORKER_VM_SIZE:-Standard_D8s_v5}"
 ARO_WORKER_COUNT="${ARO_WORKER_COUNT:-3}"
 ARO_WORKER_DISK_GB="${ARO_WORKER_DISK_GB:-128}"
+ARO_API_VISIBILITY="${ARO_API_VISIBILITY:-Public}"
+ARO_INGRESS_VISIBILITY="${ARO_INGRESS_VISIBILITY:-Public}"
+ARO_COST_CENTER="${ARO_COST_CENTER:-architecture-lab}"
+ARO_DATA_CLASSIFICATION="${ARO_DATA_CLASSIFICATION:-internal}"
 
 if ! [[ "$ARO_WORKER_COUNT" =~ ^[0-9]+$ ]] || (( ARO_WORKER_COUNT < 3 )); then
   echo "ARO_WORKER_COUNT must be an integer >= 3." >&2
@@ -22,6 +26,21 @@ fi
 if ! [[ "$ARO_WORKER_DISK_GB" =~ ^[0-9]+$ ]] || (( ARO_WORKER_DISK_GB < 128 )); then
   echo "ARO_WORKER_DISK_GB must be an integer >= 128." >&2
   exit 2
+fi
+if [[ "$ARO_API_VISIBILITY" != "Public" && "$ARO_API_VISIBILITY" != "Private" ]]; then
+  echo "ARO_API_VISIBILITY must be Public or Private." >&2
+  exit 2
+fi
+if [[ "$ARO_INGRESS_VISIBILITY" != "Public" && "$ARO_INGRESS_VISIBILITY" != "Private" ]]; then
+  echo "ARO_INGRESS_VISIBILITY must be Public or Private." >&2
+  exit 2
+fi
+
+if [[ "$ARO_API_VISIBILITY" == "Public" || "$ARO_INGRESS_VISIBILITY" == "Public" ]]; then
+  if [[ "${ALLOW_PUBLIC_LAB_ACCESS:-0}" != "1" ]]; then
+    echo "Refusing public ARO lab exposure. Set ALLOW_PUBLIC_LAB_ACCESS=1 only for the explicit short-lived graduation lab." >&2
+    exit 2
+  fi
 fi
 
 cat <<EOF
@@ -36,8 +55,10 @@ master_vm_size=${ARO_MASTER_VM_SIZE}
 worker_nodes=${ARO_WORKER_COUNT}
 worker_vm_size=${ARO_WORKER_VM_SIZE}
 worker_disk_gb=${ARO_WORKER_DISK_GB}
-api_visibility=Private
-ingress_visibility=Private
+api_visibility=${ARO_API_VISIBILITY}
+ingress_visibility=${ARO_INGRESS_VISIBILITY}
+cost_center=${ARO_COST_CENTER}
+data_classification=${ARO_DATA_CLASSIFICATION}
 EOF
 
 if [[ "${ALLOW_AZURE_COST:-0}" != "1" ]]; then
@@ -80,8 +101,8 @@ az aro create \
   --worker-count "$ARO_WORKER_COUNT" \
   --worker-vm-disk-size-gb "$ARO_WORKER_DISK_GB" \
   --enable-mi true \
-  --apiserver-visibility Private \
-  --ingress-visibility Private \
-  --tags workload=tradeops-agentic-ai environment=lab managed_by=azure-cli architecture_stage=i11
+  --apiserver-visibility "$ARO_API_VISIBILITY" \
+  --ingress-visibility "$ARO_INGRESS_VISIBILITY" \
+  --tags workload=tradeops-agentic-ai environment=lab cost_center="$ARO_COST_CENTER" data_classification="$ARO_DATA_CLASSIFICATION" managed_by=azure-cli architecture_stage=i11
 
-echo "ARO creation completed. Capture az aro show, oc health, workload identity and monitoring evidence before claiming DEPLOYED."
+echo "ARO creation completed. Capture az aro show, oc health, workload identity, monitoring, FinOps and GreenOps evidence before claiming DEPLOYED/VERIFIED."
