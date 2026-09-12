@@ -5,6 +5,7 @@ import httpx
 from services.market_data.clock import DeterministicClock
 from services.market_data.ig_rest import IGRestClient, IGSession
 from services.market_data.ig_streaming import IGLightstreamerAdapter
+from services.market_data.kraken_rest import KrakenOHLCClient
 from services.market_data.model import MarketEvent
 from services.market_data.quality import DataQualityEngine, QualityReason
 from services.market_data.replay import ReplayEngine
@@ -115,6 +116,59 @@ def test_ig_rest_auth_and_historical_normalization():
     assert events[0].source == "IG_REST"
     assert events[0].spread == 1.0
     assert events[0].resolution == "MINUTE"
+
+
+def test_kraken_public_ohlc_normalization_uses_committed_bars_only():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/0/public/OHLC"
+        assert request.url.params["pair"] == "XBTUSD"
+        assert request.url.params["interval"] == "1"
+        assert request.url.params["assetVersion"] == "1"
+        return httpx.Response(
+            200,
+            json={
+                "error": [],
+                "result": {
+                    "BTC/USD": [
+                        [
+                            int(BASE.timestamp()),
+                            "60000.0",
+                            "60010.0",
+                            "59990.0",
+                            "60005.0",
+                            "60003.0",
+                            "12.5",
+                            42,
+                        ],
+                        [
+                            int((BASE + timedelta(minutes=1)).timestamp()),
+                            "60005.0",
+                            "60015.0",
+                            "60000.0",
+                            "60012.0",
+                            "60009.0",
+                            "8.1",
+                            31,
+                        ],
+                    ],
+                    "last": int((BASE + timedelta(minutes=1)).timestamp()),
+                },
+            },
+        )
+
+    clock = DeterministicClock(BASE + timedelta(minutes=2))
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    kraken = KrakenOHLCClient(client=client, clock=clock)
+    events = kraken.ohlc("XBTUSD", interval=1, limit=10, committed_only=True)
+
+    assert len(events) == 1
+    assert events[0].source == "KRAKEN_REST"
+    assert events[0].instrument == "BTC/USD"
+    assert events[0].event_time == BASE
+    assert events[0].last == 60005.0
+    assert events[0].resolution == "MINUTE"
+    assert events[0].metadata["committed"] is True
+    assert events[0].metadata["trade_count"] == 42
 
 
 class FakeConnectionDetails:
