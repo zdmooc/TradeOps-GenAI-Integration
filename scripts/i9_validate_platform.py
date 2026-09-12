@@ -39,6 +39,7 @@ def validate_platform() -> list[str]:
         "gitops/argocd/application.yaml",
         "gitops/argocd/platform-guardrails.yaml",
         "gitops/argocd/kyverno-policies.yaml",
+        "services/rag_api/vectorstore.py",
         "scripts/i9_crc_preflight.sh",
         "scripts/i9_crc_deploy.sh",
         "scripts/i9_crc_verify.sh",
@@ -97,6 +98,12 @@ def validate_platform() -> list[str]:
     ):
         if required not in platform:
             errors.append(f"CRC platform compatibility missing: {required}")
+
+    rag_store = _read("services/rag_api/vectorstore.py")
+    if "query_points(" not in rag_store:
+        errors.append("RAG must use Qdrant 1.19 unified query_points API")
+    if "_client.search(" in rag_store:
+        errors.append("RAG must not use removed Qdrant legacy search API")
 
     network = _read("infra/openshift/base/networkpolicies.yaml")
     for required in (
