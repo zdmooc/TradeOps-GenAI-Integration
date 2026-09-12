@@ -59,6 +59,14 @@ def validate_platform() -> list[str]:
     if "tag: latest" in values or ":latest" in values:
         errors.append("Helm values must not use latest image tags")
 
+    crc_values = _read("infra/helm/tradeops/values-crc.yaml")
+    for required in (
+        "ephemeralPlatformStorage: true",
+        "HF_HOME: /tmp/huggingface",
+    ):
+        if required not in crc_values:
+            errors.append(f"CRC runtime value missing: {required}")
+
     workload = _read("infra/helm/tradeops/templates/app-workloads.yaml")
     for required in (
         "startupProbe:",
@@ -73,6 +81,20 @@ def validate_platform() -> list[str]:
             "infra/helm/tradeops/templates/_helpers.tpl"
         ):
             errors.append(f"Helm workload hardening missing: {required}")
+
+    platform = _read("infra/helm/tradeops/templates/platform.yaml")
+    for required in (
+        "--rpc-addr",
+        "0.0.0.0:33145",
+        "--advertise-rpc-addr",
+        "redpanda:33145",
+        "QDRANT__STORAGE__STORAGE_PATH",
+        "/tmp/qdrant-storage",
+        "QDRANT__STORAGE__SNAPSHOTS_PATH",
+        "/tmp/qdrant-snapshots",
+    ):
+        if required not in platform:
+            errors.append(f"CRC platform compatibility missing: {required}")
 
     network = _read("infra/openshift/base/networkpolicies.yaml")
     for required in (
@@ -93,6 +115,12 @@ def validate_platform() -> list[str]:
     ):
         if required not in network:
             errors.append(f"OpenShift build egress policy incomplete: {required}")
+    for required in (
+        "values: [market-data, genai-api, rag-api]",
+        "port: 53",
+    ):
+        if required not in network:
+            errors.append(f"CRC application egress policy incomplete: {required}")
 
     for relpath in (
         "infra/openshift/policies/kyverno/require-resources.yaml",
