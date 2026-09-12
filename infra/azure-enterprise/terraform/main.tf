@@ -78,11 +78,11 @@ resource "azurerm_private_dns_zone" "key_vault" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
-  name                  = "link-${local.name}-kv"
-  private_dns_zone_id   = azurerm_private_dns_zone.key_vault.id
-  virtual_network_id    = azurerm_virtual_network.aro.id
-  registration_enabled  = false
-  tags                  = local.tags
+  name                 = "link-${local.name}-kv"
+  private_dns_zone_id  = azurerm_private_dns_zone.key_vault.id
+  virtual_network_id   = azurerm_virtual_network.aro.id
+  registration_enabled = false
+  tags                 = local.tags
 }
 
 resource "azurerm_private_endpoint" "key_vault" {
