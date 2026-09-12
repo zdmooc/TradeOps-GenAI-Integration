@@ -31,10 +31,12 @@ spec:
   podSelector: {}
   policyTypes: [Egress]
   egress:
+    # CRC/OpenShift DNS can be reached through host-networked resolver paths
+    # that are not reliably matched by namespaceSelector alone. Restrict the
+    # broad destination to DNS ports only.
     - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: openshift-dns
+        - ipBlock:
+            cidr: 0.0.0.0/0
       ports:
         - protocol: UDP
           port: 53
@@ -69,7 +71,7 @@ spec:
     matchExpressions:
       - key: app.kubernetes.io/name
         operator: In
-        values: [market-data, genai-api]
+        values: [market-data, genai-api, rag-api]
   policyTypes: [Egress]
   egress:
     - to:
