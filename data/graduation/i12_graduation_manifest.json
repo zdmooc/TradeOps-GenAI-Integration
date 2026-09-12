@@ -10,10 +10,18 @@
   "criteria": [
     {
       "id": "LIVE_MULTI_SOURCE_REPLAY",
-      "status": "PARTIAL",
-      "evidence_class": "OFFLINE_CI",
-      "evidence_refs": ["repo:docs/10-market-data-replay.md", "ci:34642186132"],
-      "notes": "Canonical replay and IG adapters are tested offline. A second independent live source plus captured live replay evidence are still required."
+      "status": "SATISFIED",
+      "evidence_class": "OPERATIONAL",
+      "verified_at": "2026-09-12T19:13:44Z",
+      "evidence_refs": [
+        "repo:evidence/graduation/live/market-data/20260912T191344Z/00-summary.txt",
+        "repo:evidence/graduation/live/market-data/20260912T191344Z/04-acquisition-summary.json",
+        "repo:evidence/graduation/live/market-data/20260912T191344Z/06-replay-summary.json",
+        "repo:evidence/graduation/live/market-data/20260912T191344Z/07-secret-scan.txt",
+        "repo:docs/25-live-multi-source-replay.md",
+        "ci:34710999212"
+      ],
+      "notes": "Live operational evidence captures two independent real-market sources (IG REST live and Kraken REST), 20 events from each source, 40/40 replay events accepted, deterministic replay equality and a passing secret scan. No trading order was submitted."
     },
     {
       "id": "DATA_QUALITY_ENGINE",
