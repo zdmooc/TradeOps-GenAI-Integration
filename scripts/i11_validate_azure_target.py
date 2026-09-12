@@ -39,14 +39,17 @@ def main() -> None:
     require(
         ROOT / "scripts" / "i11_aro_create.sh",
         "ALLOW_AZURE_COST",
+        "ALLOW_PUBLIC_LAB_ACCESS",
         "az aro validate",
         "--master-vm-size",
         "--worker-vm-size",
         "--worker-count",
         "--worker-vm-disk-size-gb",
         "--enable-mi true",
-        "--apiserver-visibility Private",
-        "--ingress-visibility Private",
+        'ARO_API_VISIBILITY="${ARO_API_VISIBILITY:-Public}"',
+        'ARO_INGRESS_VISIBILITY="${ARO_INGRESS_VISIBILITY:-Public}"',
+        '--apiserver-visibility "$ARO_API_VISIBILITY"',
+        '--ingress-visibility "$ARO_INGRESS_VISIBILITY"',
     )
     create_text = (ROOT / "scripts" / "i11_aro_create.sh").read_text(encoding="utf-8")
     forbidden = ("--client-secret", "client_secret", "AZURE_CLIENT_SECRET")
