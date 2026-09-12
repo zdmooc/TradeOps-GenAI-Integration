@@ -1,0 +1,16 @@
+NAME                               CPU(cores)   MEMORY(bytes)   
+agent-controller-656b7d989-fgnkd   2m           81Mi            
+genai-api-668d94c967-tztds         5m           130Mi           
+grafana-574f9bd5dd-wqbvd           1m           155Mi           
+market-data-74787d9b7f-vxc8c       2m           45Mi            
+mcp-server-fd6c8b856-lt6jj         2m           50Mi            
+notifier-7db85f9d46-dz4js          3m           31Mi            
+otel-collector-7f67cb765d-2qrwm    2m           42Mi            
+paper-oms-76c8667549-8jvhh         3m           30Mi            
+postgres-0                         12m          52Mi            
+prometheus-76db5f955c-jvc64        2m           48Mi            
+qdrant-0                           1m           104Mi           
+rag-api-5fc75b94c8-6dfqc           2m           431Mi           
+redpanda-0                         9m           185Mi           
+risk-engine-57b8d65bd8-5jgtw       3m           32Mi            
+workflow-api-57497655bb-gtr82      2m           46Mi            

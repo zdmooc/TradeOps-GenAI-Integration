@@ -1,0 +1,49 @@
+NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE   NOMINATED NODE   READINESS GATES
+agent-controller-656b7d989-fgnkd   1/1     Running   0          3m45s   10.217.0.145   crc    <none>           <none>
+genai-api-668d94c967-tztds         1/1     Running   0          3m46s   10.217.0.143   crc    <none>           <none>
+grafana-574f9bd5dd-wqbvd           1/1     Running   0          3m41s   10.217.0.150   crc    <none>           <none>
+market-data-74787d9b7f-vxc8c       1/1     Running   0          3m47s   10.217.0.141   crc    <none>           <none>
+mcp-server-fd6c8b856-lt6jj         1/1     Running   0          3m44s   10.217.0.146   crc    <none>           <none>
+notifier-7db85f9d46-dz4js          1/1     Running   0          3m42s   10.217.0.149   crc    <none>           <none>
+otel-collector-7f67cb765d-2qrwm    1/1     Running   0          3h27m   10.217.0.104   crc    <none>           <none>
+paper-oms-76c8667549-8jvhh         1/1     Running   0          3m43s   10.217.0.148   crc    <none>           <none>
+postgres-0                         1/1     Running   0          4m2s    10.217.0.140   crc    <none>           <none>
+prometheus-76db5f955c-jvc64        1/1     Running   0          3h27m   10.217.0.106   crc    <none>           <none>
+qdrant-0                           1/1     Running   0          133m    10.217.0.121   crc    <none>           <none>
+rag-api-5fc75b94c8-6dfqc           1/1     Running   0          3m45s   10.217.0.144   crc    <none>           <none>
+redpanda-0                         1/1     Running   0          170m    10.217.0.116   crc    <none>           <none>
+risk-engine-57b8d65bd8-5jgtw       1/1     Running   0          3m43s   10.217.0.147   crc    <none>           <none>
+workflow-api-57497655bb-gtr82      1/1     Running   0          3m47s   10.217.0.142   crc    <none>           <none>
+NAME                             REQUEST                                                                                                    LIMIT                                              AGE
+resourcequota/tradeops-runtime   persistentvolumeclaims: 0/8, requests.cpu: 610m/4, requests.memory: 1760Mi/8Gi, requests.storage: 0/20Gi   limits.cpu: 5350m/12, limits.memory: 6528Mi/20Gi   5h54m
+
+NAME                           CREATED AT
+limitrange/tradeops-defaults   2026-09-12T09:00:26Z
+
+NAME                                                           POD-SELECTOR                                                        AGE
+networkpolicy.networking.k8s.io/allow-dns-egress               <none>                                                              5h54m
+networkpolicy.networking.k8s.io/allow-external-https-egress    app.kubernetes.io/name in (genai-api,market-data,rag-api)           5h54m
+networkpolicy.networking.k8s.io/allow-intra-namespace          <none>                                                              5h54m
+networkpolicy.networking.k8s.io/allow-openshift-build-egress   openshift.io/build.name                                             4h49m
+networkpolicy.networking.k8s.io/allow-router-ingress           app.kubernetes.io/name in (agent-controller,grafana,workflow-api)   5h54m
+networkpolicy.networking.k8s.io/default-deny                   <none>                                                              5h54m
+NAME               HOST/PORT                                    PATH   SERVICES           PORT   TERMINATION     WILDCARD
+agent-controller   agent-controller-tradeops.apps-crc.testing          agent-controller   http   edge/Redirect   None
+grafana            grafana-tradeops.apps-crc.testing                   grafana            http   edge/Redirect   None
+workflow-api       workflow-api-tradeops.apps-crc.testing              workflow-api       http   edge/Redirect   None
+deployment "market-data" successfully rolled out
+deployment "workflow-api" successfully rolled out
+deployment "genai-api" successfully rolled out
+deployment "rag-api" successfully rolled out
+deployment "agent-controller" successfully rolled out
+deployment "mcp-server" successfully rolled out
+deployment "risk-engine" successfully rolled out
+deployment "paper-oms" successfully rolled out
+deployment "notifier" successfully rolled out
+deployment "otel-collector" successfully rolled out
+deployment "prometheus" successfully rolled out
+deployment "grafana" successfully rolled out
+partitioned roll out complete: 1 new pods have been updated...
+partitioned roll out complete: 1 new pods have been updated...
+partitioned roll out complete: 1 new pods have been updated...
+I9_CRC_VERIFY_PASS

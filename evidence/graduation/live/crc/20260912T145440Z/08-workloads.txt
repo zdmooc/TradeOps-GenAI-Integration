@@ -1,0 +1,18 @@
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/agent-controller   1/1     1            1           3h53m
+deployment.apps/genai-api          1/1     1            1           3h53m
+deployment.apps/grafana            1/1     1            1           3h53m
+deployment.apps/market-data        1/1     1            1           3h53m
+deployment.apps/mcp-server         1/1     1            1           3h53m
+deployment.apps/notifier           1/1     1            1           3h53m
+deployment.apps/otel-collector     1/1     1            1           3h53m
+deployment.apps/paper-oms          1/1     1            1           3h53m
+deployment.apps/prometheus         1/1     1            1           3h53m
+deployment.apps/rag-api            1/1     1            1           3h53m
+deployment.apps/risk-engine        1/1     1            1           3h53m
+deployment.apps/workflow-api       1/1     1            1           3h53m
+
+NAME                        READY   AGE
+statefulset.apps/postgres   1/1     3h27m
+statefulset.apps/qdrant     1/1     3h27m
+statefulset.apps/redpanda   1/1     3h27m

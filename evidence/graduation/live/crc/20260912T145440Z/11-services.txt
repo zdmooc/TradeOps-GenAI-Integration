@@ -1,0 +1,13 @@
+NAME               TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)              AGE
+agent-controller   ClusterIP   10.217.5.52    <none>        8015/TCP             3h53m
+genai-api          ClusterIP   10.217.5.1     <none>        8013/TCP             3h53m
+grafana            ClusterIP   10.217.4.222   <none>        3000/TCP             3h53m
+market-data        ClusterIP   10.217.4.41    <none>        8011/TCP             3h53m
+mcp-server         ClusterIP   10.217.4.183   <none>        8016/TCP             3h53m
+otel-collector     ClusterIP   10.217.5.71    <none>        4318/TCP             3h53m
+postgres           ClusterIP   10.217.5.211   <none>        5432/TCP             3h53m
+prometheus         ClusterIP   10.217.4.114   <none>        9090/TCP             3h53m
+qdrant             ClusterIP   10.217.4.78    <none>        6333/TCP             3h53m
+rag-api            ClusterIP   10.217.4.225   <none>        8014/TCP             3h53m
+redpanda           ClusterIP   10.217.4.136   <none>        9092/TCP,33145/TCP   3h53m
+workflow-api       ClusterIP   10.217.4.137   <none>        8012/TCP             3h53m

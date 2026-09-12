@@ -1,0 +1,1 @@
+{"status":"ok","service":"agent-controller","mode":"ANALYSIS_PLUS_HITL","framework":"LangGraph","execution":"SHADOW_OR_PAPER_AFTER_HUMAN_APPROVAL","observability":"OTEL_PROMETHEUS_I8","auth_modes":["static","oidc"]}

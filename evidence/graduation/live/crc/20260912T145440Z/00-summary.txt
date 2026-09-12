@@ -1,0 +1,11 @@
+timestamp_utc=20260912T145440Z
+git_commit=67579e5fc03e2ed31a50f2d616a469ebe072a7c1
+crc_version=CRC version: 2.63.0+3a67a3
+openshift_server=4.22.7
+namespace=tradeops
+deployment_mode=direct
+evidence_only=1
+agent_controller_route=https://agent-controller-tradeops.apps-crc.testing
+rag_image_id=image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime@sha256:cf921ca1cb2de992833bd53c87c347f56ff9a103966784a67e5df4a0957ddb9a
+verification=I9_CRC_VERIFY_PASS
+evidence_class=LIVE_OPERATIONAL

@@ -1,0 +1,32 @@
+INGEST = {
+  "ingested": 7,
+  "files": [
+    "agent-boundary-adr.md",
+    "data-stale-runbook.md",
+    "evidence-lineage.md",
+    "risk-policy.md",
+    "strategy-governance.md",
+    "risk_rules.md",
+    "runbook_kafka.md"
+  ]
+}
+QUERY = {
+  "hits": [
+    {
+      "source": "strategy-governance.md",
+      "text": "# Strategy Governance Technical indicators, market structure, patterns, market regime, position sizing, and hard risk limits remain deterministic capabilities. Agent roles consume evidence from those engines; they do not recompute them from natural language. ML signal quality is evidence only. A score is not described as a probability unless the corresponding model qualification says that calibration has been demonstrated for the relevant evaluation scope.",
+      "score": 0.449
+    },
+    {
+      "source": "agent-boundary-adr.md",
+      "text": "# Agent Boundary The I6 specialist graph is analysis-only. Market, Technical, Pattern, Macro, Risk, and Fusion agents can emit SUPPORTED, UNKNOWN, DATA_STALE, CONFLICT, or VETO. The graph does not place orders. The general agent identity has read/evaluate scopes only. Paper execution requires a distinct reviewer identity and explicit human approval; the full approval workflow belongs to I7.",
+      "score": 0.3739
+    },
+    {
+      "source": "risk-policy.md",
+      "text": "# Deterministic Risk Policy The deterministic I3 risk gate is authoritative for hard limits. A VETO is terminal for the agentic layer and cannot be overridden by an LLM, RAG passage, ML score, or specialist-agent agreement. A REVIEW result is not an approval. It requires later Human-in-the-Loop handling. Agent workflows may explain the reason but must not transform REVIEW into execution permission.",
+      "score": 0.367
+    }
+  ]
+}
+RAG_END_TO_END_PASS

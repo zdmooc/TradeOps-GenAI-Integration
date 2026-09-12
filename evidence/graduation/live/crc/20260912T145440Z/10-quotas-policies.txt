@@ -1,0 +1,13 @@
+NAME                             REQUEST                                                                                                    LIMIT                                              AGE
+resourcequota/tradeops-runtime   persistentvolumeclaims: 0/8, requests.cpu: 610m/4, requests.memory: 1760Mi/8Gi, requests.storage: 0/20Gi   limits.cpu: 5350m/12, limits.memory: 6528Mi/20Gi   5h54m
+
+NAME                           CREATED AT
+limitrange/tradeops-defaults   2026-09-12T09:00:26Z
+
+NAME                                                           POD-SELECTOR                                                        AGE
+networkpolicy.networking.k8s.io/allow-dns-egress               <none>                                                              5h54m
+networkpolicy.networking.k8s.io/allow-external-https-egress    app.kubernetes.io/name in (genai-api,market-data,rag-api)           5h54m
+networkpolicy.networking.k8s.io/allow-intra-namespace          <none>                                                              5h54m
+networkpolicy.networking.k8s.io/allow-openshift-build-egress   openshift.io/build.name                                             4h49m
+networkpolicy.networking.k8s.io/allow-router-ingress           app.kubernetes.io/name in (agent-controller,grafana,workflow-api)   5h54m
+networkpolicy.networking.k8s.io/default-deny                   <none>                                                              5h54m

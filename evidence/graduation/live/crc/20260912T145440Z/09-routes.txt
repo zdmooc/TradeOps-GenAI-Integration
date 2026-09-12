@@ -1,0 +1,4 @@
+NAME               HOST/PORT                                    PATH   SERVICES           PORT   TERMINATION     WILDCARD
+agent-controller   agent-controller-tradeops.apps-crc.testing          agent-controller   http   edge/Redirect   None
+grafana            grafana-tradeops.apps-crc.testing                   grafana            http   edge/Redirect   None
+workflow-api       workflow-api-tradeops.apps-crc.testing              workflow-api       http   edge/Redirect   None

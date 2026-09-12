@@ -1,0 +1,1 @@
+image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime@sha256:cf921ca1cb2de992833bd53c87c347f56ff9a103966784a67e5df4a0957ddb9a
