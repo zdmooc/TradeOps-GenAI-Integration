@@ -146,6 +146,9 @@ spec:
     - name: kafka
       port: 9092
       targetPort: kafka
+    - name: rpc
+      port: 33145
+      targetPort: rpc
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -186,9 +189,15 @@ spec:
             - PLAINTEXT://0.0.0.0:9092
             - --advertise-kafka-addr
             - PLAINTEXT://redpanda:9092
+            - --rpc-addr
+            - 0.0.0.0:33145
+            - --advertise-rpc-addr
+            - redpanda:33145
           ports:
             - name: kafka
               containerPort: 9092
+            - name: rpc
+              containerPort: 33145
           securityContext:
             {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
           resources:
@@ -265,6 +274,13 @@ spec:
           ports:
             - name: http
               containerPort: 6333
+{{ if .Values.crc.ephemeralPlatformStorage }}
+          env:
+            - name: QDRANT__STORAGE__STORAGE_PATH
+              value: /tmp/qdrant-storage
+            - name: QDRANT__STORAGE__SNAPSHOTS_PATH
+              value: /tmp/qdrant-snapshots
+{{ end }}
           securityContext:
             {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
           resources:
@@ -274,13 +290,10 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
+{{ if not .Values.crc.ephemeralPlatformStorage }}
           volumeMounts:
             - name: data
               mountPath: /qdrant/storage
-{{ if .Values.crc.ephemeralPlatformStorage }}
-      volumes:
-        - name: data
-          emptyDir: {}
 {{ end }}
 {{ if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
