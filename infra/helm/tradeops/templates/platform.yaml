@@ -115,11 +115,11 @@ spec:
         - name: init
           configMap:
             name: postgres-init
-        {{- if .Values.crc.ephemeralPlatformStorage }}
+{{ if .Values.crc.ephemeralPlatformStorage }}
         - name: data
           emptyDir: {}
-        {{- end }}
-  {{- if not .Values.crc.ephemeralPlatformStorage }}
+{{ end }}
+{{ if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -128,7 +128,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.postgres.storage }}
-  {{- end }}
+{{ end }}
 ---
 {{ end }}
 {{ if .Values.platform.redpanda.enabled }}
@@ -206,11 +206,11 @@ spec:
       volumes:
         - name: config
           emptyDir: {}
-        {{- if .Values.crc.ephemeralPlatformStorage }}
+{{ if .Values.crc.ephemeralPlatformStorage }}
         - name: data
           emptyDir: {}
-        {{- end }}
-  {{- if not .Values.crc.ephemeralPlatformStorage }}
+{{ end }}
+{{ if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -219,7 +219,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.redpanda.storage }}
-  {{- end }}
+{{ end }}
 ---
 {{ end }}
 {{ if .Values.platform.qdrant.enabled }}
@@ -277,12 +277,12 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /qdrant/storage
-      {{- if .Values.crc.ephemeralPlatformStorage }}
+{{ if .Values.crc.ephemeralPlatformStorage }}
       volumes:
         - name: data
           emptyDir: {}
-      {{- end }}
-  {{- if not .Values.crc.ephemeralPlatformStorage }}
+{{ end }}
+{{ if not .Values.crc.ephemeralPlatformStorage }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -291,7 +291,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.platform.qdrant.storage }}
-  {{- end }}
+{{ end }}
 ---
 {{ end }}
 {{ if .Values.platform.otelCollector.enabled }}
