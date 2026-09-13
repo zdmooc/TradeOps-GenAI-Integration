@@ -22,6 +22,7 @@ jobs:
       - run: ruff check .
       - run: python scripts/security_audit.py
       - run: python scripts/generate_sbom.py --check
+      - run: python scripts/validate_wiki.py
       - run: npm install --no-audit --no-fund
         working-directory: frontend/tradeops-ui
       - run: npm run build
