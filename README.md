@@ -2,57 +2,54 @@
 
 **Trading · Integration IA/GenAI · API/Event/Workflow · Agentic AI · MCP · RAG · Run**
 
-Projet portfolio "Consultant Integration AI" orienté **intégration IA/GenAI dans un SI de trading** :
+Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de trading temps réel** :
 
-- Intégration via **APIs** (gateway type API Management)
-- Architecture **event-driven** (Kafka compatible)
-- Orchestration de **workflows** (demande → revue IA → approbation → exécution paper)
-- **RAG** sur documentation interne (règles de risque, runbooks) + LLM **plug-in** (Mock/Azure/OpenAI)
-- **Agent Controller** (LangGraph) avec boucle plan→act→observe et **confidence gating**
-- **MCP Server** (Model Context Protocol) pour standardiser l'accès aux outils internes
-- **Robustesse / sécurité / performance** : idempotence, retries, rate limit, audit trail, mode dégradé
-- **Mise en prod + Run** : métriques Prometheus, dashboards Grafana, traces OpenTelemetry
-- **TradeOps Web Cockpit** : IHM métier React/TypeScript planifiée pour visualiser marché, signaux, agents, risk gate, HITL et résultats SHADOW/PAPER
+- intégration via **APIs** et architecture **event-driven** Kafka compatible ;
+- orchestration de workflows trading, revue, approbation et exécution SHADOW/PAPER ;
+- **RAG**, **LangGraph**, agents spécialisés et frontière **MCP** gouvernée ;
+- moteur de risque déterministe avec droit de veto et **Human-in-the-Loop** ;
+- observabilité Prometheus/Grafana/OpenTelemetry ;
+- OpenShift/CRC, GitOps/Argo CD, RHOAI/KServe et cible Azure/ARO ;
+- **TradeOps Web Cockpit** : IHM métier React/TypeScript **implémentée dans Git**, avec déploiement/validation live CRC encore à exécuter.
 
 ## Architecture
 
-Le projet combine trois paradigmes complémentaires :
+Le projet combine plusieurs capacités complémentaires :
 
-| Paradigme | Composant | Description |
-|-----------|-----------|-------------|
-| **LLM Workflow** | genai-api | Revue IA des trades via LLM (mock/Azure/OpenAI) |
-| **RAG** | rag-api + Qdrant | Enrichissement contextuel via base de connaissances vectorielle |
-| **Agentic AI** | agent-controller | Décision autonome avec confidence gating (LangGraph) |
-| **MCP** | mcp-server | Accès standardisé aux outils internes (DB, OMS, Risk, Market) |
+| Capacité | Composant | Rôle |
+|---|---|---|
+| Market data | market-data | Données de marché / replay / démonstration |
+| Workflow | workflow-api | Orchestration et audit |
+| GenAI | genai-api | Revue IA gouvernée |
+| RAG | rag-api + Qdrant | Contexte documentaire |
+| Agentic AI | agent-controller | Fusion des preuves, décision et HITL |
+| MCP | mcp-server | Accès gouverné aux outils internes |
+| Risk | risk-engine | Contrôles déterministes / veto |
+| Paper OMS | paper-oms | Exécution simulée uniquement |
+| Web UI | tradeops-ui | Cockpit métier / démonstration |
 
-Le graphe agent exécute : **PLAN → RETRIEVE (RAG) → TOOL_CALLS (MCP) → EVALUATE → DECIDE → EXECUTE**
-
-Pour les détails, voir `docs/architecture/agentic.md`.
+Le principe de sécurité reste : **aucun LLM ou agent ne peut contourner le Risk Gate déterministe ni le Human-in-the-Loop**.
 
 ## Services
 
 | Service | Port | Description |
-|---------|------|-------------|
-| market-data | 8011 | API de données de marché (synthétique) |
+|---|---:|---|
+| market-data | 8011 | API de données de marché |
 | workflow-api | 8012 | Orchestrateur de workflows |
-| genai-api | 8013 | Revue GenAI (LLM + RAG simple) |
-| rag-api | 8014 | API RAG (Qdrant + sentence-transformers) |
-| agent-controller | 8015 | Agent Controller (LangGraph + confidence gating) |
-| mcp-server | 8016 | MCP Server (outils internes) |
-| qdrant | 6333 | Base de données vectorielle |
-| kong | 8000 | API Gateway |
-| postgres | 5433 | Base de données (workflows, orders, audit_logs) |
-| redpanda | 9092 | Event bus (Kafka compatible) |
+| genai-api | 8013 | Revue GenAI |
+| rag-api | 8014 | API RAG |
+| agent-controller | 8015 | Orchestration agentique + HITL |
+| mcp-server | 8016 | Frontière outils gouvernée |
+| tradeops-ui | 8080 | Cockpit Web React/TypeScript |
+| qdrant | 6333 | Base vectorielle |
+| postgres | 5432 | Workflows, orders, audit_logs |
+| redpanda | 9092 | Event bus Kafka compatible |
 | prometheus | 9090 | Métriques |
-| grafana | 3000 | Dashboards (admin/admin) |
+| grafana | 3000 | Dashboards SRE/LLMOps |
 
-## 0) Prérequis
+## Démarrage local historique
 
-- Docker Desktop + Docker Compose v2
-- (Option) `make` / Git Bash (Windows ok)
-- (Option) Clés LLM : Azure OpenAI ou OpenAI (sinon **Mock** par défaut)
-
-## 1) Démarrage rapide (local Docker Compose)
+Le projet conserve son mode Docker Compose pour les services backend :
 
 ```bash
 cp .env.example .env
@@ -62,115 +59,69 @@ docker compose up -d --build
 Vérifications santé :
 
 ```bash
-curl http://localhost:8011/health   # market-data
-curl http://localhost:8012/health   # workflow-api
-curl http://localhost:8013/health   # genai-api
-curl http://localhost:8014/health   # rag-api
-curl http://localhost:8015/health   # agent-controller
-curl http://localhost:8016/health   # mcp-server
+curl http://localhost:8011/health
+curl http://localhost:8012/health
+curl http://localhost:8013/health
+curl http://localhost:8014/health
+curl http://localhost:8015/health
+curl http://localhost:8016/health
 ```
 
-## 2) Démo end-to-end (paper trading classique)
+## TradeOps Web Cockpit
 
-```bash
-# 1) seed market data + publish events
-docker compose exec tools python scripts/demo_seed_and_publish.py
+Le frontend est maintenant présent sous :
 
-# 2) crée une demande de trade (workflow)
-docker compose exec tools python scripts/demo_request_trade.py
-
-# 3) approuve la demande (simulateur "risk/compliance")
-docker compose exec tools python scripts/demo_approve_trade.py
-
-# 4) observe les événements et l'audit trail
-docker compose exec tools python scripts/demo_show_audit.py
+```text
+frontend/tradeops-ui/
 ```
 
-## 3) Démo Agentic AI (1 ligne)
+Technologies :
 
-```bash
-docker compose exec tools python scripts/demo_agentic_trade.py
+- React + TypeScript + Vite ;
+- Nginx unprivileged pour l'image OpenShift ;
+- reverse proxy same-origin vers `market-data`, `workflow-api` et `agent-controller` ;
+- aucun accès direct navigateur à MCP, PostgreSQL, Kafka/Redpanda ou Qdrant ;
+- CSP et headers de sécurité ;
+- tokens Agent/Reviewer saisis uniquement pour la démo HITL et conservés en mémoire navigateur ;
+- Helm + BuildConfig + Route + GitOps/Argo CD.
+
+L'IHM offre :
+
+- Market Dashboard ;
+- Signal Detail : entry, stop, targets, R/R, régime, pattern, ML ;
+- Agent Evidence ;
+- Risk Gate ;
+- Human-in-the-Loop : `REVIEW_REQUIRED -> APPROVE/REJECT -> SHADOW/PAPER` ;
+- Performance/outcomes avec provenance explicite ;
+- Audit backend ;
+- liens Grafana, Swagger et OpenShift Console.
+
+Architecture/backlog détaillé : [`docs/27-tradeops-web-cockpit.md`](docs/27-tradeops-web-cockpit.md).
+
+## OpenShift / CRC
+
+Le chart Helm déploie désormais le backend, la plateforme d'observabilité et `tradeops-ui`. Le BuildConfig OpenShift construit séparément :
+
+```text
+tradeops-runtime:i9
+tradeops-ui:i13-ui
 ```
 
-Ce script soumet un trade au **Agent Controller** qui :
-1. Crée un workflow (REQUESTED)
-2. Exécute le graphe LangGraph (PLAN → RETRIEVE → TOOL_CALLS → EVALUATE → DECIDE)
-3. Si APPROVE : place l'ordre via MCP/OMS et affiche le `order_id` + `fill_price`
-4. Si NEEDS_HUMAN : signale que la confiance est insuffisante
+La Route cible de l'IHM est :
 
-## 4) Structure
-
-```
-services/
-  common/              # Config, DB, audit, Kafka, logging, metrics
-  market_data/         # API données de marché
-  workflow_api/        # Orchestrateur de workflows
-  genai_api/           # Revue GenAI (LLM + RAG simple)
-  rag_api/              # API RAG (Qdrant + sentence-transformers)
-  agent_controller/    # Agent Controller (LangGraph)
-  mcp_server/          # MCP Server (outils internes)
-  signal_engine/       # Moteur de signaux (Kafka worker)
-  risk_engine/         # Moteur de risque (Kafka worker)
-  paper_oms/           # OMS papier (Kafka worker)
-  notifier/            # Notificateur (Kafka worker)
-infra/                 # Docker, Kong, observabilité, init DB
-schemas/               # Catalogue d'événements (JSON Schema)
-docs/                  # Architecture, runbooks, sécurité, SLO
-  architecture/        # Diagrammes agentic AI
-  rag.md               # Documentation RAG
-  mcp.md               # Documentation MCP
-gitops/                # Déploiement Kubernetes/OpenShift
-frontend/               # Cible du TradeOps Web Cockpit
+```text
+https://tradeops-ui-tradeops.apps-crc.testing
 ```
 
-## 5) Mode LLM (Mock / Azure / OpenAI)
+**Statut : IMPLEMENTED IN GIT / NOT YET VERIFIED LIVE ON CRC.**
 
-Par défaut : `LLM_PROVIDER=mock`.
+Elle ne doit pas être présentée comme `LIVE` tant que `scripts/i9_crc_deploy.sh` puis `scripts/i9_crc_verify.sh` n'ont pas réussi sur le CRC réel et qu'une preuve n'a pas été capturée.
 
-- `azure_openai` : configure `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`
-- `openai` : configure `OPENAI_API_KEY`, `OPENAI_MODEL`
+## URLs de démonstration
 
-## 6) Evidence (Audit Trail)
+Catalogue complet et statuts `LIVE / INTERNAL / PLANNED / REFERENCE` : [`docs/28-demo-urls.md`](docs/28-demo-urls.md).
 
-Les événements critiques sont persistés dans PostgreSQL (`audit_logs`) avec : `kind`, `ref_id`, `correlation_id`, `hash`, `created_at`.
-
-### Preuve : derniers événements agent
-
-```bash
-docker compose exec postgres sh -lc 'psql -P pager=off -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
-select audit_id, kind, ref_id, correlation_id, created_at
-from audit_logs
-where kind like '\''agent.%'\'' or kind like '\''mcp.%'\'' or kind like '\''rag.%'\''
-order by audit_id desc
-limit 20;"'
-```
-
-### Preuve : workflows avec decision/confidence
-
-```bash
-docker compose exec postgres sh -lc 'psql -P pager=off -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
-select workflow_id, status, decision, confidence_score, reviewer, created_at
-from workflows
-order by workflow_id desc
-limit 10;"'
-```
-
-### Export evidence complet
-
-```bash
-bash scripts/export_evidence.sh
-```
-
-Les fichiers sont générés dans `evidence/` (ignoré par git). Un sample est disponible dans `evidence-sample/`.
-
-## 7) TradeOps Web Cockpit et URLs de démo
-
-L'IHM métier est maintenant inscrite dans le backlog avant le premier déploiement Azure payant. Elle ne remplace ni Grafana ni la console OpenShift.
-
-- Architecture et backlog : [`docs/27-tradeops-web-cockpit.md`](docs/27-tradeops-web-cockpit.md)
-- Catalogue complet des URLs de démonstration CRC : [`docs/28-demo-urls.md`](docs/28-demo-urls.md)
-
-Routes CRC actuellement vérifiées :
+Routes CRC déjà vérifiées :
 
 ```text
 https://agent-controller-tradeops.apps-crc.testing
@@ -178,12 +129,66 @@ https://workflow-api-tradeops.apps-crc.testing
 https://grafana-tradeops.apps-crc.testing
 ```
 
-Route cible du cockpit, **non encore déployée** :
+Plateforme CRC :
+
+```text
+https://console-openshift-console.apps-crc.testing
+https://api.crc.testing:6443
+```
+
+Route IHM à valider :
 
 ```text
 https://tradeops-ui-tradeops.apps-crc.testing
 ```
 
-## 8) Licence
+## CI / qualité
+
+La CI valide désormais notamment :
+
+- Ruff et audit sécurité ;
+- SBOM ;
+- build React/TypeScript/Vite ;
+- Helm lint/render ;
+- contrats OpenShift I9 ;
+- RHOAI/KServe I10 ;
+- Web Cockpit I13 ;
+- Terraform/Azure I11 ;
+- graduation I12 ;
+- suite Pytest complète.
+
+Le validator cockpit est :
+
+```bash
+python scripts/i13_validate_web_cockpit.py
+```
+
+## Evidence et sécurité financière
+
+Le périmètre trading reste :
+
+```text
+analysis -> signal -> replay/backtest -> SHADOW/PAPER -> Human-in-the-Loop
+```
+
+L'exécution automatique d'argent réel est hors scope. Les métriques ou outcomes synthétiques affichés par l'IHM sont explicitement marqués comme tels et ne sont jamais présentés comme une performance réelle.
+
+Evidence IHM : [`evidence/ITERATION-013-WEB-COCKPIT.md`](evidence/ITERATION-013-WEB-COCKPIT.md).
+
+## Structure principale
+
+```text
+services/               # APIs, agents, risk, OMS, common
+frontend/tradeops-ui/   # IHM React/TypeScript
+infra/helm/tradeops/    # packaging OpenShift
+infra/openshift/        # BuildConfig, policies, CRC overlays
+gitops/                 # Argo CD
+docs/                   # architecture, runbooks, demo URLs
+scripts/                # deploy/verify/validators/evidence
+schemas/                # contrats JSON
+evidence/               # preuves versionnées
+```
+
+## Licence
 
 MIT (voir `LICENSE`).

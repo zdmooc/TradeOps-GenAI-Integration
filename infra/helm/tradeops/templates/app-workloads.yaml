@@ -50,6 +50,15 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             {{- end }}
+            {{- with $app.secretEnv }}
+            {{- range $secret := . }}
+            - name: {{ $secret.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.global.secretName }}
+                  key: {{ $secret.secretKey }}
+            {{- end }}
+            {{- end }}
           securityContext:
             {{- include "tradeops.containerSecurityContext" $ | nindent 12 }}
           resources:

@@ -1,0 +1,69 @@
+{{- if .Values.webUi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tradeops-ui
+  labels:
+    app.kubernetes.io/name: tradeops-ui
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.webUi.replicas }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tradeops-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tradeops-ui
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- include "tradeops.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: tradeops-ui
+          image: "{{ .Values.webUi.image.repository }}:{{ .Values.webUi.image.tag }}"
+          imagePullPolicy: {{ .Values.webUi.image.pullPolicy }}
+          securityContext:
+            {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.webUi.port }}
+          resources:
+            {{- toYaml .Values.webUi.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            failureThreshold: 30
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tradeops-ui
+  labels:
+    app.kubernetes.io/name: tradeops-ui
+    {{- include "tradeops.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: tradeops-ui
+  ports:
+    - name: http
+      port: {{ .Values.webUi.port }}
+      targetPort: http
+{{- end }}

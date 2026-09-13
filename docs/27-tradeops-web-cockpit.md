@@ -1,221 +1,117 @@
 # TradeOps Web Cockpit — IHM métier de démonstration
 
+## Statut
+
+**IMPLEMENTED IN GIT / CRC LIVE DEPLOYMENT PENDING** au 2026-09-13.
+
+L'IHM React/TypeScript, son image OpenShift, son reverse proxy, son packaging Helm/GitOps, ses contrôles CI et ses scripts CRC sont implémentés. La Route canonique reste `PLANNED` tant qu'un déploiement réel CRC n'a pas fourni de preuve runtime.
+
+Route cible :
+
+`https://tradeops-ui-tradeops.apps-crc.testing`
+
 ## Objectif
 
-Ajouter une vraie IHM Web au-dessus des capacités TradeOps déjà construites, sans modifier les principes d'architecture existants.
+Donner une vraie interface métier au-dessus des capacités TradeOps existantes, sans modifier les principes d'architecture : visualisation marché/signaux, preuves agents, Risk Gate, Human-in-the-Loop, SHADOW/PAPER, performance de démonstration, audit et liens plateforme.
 
-Le cockpit doit permettre à un utilisateur de **voir, comprendre et piloter le workflow de décision trading** depuis un navigateur : données marché, signal, preuves techniques, agents, risk gate, Human-in-the-Loop, exécution SHADOW/PAPER, résultat et historique.
+Grafana reste l'interface SRE/observabilité. Le cockpit est l'interface métier/démonstration.
 
-Grafana reste l'interface d'observabilité/SRE. Le cockpit est l'interface métier.
-
-## Positionnement dans l'architecture
+## Architecture implémentée
 
 ```text
 Browser
   -> TradeOps Web Cockpit (React + TypeScript)
-      -> same-origin /api/agent/*    -> agent-controller
-      -> same-origin /api/workflow/* -> workflow-api
-      -> read-only links             -> Grafana / OpenShift Console
+      -> Nginx same-origin reverse proxy
+          -> /api/market/*   -> market-data:8011
+          -> /api/workflow/* -> workflow-api:8012
+          -> /api/agent/*    -> agent-controller:8015
 
 agent-controller
-  -> RAG API (internal)
-  -> MCP Server (internal)
-  -> deterministic risk / fusion / HITL
+  -> RAG API / MCP / deterministic fusion / Risk Gate / HITL
 
 workflow-api
-  -> PostgreSQL / Kafka-compatible event backbone
+  -> PostgreSQL / audit
 ```
 
-### Règle de sécurité
+Les services sensibles ne reçoivent pas de Route dédiée pour l'IHM : MCP, PostgreSQL, Redpanda/Kafka, Qdrant, Prometheus et OTEL restent internes.
 
-Le navigateur ne doit pas exposer directement les services internes sensibles :
+## Écrans livrés
 
-- MCP Server ;
-- RAG API ;
-- Risk Engine ;
-- Paper OMS ;
-- PostgreSQL ;
-- Redpanda/Kafka ;
-- Qdrant ;
-- OpenTelemetry Collector ;
-- Prometheus.
+- **Cockpit** : cartes instruments, contexte marché, chart illustratif clairement marqué démo/synthétique, signal, entry/stop/target/R:R, régime, pattern, score ML qualifié.
+- **Agent Evidence** : Market, Technical, Pattern, Macro, RAG, ML et états `SUPPORTED/NEUTRAL/WATCH/VETO`.
+- **HITL** : création de proposition réelle via Agent Controller, revue `APPROVE/REJECT`, puis exécution gouvernée `SHADOW/PAPER`.
+- **Performance** : outcomes de démonstration avec provenance `DEMO_SYNTHETIC` et avertissement explicite qu'il ne s'agit pas d'une performance réelle.
+- **Audit** : lecture du vrai endpoint `/audit` du Workflow API.
+- **Plateforme** : liens Agent Swagger, Workflow Swagger, Grafana et OpenShift Console.
 
-La V1 utilise un reverse proxy same-origin dans le conteneur Web (par exemple Nginx) pour éviter de multiplier les Routes et les règles CORS.
+## Sécurité
 
-## Route cible CRC
+- aucun secret n'est compilé dans le frontend ;
+- les tokens Agent/Reviewer sont saisis explicitement par l'utilisateur et conservés uniquement en mémoire React ;
+- ils ne sont pas stockés dans un stockage persistant du navigateur ;
+- CSP, `X-Frame-Options`, `nosniff`, Referrer Policy et Permissions Policy sont appliqués par Nginx ;
+- le frontend n'accède jamais directement à MCP/DB/Kafka/Qdrant ;
+- `MCP_AGENT_TOKEN` et `MCP_REVIEWER_TOKEN` sont injectés côté backend via le Secret OpenShift ;
+- le Risk Gate déterministe garde le veto ;
+- aucun bouton real-money n'existe.
 
-```text
-https://tradeops-ui-tradeops.apps-crc.testing
-```
+## Packaging OpenShift/GitOps
 
-Statut au 2026-09-13 : **PLANNED / NOT YET DEPLOYED**.
+- `frontend/tradeops-ui/Dockerfile` : build Node + runtime Nginx unprivileged ;
+- `tradeops-ui` ImageStream + BuildConfig ;
+- image cible `tradeops-ui:i13-ui` ;
+- Helm `Deployment` + `Service` + Route ;
+- probes `/healthz` ;
+- requests/limits adaptés CRC ;
+- NetworkPolicy autorise uniquement l'ingress routeur nécessaire ;
+- Argo CD réutilise automatiquement le chart Helm existant.
 
-Ne pas présenter cette URL comme LIVE avant qu'une Route OpenShift réelle soit créée et vérifiée.
+## Backlog
 
-## Écrans fonctionnels
+| ID | Statut | Résultat |
+|---|---|---|
+| UI-01 | DONE | React/TypeScript/Vite scaffold |
+| UI-02 | DONE | shell, navigation, responsive layout |
+| UI-03 | DONE | reverse proxy same-origin market/workflow/agent |
+| UI-04 | DONE | market dashboard + provenance démo/API |
+| UI-05 | DONE | signal detail entry/stop/target/R:R |
+| UI-06 | DONE | agent evidence + états de conflit/veille |
+| UI-07 | DONE_CODE | workflow HITL branché sur vraies APIs ; preuve live CRC encore requise |
+| UI-08 | DONE_DEMO | outcome history avec provenance ; métriques réelles à enrichir plus tard |
+| UI-09 | DONE | catalogue `docs/28-demo-urls.md` |
+| UI-10 | DONE | Dockerfile + Deployment + Service + Route |
+| UI-11 | DONE | intégration Helm/GitOps |
+| UI-12 | DONE | CSP, headers, no embedded secrets, fail-closed credentials |
+| UI-13 | PENDING_LIVE | déploiement CRC + evidence runtime |
+| UI-14 | DONE | polling 15 s ; SSE/WebSocket non nécessaire pour V1 |
+| UI-15 | DONE_DEMO | vue performance avec labels de provenance |
+| UI-16 | DONE | scénario déterministe de démonstration |
+| UI-17 | PARTIAL | responsive/keyboard native ; audit accessibilité formel non fait |
+| UI-18 | DEFERRED | OIDC/Entra production après preuve CRC |
 
-### 1. Market Dashboard
+## CI
 
-Afficher :
+La CI doit maintenant valider :
 
-- instrument / symbole ;
-- prix et timestamp ;
-- spread / fraîcheur / qualité ;
-- régime de marché ;
-- volatilité ;
-- indicateurs disponibles ;
-- contexte multi-timeframe ;
-- graphique prix/candles lorsque la source disponible le permet.
-
-### 2. Signals
-
-Afficher pour chaque proposition :
-
-- LONG / SHORT ;
-- entry ;
-- stop ;
-- targets ;
-- risk/reward ;
-- pattern ;
-- timeframe ;
-- régime ;
-- evidence quality ;
-- score ML et statut de qualification ;
-- raisons de rejet éventuelles.
-
-### 3. AI Agents
-
-Rendre visible la chaîne de synthèse :
-
-- Market evidence ;
-- Technical evidence ;
-- Pattern evidence ;
-- Macro context ;
-- Risk evidence ;
-- RAG evidence ;
-- fusion result ;
-- conflits / DATA_STALE / UNKNOWN / VETO.
-
-Le cockpit ne doit jamais laisser croire qu'un LLM remplace les calculs déterministes.
-
-### 4. Human-in-the-Loop
-
-Cycle visible :
-
-```text
-REVIEW_REQUIRED
-  -> REJECT
-  -> APPROVE SHADOW
-  -> APPROVE PAPER
-```
-
-Le reviewer doit voir les preuves avant décision. Les actions doivent conserver l'identité du reviewer, le proposal ID, le correlation ID et l'audit trail.
-
-### 5. Positions / Outcomes / Performance
-
-Afficher :
-
-- SHADOW / PAPER ;
-- PENDING / TARGET / STOP / EXPIRED ;
-- entry / exit ;
-- PnL ;
-- R multiple ;
-- durée ;
-- win rate ;
-- expectancy ;
-- drawdown lorsque calculable ;
-- historique filtrable.
-
-Les résultats réels, synthétiques et estimés doivent rester explicitement distingués.
-
-### 6. Platform / Demo
-
-Afficher des liens rapides vers :
-
-- Grafana ;
-- OpenShift Console ;
-- Agent Controller Swagger ;
-- Workflow API Swagger ;
-- catalogue des URLs de démo.
-
-## UX cible — écran principal
-
-```text
-+------------------------------------------------------------------+
-| TRADEOPS                     Environment: CRC       Mode: PAPER    |
-+----------+----------+----------+----------+-----------------------+
-| CAC40    | DAX      | NASDAQ   | S&P500  | BTC                   |
-+--------------------------------+---------------------------------+
-| MARKET / CHART                 | CURRENT SIGNAL                  |
-| price / indicators / regime    | LONG / SHORT                    |
-|                                | entry / stop / targets / R:R    |
-+--------------------------------+---------------------------------+
-| AGENT EVIDENCE                 | DETERMINISTIC RISK GATE         |
-| market / technical / pattern   | ACCEPT / VETO + reasons         |
-| macro / RAG / ML / fusion      |                                 |
-+------------------------------------------------------------------+
-| HITL: REVIEW_REQUIRED                                             |
-|             [REJECT] [APPROVE SHADOW] [APPROVE PAPER]            |
-+------------------------------------------------------------------+
-| Positions | Outcomes | Performance | Audit | Platform | Grafana  |
-+------------------------------------------------------------------+
-```
-
-## Technologie cible
-
-- React ;
-- TypeScript ;
-- Vite ;
-- client HTTP typé ;
-- bibliothèque de charts financiers à sélectionner après vérification licence/poids ;
-- Nginx ou équivalent pour static hosting + reverse proxy ;
-- image OCI compatible OpenShift restricted SCC ;
-- Helm/GitOps pour déploiement ;
-- aucune clé Azure/OpenAI/IG dans le frontend.
-
-## Backlog UI
-
-| ID | Priority | Status | Work item | Definition of Done |
-|---|---|---|---|---|
-| UI-01 | P0 | TODO | Scaffold React/TypeScript | `frontend/tradeops-ui` build reproductible, lint/test. |
-| UI-02 | P0 | TODO | Shell + navigation | Header, environment/mode badges, navigation responsive. |
-| UI-03 | P0 | TODO | API reverse proxy | `/api/agent` and `/api/workflow` same-origin, no direct MCP/RAG exposure. |
-| UI-04 | P0 | TODO | Market dashboard | Instruments, freshness, regime, indicators, chart placeholder/live adapter. |
-| UI-05 | P0 | TODO | Signal detail | Entry/stop/targets/R:R/evidence/ML qualification visible. |
-| UI-06 | P0 | TODO | Agent evidence | Market/technical/pattern/macro/risk/RAG/fusion with conflict states. |
-| UI-07 | P0 | TODO | HITL workflow | REVIEW_REQUIRED -> reject/shadow/paper using authenticated backend calls. |
-| UI-08 | P0 | TODO | Outcome history | PAPER/SHADOW results, TP/SL/EXPIRED, PnL and filters. |
-| UI-09 | P0 | TODO | Demo links page | Every verified CRC URL centralized with LIVE/INTERNAL/PLANNED status. |
-| UI-10 | P0 | TODO | OpenShift packaging | Dockerfile, Deployment, Service, Route, probes, requests/limits. |
-| UI-11 | P0 | TODO | GitOps integration | Helm/Kustomize + Argo CD reconciliation. |
-| UI-12 | P0 | TODO | Security hardening | CSP/security headers, no secrets, token handling, fail-closed actions. |
-| UI-13 | P0 | TODO | CRC live evidence | Route reachable, UI loads, backend health and HITL demo captured. |
-| UI-14 | P1 | TODO | Near-real-time updates | Polling initially; SSE/WebSocket only if justified by backend contract. |
-| UI-15 | P1 | TODO | Performance dashboard | Outcomes, win rate, expectancy, drawdown with provenance labels. |
-| UI-16 | P1 | TODO | Demo mode | Deterministic demo dataset/workflow for interview repeatability. |
-| UI-17 | P1 | TODO | Accessibility / responsive | Keyboard navigation, readable contrast, laptop/desktop layouts. |
-| UI-18 | P2 | DEFERRED | Production auth federation | External OIDC/Entra integration after CRC demo path is proven. |
+1. build TypeScript/Vite ;
+2. Helm lint/render ;
+3. `I13_WEB_COCKPIT_VALIDATION_PASS` ;
+4. tests Python de contrat ;
+5. gates I9/I10/I11/I12 existants.
 
 ## Definition of Done CRC
 
-The cockpit is considered `DEPLOYED` only when all of the following are evidenced:
+Le cockpit ne passera à `DEPLOYED/VERIFIED` qu'après preuve réelle :
 
-1. `frontend/tradeops-ui` builds in CI.
-2. Image builds under OpenShift constraints.
-3. Deployment and Service are healthy in namespace `tradeops`.
-4. Route `tradeops-ui-tradeops.apps-crc.testing` exists.
-5. `/api/agent/health` and `/api/workflow/health` work through the UI proxy.
-6. No internal MCP/RAG/DB endpoint is exposed by a public Route solely for UI convenience.
-7. One end-to-end REVIEW_REQUIRED -> SHADOW/PAPER demo is captured.
-8. Grafana/OpenShift/Swagger links work from the Demo page.
-9. No live-money action exists.
-10. Evidence is committed under `evidence/graduation/live/ui/<UTC_TIMESTAMP>/`.
+1. BuildConfig `tradeops-ui` terminé ;
+2. Deployment Ready ;
+3. Route `tradeops-ui-tradeops.apps-crc.testing` créée ;
+4. `/healthz` OK ;
+5. `/api/agent/health` et `/api/workflow/health` OK via le proxy UI ;
+6. une proposition devient `REVIEW_REQUIRED` ;
+7. reviewer humain APPROVE ou REJECT ;
+8. SHADOW/PAPER démontré sans ordre réel ;
+9. audit visible ;
+10. evidence capturée sous `evidence/graduation/live/ui/<UTC_TIMESTAMP>/`.
 
-## Non-goals
-
-- no broker real-money execution ;
-- no autonomous approval ;
-- no replacement of Grafana ;
-- no direct browser access to MCP, databases or internal event bus ;
-- no claim of real-time streaming until measured and demonstrated ;
-- no Azure dependency for the CRC version.
+Jusqu'à cette preuve, `docs/28-demo-urls.md` conserve la Route IHM en `PLANNED`.

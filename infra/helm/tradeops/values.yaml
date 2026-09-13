@@ -15,8 +15,6 @@ global:
     OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     OTEL_SERVICE_NAMESPACE: tradeops
 
-# Default target keeps persistent state. The CRC overlay switches this to
-# ephemeral storage because OpenShift Local is a disposable single-node lab.
 crc:
   ephemeralPlatformStorage: false
 
@@ -66,6 +64,12 @@ apps:
     env:
       RAG_API_URL: http://rag-api:8014
       MCP_SERVER_URL: http://mcp-server:8016
+      TRADEOPS_AUTH_MODE: static
+    secretEnv:
+      - name: MCP_AGENT_TOKEN
+        secretKey: MCP_AGENT_TOKEN
+      - name: MCP_REVIEWER_TOKEN
+        secretKey: MCP_REVIEWER_TOKEN
     resources:
       requests: {cpu: 200m, memory: 256Mi}
       limits: {cpu: "1", memory: 1Gi}
@@ -73,6 +77,13 @@ apps:
     enabled: true
     module: services.mcp_server.run
     port: 8016
+    env:
+      TRADEOPS_AUTH_MODE: static
+    secretEnv:
+      - name: MCP_AGENT_TOKEN
+        secretKey: MCP_AGENT_TOKEN
+      - name: MCP_REVIEWER_TOKEN
+        secretKey: MCP_REVIEWER_TOKEN
     resources:
       requests: {cpu: 100m, memory: 128Mi}
       limits: {cpu: 500m, memory: 512Mi}
@@ -95,10 +106,20 @@ apps:
       requests: {cpu: 50m, memory: 64Mi}
       limits: {cpu: 250m, memory: 256Mi}
 
-# The legacy signal-engine remains intentionally disabled: it contains the
-# pre-I2 demonstration signal logic and is not part of the target I9 runtime.
 legacySignalEngine:
   enabled: false
+
+webUi:
+  enabled: true
+  replicas: 1
+  port: 8080
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-ui
+    tag: i13-ui
+    pullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {cpu: 250m, memory: 128Mi}
 
 platform:
   postgres:
@@ -147,3 +168,4 @@ routes:
     agent-controller: 8015
     workflow-api: 8012
     grafana: 3000
+    tradeops-ui: 8080

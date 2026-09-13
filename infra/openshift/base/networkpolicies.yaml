@@ -31,7 +31,6 @@ spec:
   podSelector: {}
   policyTypes: [Egress]
   egress:
-    # Service-VIP path: clients send DNS to port 53.
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
@@ -40,9 +39,6 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # OpenShift DNS pods listen on target port 5353. Depending on where OVN
-    # applies policy relative to Service DNAT, the post-DNAT destination port
-    # can be 5353 instead of 53. Restrict that backend path to openshift-dns.
     - to:
         - namespaceSelector:
             matchLabels:
@@ -63,7 +59,7 @@ spec:
     matchExpressions:
       - key: app.kubernetes.io/name
         operator: In
-        values: [agent-controller, workflow-api, grafana]
+        values: [agent-controller, workflow-api, grafana, tradeops-ui]
   policyTypes: [Ingress]
   ingress:
     - from:
@@ -91,11 +87,6 @@ spec:
         - protocol: TCP
           port: 443
 ---
-# OpenShift BuildConfig pods are created dynamically and carry
-# openshift.io/build.name. They must reach Git/PyPI/base registries over HTTPS,
-# the Kubernetes API, and the internal image registry. OVN can evaluate egress
-# after Service DNAT, so the Kubernetes Service VIP :443 can appear to policy as
-# the API backend :6443. Permit both ports for build pods only.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
