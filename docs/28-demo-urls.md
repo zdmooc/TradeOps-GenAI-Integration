@@ -20,9 +20,9 @@ Verified Routes captured in live CRC evidence:
 | LIVE | Agent Controller | `https://agent-controller-tradeops.apps-crc.testing` |
 | LIVE | Grafana | `https://grafana-tradeops.apps-crc.testing` |
 | LIVE | Workflow API | `https://workflow-api-tradeops.apps-crc.testing` |
-| PLANNED | TradeOps Web Cockpit | `https://tradeops-ui-tradeops.apps-crc.testing` |
+| LIVE | TradeOps Web Cockpit | `https://tradeops-ui-tradeops.apps-crc.testing` |
 
-The planned cockpit URL must not be advertised as LIVE until the OpenShift Route exists and live evidence is captured.
+The cockpit Route was live-verified on 2026-09-13 with its Deployment Ready, `/healthz` reachable, the market/workflow/agent proxy health endpoints returning HTTP 200, and `scripts/i9_crc_verify.sh` ending with `I9_CRC_VERIFY_PASS`.
 
 ## Agent Controller — browser/demo endpoints
 
@@ -95,13 +95,13 @@ These endpoints are valid **inside the `tradeops` namespace / cluster network** 
 
 Do not expose MCP, PostgreSQL, Redpanda, Qdrant or the risk/execution internals publicly just to simplify a demo.
 
-## Planned Web Cockpit navigation
+## Web Cockpit navigation
 
-When deployed, the main entry point will be:
+Main LIVE entry point:
 
 `https://tradeops-ui-tradeops.apps-crc.testing`
 
-The cockpit Demo/Platform page should link to:
+The cockpit Demo/Platform page links to:
 
 - Agent Controller `/docs`;
 - Workflow API `/docs`;
@@ -109,6 +109,8 @@ The cockpit Demo/Platform page should link to:
 - OpenShift Web Console;
 - the current environment/mode (`CRC`, `SHADOW` or `PAPER`);
 - deployment/evidence commit IDs where useful.
+
+The platform/route proof is LIVE. The complete interactive HITL sequence `REVIEW_REQUIRED -> APPROVE/REJECT -> SHADOW/PAPER -> audit` is tracked separately until a dedicated live business-flow evidence capture is added.
 
 ## GitHub repositories used during a demonstration
 
@@ -121,7 +123,7 @@ The cockpit Demo/Platform page should link to:
 ## Suggested interview/demo path
 
 ```text
-1. Open TradeOps Web Cockpit (when LIVE)
+1. Open TradeOps Web Cockpit
 2. Show market/signal/agent/risk evidence
 3. Demonstrate REVIEW_REQUIRED
 4. Approve SHADOW or PAPER with human reviewer
@@ -134,12 +136,15 @@ The cockpit Demo/Platform page should link to:
 
 ## Evidence source
 
-The CRC live evidence captured on 2026-09-12 records the verified Routes:
+CRC live evidence:
+
+- 2026-09-12 baseline: Agent Controller, Grafana and Workflow API Routes;
+- 2026-09-13 Web Cockpit: `evidence/graduation/live/ui/20260913/README.md`.
+
+Verified cockpit Route:
 
 ```text
-agent-controller-tradeops.apps-crc.testing
-grafana-tradeops.apps-crc.testing
-workflow-api-tradeops.apps-crc.testing
+tradeops-ui-tradeops.apps-crc.testing
 ```
 
-Any future Route must be added here only after its deployed status has been verified.
+Future Routes must be added here only after their deployed status has been verified.
