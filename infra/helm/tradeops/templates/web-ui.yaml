@@ -28,6 +28,17 @@ spec:
           imagePullPolicy: {{ .Values.webUi.image.pullPolicy }}
           securityContext:
             {{- include "tradeops.containerSecurityContext" . | nindent 12 }}
+          env:
+            - name: MCP_AGENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretName }}
+                  key: MCP_AGENT_TOKEN
+            - name: MCP_REVIEWER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretName }}
+                  key: MCP_REVIEWER_TOKEN
           ports:
             - name: http
               containerPort: {{ .Values.webUi.port }}
