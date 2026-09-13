@@ -9,6 +9,21 @@ def _read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+def _has_live_ui_evidence() -> bool:
+    evidence_root = ROOT / "evidence" / "graduation" / "live" / "ui"
+    if not evidence_root.is_dir():
+        return False
+    for readme in evidence_root.glob("*/README.md"):
+        text = readme.read_text(encoding="utf-8")
+        if (
+            "https://tradeops-ui-tradeops.apps-crc.testing" in text
+            and "I9_CRC_VERIFY_PASS" in text
+            and "tradeops-ui-1" in text
+        ):
+            return True
+    return False
+
+
 def validate_web_cockpit() -> list[str]:
     errors: list[str] = []
     required = (
@@ -129,8 +144,12 @@ def validate_web_cockpit() -> list[str]:
     demo_urls = _read("docs/28-demo-urls.md")
     if "https://tradeops-ui-tradeops.apps-crc.testing" not in demo_urls:
         errors.append("demo URL catalog lacks canonical CRC cockpit URL")
-    if "PLANNED | TradeOps Web Cockpit" not in demo_urls:
-        errors.append("cockpit URL must remain PLANNED until live CRC evidence exists")
+
+    if _has_live_ui_evidence():
+        if "LIVE | TradeOps Web Cockpit" not in demo_urls:
+            errors.append("live CRC evidence exists, so cockpit URL must be marked LIVE")
+    elif "PLANNED | TradeOps Web Cockpit" not in demo_urls:
+        errors.append("without live CRC evidence, cockpit URL must remain PLANNED")
 
     return errors
 
