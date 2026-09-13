@@ -2,13 +2,19 @@
 
 ## Statut
 
-**IMPLEMENTED IN GIT / CRC LIVE DEPLOYMENT PENDING** au 2026-09-13.
+**IMPLEMENTED + TESTED IN CI / CRC LIVE DEPLOYMENT PENDING** au 2026-09-13.
 
-L'IHM React/TypeScript, son image OpenShift, son reverse proxy, son packaging Helm/GitOps, ses contrôles CI et ses scripts CRC sont implémentés. La Route canonique reste `PLANNED` tant qu'un déploiement réel CRC n'a pas fourni de preuve runtime.
+L'IHM React/TypeScript, son image OpenShift, son reverse proxy, son packaging Helm/GitOps, ses contrôles CI et ses scripts CRC sont implémentés et validés en CI. La Route canonique reste `PLANNED` tant qu'un déploiement réel CRC n'a pas fourni de preuve runtime.
 
 Route cible :
 
 `https://tradeops-ui-tradeops.apps-crc.testing`
+
+## Preuve CI
+
+GitHub Actions **#92** (`34750050606`) sur le commit `17d47d33a663b78fd5e23518927929fe5e43b4ce` : **SUCCESS**.
+
+La CI a validé : build React/TypeScript/Vite, audit sécurité, SBOM, Helm lint/render, I9, I10, `I13_WEB_COCKPIT_VALIDATION_PASS`, Terraform/I11, graduation I12 et **230 tests Pytest**.
 
 ## Objectif
 
@@ -39,7 +45,7 @@ Les services sensibles ne reçoivent pas de Route dédiée pour l'IHM : MCP, Pos
 
 - **Cockpit** : cartes instruments, contexte marché, chart illustratif clairement marqué démo/synthétique, signal, entry/stop/target/R:R, régime, pattern, score ML qualifié.
 - **Agent Evidence** : Market, Technical, Pattern, Macro, RAG, ML et états `SUPPORTED/NEUTRAL/WATCH/VETO`.
-- **HITL** : création de proposition réelle via Agent Controller, revue `APPROVE/REJECT`, puis exécution gouvernée `SHADOW/PAPER`.
+- **HITL** : création de proposition via Agent Controller, revue `APPROVE/REJECT`, puis exécution gouvernée `SHADOW/PAPER`.
 - **Performance** : outcomes de démonstration avec provenance `DEMO_SYNTHETIC` et avertissement explicite qu'il ne s'agit pas d'une performance réelle.
 - **Audit** : lecture du vrai endpoint `/audit` du Workflow API.
 - **Plateforme** : liens Agent Swagger, Workflow Swagger, Grafana et OpenShift Console.
@@ -63,14 +69,14 @@ Les services sensibles ne reçoivent pas de Route dédiée pour l'IHM : MCP, Pos
 - Helm `Deployment` + `Service` + Route ;
 - probes `/healthz` ;
 - requests/limits adaptés CRC ;
-- NetworkPolicy autorise uniquement l'ingress routeur nécessaire ;
-- Argo CD réutilise automatiquement le chart Helm existant.
+- NetworkPolicy autorise l'ingress routeur nécessaire ;
+- Argo CD réutilise le chart Helm existant.
 
 ## Backlog
 
 | ID | Statut | Résultat |
 |---|---|---|
-| UI-01 | DONE | React/TypeScript/Vite scaffold |
+| UI-01 | DONE | React/TypeScript/Vite scaffold + build CI |
 | UI-02 | DONE | shell, navigation, responsive layout |
 | UI-03 | DONE | reverse proxy same-origin market/workflow/agent |
 | UI-04 | DONE | market dashboard + provenance démo/API |
@@ -88,16 +94,6 @@ Les services sensibles ne reçoivent pas de Route dédiée pour l'IHM : MCP, Pos
 | UI-16 | DONE | scénario déterministe de démonstration |
 | UI-17 | PARTIAL | responsive/keyboard native ; audit accessibilité formel non fait |
 | UI-18 | DEFERRED | OIDC/Entra production après preuve CRC |
-
-## CI
-
-La CI doit maintenant valider :
-
-1. build TypeScript/Vite ;
-2. Helm lint/render ;
-3. `I13_WEB_COCKPIT_VALIDATION_PASS` ;
-4. tests Python de contrat ;
-5. gates I9/I10/I11/I12 existants.
 
 ## Definition of Done CRC
 
