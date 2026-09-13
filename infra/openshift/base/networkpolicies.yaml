@@ -7,13 +7,19 @@ spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
 ---
+# Internal backend/platform pods may communicate inside the namespace. The Web
+# cockpit is deliberately excluded and gets a narrower egress policy below.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace
   namespace: tradeops
 spec:
-  podSelector: {}
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values: [tradeops-ui]
   policyTypes: [Ingress, Egress]
   ingress:
     - from:
@@ -21,6 +27,34 @@ spec:
   egress:
     - to:
         - podSelector: {}
+---
+# The business UI can call only the three backends intentionally exposed by its
+# same-origin reverse proxy. It cannot initiate connections to MCP, databases,
+# Kafka/Redpanda, Qdrant, Prometheus, OTEL or the paper OMS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tradeops-ui-backends
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tradeops-ui
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [market-data, workflow-api, agent-controller]
+      ports:
+        - protocol: TCP
+          port: 8011
+        - protocol: TCP
+          port: 8012
+        - protocol: TCP
+          port: 8015
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
