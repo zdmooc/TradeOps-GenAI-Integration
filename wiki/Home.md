@@ -82,3 +82,7 @@ flowchart LR
 ## Sources de vérité du dépôt
 
 Le Wiki synthétise et explique les artefacts existants sous `docs/`, `services/`, `infra/`, `gitops/`, `scripts/`, `schemas/` et `evidence/`. Pour les preuves runtime, le Wiki ne remplace jamais les fichiers sous `evidence/` : ceux-ci restent la source de vérité opérationnelle.
+
+## Publication
+
+La source versionnée de référence reste `wiki/*.md`. Le workflow `publish-wiki` synchronise ces pages vers le Wiki GitHub natif lorsque son dépôt `.wiki.git` est initialisé.
