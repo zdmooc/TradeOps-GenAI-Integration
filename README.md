@@ -10,7 +10,7 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 - moteur de risque déterministe avec droit de veto et **Human-in-the-Loop** ;
 - observabilité Prometheus/Grafana/OpenTelemetry ;
 - OpenShift/CRC, GitOps/Argo CD, RHOAI/KServe et cible Azure/ARO ;
-- **TradeOps Web Cockpit** : IHM métier React/TypeScript **implémentée dans Git**, avec déploiement/validation live CRC encore à exécuter.
+- **TradeOps Web Cockpit** : IHM métier React/TypeScript **LIVE et vérifiée sur CRC**, avec preuve HITL métier end-to-end encore à capturer.
 
 ## Architecture
 
@@ -29,6 +29,16 @@ Le projet combine plusieurs capacités complémentaires :
 | Web UI | tradeops-ui | Cockpit métier / démonstration |
 
 Le principe de sécurité reste : **aucun LLM ou agent ne peut contourner le Risk Gate déterministe ni le Human-in-the-Loop**.
+
+## Architecture Wiki
+
+Le dossier [`wiki/`](wiki/) constitue le **livre d’architecture versionné** du projet.
+
+Point d’entrée : **[TradeOps Architecture Wiki](wiki/Home.md)**.
+
+Il couvre de bout en bout : vision et principes, C4, architecture applicative, Agentic AI/RAG/MCP, Risk/Fusion/HITL, EDA/Data/ML, sécurité Zero Trust, OpenShift/CRC/GitOps/RHOAI, observabilité/résilience, FinOps/GreenOps, Web Cockpit, cible Azure/ARO, ADR/patterns/anti-patterns, runbook/evidence et glossaire.
+
+Le script [`scripts/publish_wiki.sh`](scripts/publish_wiki.sh) permet de synchroniser ces sources vers le GitHub Wiki natif lorsque celui-ci est activé.
 
 ## Services
 
@@ -69,7 +79,7 @@ curl http://localhost:8016/health
 
 ## TradeOps Web Cockpit
 
-Le frontend est maintenant présent sous :
+Le frontend est présent sous :
 
 ```text
 frontend/tradeops-ui/
@@ -100,33 +110,36 @@ Architecture/backlog détaillé : [`docs/27-tradeops-web-cockpit.md`](docs/27-tr
 
 ## OpenShift / CRC
 
-Le chart Helm déploie désormais le backend, la plateforme d'observabilité et `tradeops-ui`. Le BuildConfig OpenShift construit séparément :
+Le chart Helm déploie le backend, la plateforme d'observabilité et `tradeops-ui`. Le BuildConfig OpenShift construit séparément :
 
 ```text
 tradeops-runtime:i9
 tradeops-ui:i13-ui
 ```
 
-La Route cible de l'IHM est :
+Route LIVE de l'IHM :
 
 ```text
 https://tradeops-ui-tradeops.apps-crc.testing
 ```
 
-**Statut : IMPLEMENTED IN GIT / NOT YET VERIFIED LIVE ON CRC.**
+**Statut : DEPLOYED LIVE ON CRC / PLATFORM VERIFIED / END-TO-END HITL LIVE PROOF PENDING.**
 
-Elle ne doit pas être présentée comme `LIVE` tant que `scripts/i9_crc_deploy.sh` puis `scripts/i9_crc_verify.sh` n'ont pas réussi sur le CRC réel et qu'une preuve n'a pas été capturée.
+La preuve CRC du cockpit couvre le build OpenShift, l'image publiée, Helm, le Deployment Ready, le Service, la Route, les health checks/proxys et `I9_CRC_VERIFY_PASS`.
+
+Evidence : [`evidence/graduation/live/ui/20260913/README.md`](evidence/graduation/live/ui/20260913/README.md).
 
 ## URLs de démonstration
 
 Catalogue complet et statuts `LIVE / INTERNAL / PLANNED / REFERENCE` : [`docs/28-demo-urls.md`](docs/28-demo-urls.md).
 
-Routes CRC déjà vérifiées :
+Routes CRC vérifiées :
 
 ```text
 https://agent-controller-tradeops.apps-crc.testing
 https://workflow-api-tradeops.apps-crc.testing
 https://grafana-tradeops.apps-crc.testing
+https://tradeops-ui-tradeops.apps-crc.testing
 ```
 
 Plateforme CRC :
@@ -136,15 +149,9 @@ https://console-openshift-console.apps-crc.testing
 https://api.crc.testing:6443
 ```
 
-Route IHM à valider :
-
-```text
-https://tradeops-ui-tradeops.apps-crc.testing
-```
-
 ## CI / qualité
 
-La CI valide désormais notamment :
+La CI valide notamment :
 
 - Ruff et audit sécurité ;
 - SBOM ;
@@ -184,7 +191,8 @@ infra/helm/tradeops/    # packaging OpenShift
 infra/openshift/        # BuildConfig, policies, CRC overlays
 gitops/                 # Argo CD
 docs/                   # architecture, runbooks, demo URLs
-scripts/                # deploy/verify/validators/evidence
+wiki/                   # livre d'architecture versionné
+scripts/                # deploy/verify/validators/evidence/wiki publish
 schemas/                # contrats JSON
 evidence/               # preuves versionnées
 ```
