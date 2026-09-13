@@ -72,9 +72,6 @@ export default function App() {
   const [agentHealth, setAgentHealth] = useState<Health | null>(null);
   const [workflowHealth, setWorkflowHealth] = useState<Health | null>(null);
   const [audit, setAudit] = useState<AuditItem[]>([]);
-  const [agentToken, setAgentToken] = useState("");
-  const [reviewerToken, setReviewerToken] = useState("");
-  const [showCredentials, setShowCredentials] = useState(false);
   const [hitl, setHitl] = useState<HitlState>({ state: "READY", message: "Prêt à créer une proposition de démonstration." });
 
   async function refresh() {
@@ -126,14 +123,9 @@ export default function App() {
   }, []);
 
   async function createProposal() {
-    if (!agentToken) {
-      setShowCredentials(true);
-      setHitl({ state: "ERROR", message: "Renseigne le token Agent pour créer la proposition. Il reste uniquement en mémoire du navigateur." });
-      return;
-    }
     try {
       setHitl({ state: "PROPOSING", message: "Fusion et gates déterministes en cours…" });
-      const result = await proposeDecision(demoSignal, agentToken, uiMode);
+      const result = await proposeDecision(demoSignal, uiMode);
       const proposalId = extractProposalId(result);
       if (!proposalId) throw new Error("proposal_id absent de la réponse");
       setHitl({ proposalId, state: "REVIEW_REQUIRED", message: `Proposition ${proposalId.slice(0, 8)} prête pour revue humaine.` });
@@ -144,17 +136,14 @@ export default function App() {
 
   async function review(decision: "APPROVE" | "REJECT") {
     if (!hitl.proposalId) return;
-    if (!reviewerToken) {
-      setShowCredentials(true);
-      setHitl({ ...hitl, state: "ERROR", message: "Renseigne le token Reviewer pour effectuer la revue." });
-      return;
-    }
     try {
-      await reviewDecision(hitl.proposalId, reviewerToken, decision);
+      await reviewDecision(hitl.proposalId, decision);
       setHitl({
         ...hitl,
         state: decision === "APPROVE" ? "APPROVED" : "REJECTED",
-        message: decision === "APPROVE" ? "Revue humaine approuvée. L'exécution SHADOW/PAPER reste une action séparée." : "Proposition rejetée par le reviewer.",
+        message: decision === "APPROVE"
+          ? "Revue humaine approuvée. L'exécution SHADOW/PAPER reste une action séparée."
+          : "Proposition rejetée par le reviewer.",
       });
       void refresh();
     } catch (error) {
@@ -163,9 +152,9 @@ export default function App() {
   }
 
   async function executeApproved() {
-    if (!hitl.proposalId || !reviewerToken) return;
+    if (!hitl.proposalId) return;
     try {
-      await executeDecision(hitl.proposalId, reviewerToken);
+      await executeDecision(hitl.proposalId);
       setHitl({ ...hitl, state: "EXECUTED", message: `${uiMode} exécuté via la frontière gouvernée. Aucun ordre réel n'est autorisé.` });
       void refresh();
     } catch (error) {
@@ -190,7 +179,9 @@ export default function App() {
 
       <nav className="tabs" aria-label="Navigation principale">
         {(["cockpit", "outcomes", "audit", "platform"] as Tab[]).map((item) => (
-          <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item === "cockpit" ? "Cockpit" : item === "outcomes" ? "Performance" : item === "audit" ? "Audit" : "Plateforme"}</button>
+          <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>
+            {item === "cockpit" ? "Cockpit" : item === "outcomes" ? "Performance" : item === "audit" ? "Audit" : "Plateforme"}
+          </button>
         ))}
       </nav>
 
@@ -251,8 +242,9 @@ export default function App() {
                 {hitl.state === "APPROVED" && <button className="primary" onClick={() => void executeApproved()}>Exécuter {uiMode}</button>}
                 {(hitl.state === "REJECTED" || hitl.state === "EXECUTED") && <button onClick={() => setHitl({ state: "READY", message: "Prêt pour une nouvelle démonstration." })}>Nouvelle démo</button>}
               </div>
-              <button className="credentials-link" onClick={() => setShowCredentials(!showCredentials)}>{showCredentials ? "Masquer" : "Configurer"} les credentials de démo</button>
-              {showCredentials && <div className="credentials"><label>Agent token<input type="password" autoComplete="off" value={agentToken} onChange={(e: { target: { value: string } }) => setAgentToken(e.target.value)} placeholder="Saisi en mémoire uniquement" /></label><label>Reviewer token<input type="password" autoComplete="off" value={reviewerToken} onChange={(e: { target: { value: string } }) => setReviewerToken(e.target.value)} placeholder="Saisi en mémoire uniquement" /></label><small>Jamais stockés dans localStorage, le dépôt ou l’image frontend.</small></div>}
+              <div className="credentials">
+                <small><strong>AUTH AUTO :</strong> les credentials de démonstration sont injectés côté serveur OpenShift. Aucun token n’est saisi, stocké ou exposé au navigateur.</small>
+              </div>
             </article>
           </section>
         </main>
@@ -262,7 +254,7 @@ export default function App() {
 
       {tab === "audit" && <main><section className="panel"><div className="panel-head"><div><span className="eyebrow">Audit trail</span><h2>Derniers événements backend</h2></div><button onClick={() => void refresh()}>Rafraîchir</button></div>{audit.length ? <div className="table-wrap"><table><thead><tr><th>ID</th><th>Kind</th><th>Ref</th><th>Correlation</th><th>Date</th></tr></thead><tbody>{audit.map((item) => <tr key={item.audit_id}><td>{item.audit_id}</td><td>{item.kind}</td><td>{item.ref_id.slice(0, 12)}</td><td>{item.correlation_id.slice(0, 12)}</td><td>{new Date(item.created_at).toLocaleString("fr-FR")}</td></tr>)}</tbody></table></div> : <div className="empty">Aucun audit récupéré. Vérifie la santé du Workflow API.</div>}</section></main>}
 
-      {tab === "platform" && <main><section className="grid-two"><article className="panel"><div className="panel-head"><div><span className="eyebrow">Runtime</span><h2>Services de démonstration</h2></div></div><div className="service-grid"><a href="/api/agent/health" target="_blank" rel="noreferrer">Agent Controller health</a><a href="/api/workflow/health" target="_blank" rel="noreferrer">Workflow API health</a><a href="https://agent-controller-tradeops.apps-crc.testing/docs" target="_blank" rel="noreferrer">Agent Swagger</a><a href="https://workflow-api-tradeops.apps-crc.testing/docs" target="_blank" rel="noreferrer">Workflow Swagger</a><a href="https://grafana-tradeops.apps-crc.testing" target="_blank" rel="noreferrer">Grafana</a><a href="https://console-openshift-console.apps-crc.testing" target="_blank" rel="noreferrer">OpenShift Console</a></div></article><article className="panel"><div className="panel-head"><div><span className="eyebrow">Safety</span><h2>Garde-fous visibles</h2></div></div><ul className="guardrails"><li>Risk Gate déterministe = veto autoritaire.</li><li>Human-in-the-Loop obligatoire avant SHADOW/PAPER.</li><li>Aucune exécution real-money dans l’IHM.</li><li>MCP, PostgreSQL, Kafka et Qdrant restent internes.</li><li>Tokens de démo saisis en mémoire, jamais persistés.</li><li>Données synthétiques/estimées clairement étiquetées.</li></ul></article></section></main>}
+      {tab === "platform" && <main><section className="grid-two"><article className="panel"><div className="panel-head"><div><span className="eyebrow">Runtime</span><h2>Services de démonstration</h2></div></div><div className="service-grid"><a href="/api/agent/health" target="_blank" rel="noreferrer">Agent Controller health</a><a href="/api/workflow/health" target="_blank" rel="noreferrer">Workflow API health</a><a href="https://agent-controller-tradeops.apps-crc.testing/docs" target="_blank" rel="noreferrer">Agent Swagger</a><a href="https://workflow-api-tradeops.apps-crc.testing/docs" target="_blank" rel="noreferrer">Workflow Swagger</a><a href="https://grafana-tradeops.apps-crc.testing" target="_blank" rel="noreferrer">Grafana</a><a href="https://console-openshift-console.apps-crc.testing" target="_blank" rel="noreferrer">OpenShift Console</a></div></article><article className="panel"><div className="panel-head"><div><span className="eyebrow">Safety</span><h2>Garde-fous visibles</h2></div></div><ul className="guardrails"><li>Risk Gate déterministe = veto autoritaire.</li><li>Human-in-the-Loop obligatoire avant SHADOW/PAPER.</li><li>Aucune exécution real-money dans l’IHM.</li><li>MCP, PostgreSQL, Kafka et Qdrant restent internes.</li><li>Credentials de démo injectés côté serveur, jamais exposés au navigateur.</li><li>Données synthétiques/estimées clairement étiquetées.</li></ul></article></section></main>}
 
       <footer><span>TradeOps Web Cockpit · business/demo UI</span><span>Grafana reste l’interface SRE/observabilité</span></footer>
     </div>
