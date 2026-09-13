@@ -12,6 +12,7 @@ Projet portfolio "Consultant Integration AI" orienté **intégration IA/GenAI da
 - **MCP Server** (Model Context Protocol) pour standardiser l'accès aux outils internes
 - **Robustesse / sécurité / performance** : idempotence, retries, rate limit, audit trail, mode dégradé
 - **Mise en prod + Run** : métriques Prometheus, dashboards Grafana, traces OpenTelemetry
+- **TradeOps Web Cockpit** : IHM métier React/TypeScript planifiée pour visualiser marché, signaux, agents, risk gate, HITL et résultats SHADOW/PAPER
 
 ## Architecture
 
@@ -105,7 +106,7 @@ services/
   market_data/         # API données de marché
   workflow_api/        # Orchestrateur de workflows
   genai_api/           # Revue GenAI (LLM + RAG simple)
-  rag_api/             # API RAG (Qdrant + sentence-transformers)
+  rag_api/              # API RAG (Qdrant + sentence-transformers)
   agent_controller/    # Agent Controller (LangGraph)
   mcp_server/          # MCP Server (outils internes)
   signal_engine/       # Moteur de signaux (Kafka worker)
@@ -119,6 +120,7 @@ docs/                  # Architecture, runbooks, sécurité, SLO
   rag.md               # Documentation RAG
   mcp.md               # Documentation MCP
 gitops/                # Déploiement Kubernetes/OpenShift
+frontend/               # Cible du TradeOps Web Cockpit
 ```
 
 ## 5) Mode LLM (Mock / Azure / OpenAI)
@@ -149,7 +151,7 @@ limit 20;"'
 docker compose exec postgres sh -lc 'psql -P pager=off -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 select workflow_id, status, decision, confidence_score, reviewer, created_at
 from workflows
-order by created_at desc
+order by workflow_id desc
 limit 10;"'
 ```
 
@@ -161,6 +163,27 @@ bash scripts/export_evidence.sh
 
 Les fichiers sont générés dans `evidence/` (ignoré par git). Un sample est disponible dans `evidence-sample/`.
 
-## 7) Licence
+## 7) TradeOps Web Cockpit et URLs de démo
+
+L'IHM métier est maintenant inscrite dans le backlog avant le premier déploiement Azure payant. Elle ne remplace ni Grafana ni la console OpenShift.
+
+- Architecture et backlog : [`docs/27-tradeops-web-cockpit.md`](docs/27-tradeops-web-cockpit.md)
+- Catalogue complet des URLs de démonstration CRC : [`docs/28-demo-urls.md`](docs/28-demo-urls.md)
+
+Routes CRC actuellement vérifiées :
+
+```text
+https://agent-controller-tradeops.apps-crc.testing
+https://workflow-api-tradeops.apps-crc.testing
+https://grafana-tradeops.apps-crc.testing
+```
+
+Route cible du cockpit, **non encore déployée** :
+
+```text
+https://tradeops-ui-tradeops.apps-crc.testing
+```
+
+## 8) Licence
 
 MIT (voir `LICENSE`).
