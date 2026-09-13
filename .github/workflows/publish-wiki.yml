@@ -1,0 +1,67 @@
+name: publish-wiki
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "wiki/**"
+      - ".github/workflows/publish-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate wiki source
+        run: python scripts/validate_wiki.py
+
+      - name: Publish native GitHub Wiki
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.wiki.git"
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote "$remote" >/dev/null 2>&1; then
+            git clone "$remote" "$workdir/wiki"
+            find "$workdir/wiki" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          else
+            echo "Native wiki repository not initialized; attempting first push."
+            mkdir -p "$workdir/wiki"
+            git -C "$workdir/wiki" init
+            git -C "$workdir/wiki" branch -M master
+            git -C "$workdir/wiki" remote add origin "$remote"
+          fi
+
+          cp wiki/*.md "$workdir/wiki/"
+          git -C "$workdir/wiki" add -A
+
+          if git -C "$workdir/wiki" diff --cached --quiet; then
+            echo "Native Wiki already synchronized."
+            exit 0
+          fi
+
+          git -C "$workdir/wiki" commit -m "docs: synchronize TradeOps architecture wiki"
+
+          if ! git -C "$workdir/wiki" push -u origin HEAD; then
+            echo "WIKI_NATIVE_PUBLISH_FAIL"
+            echo "If this is the first publication, create one initial page in the GitHub Wiki tab and rerun this workflow."
+            exit 1
+          fi
+
+          echo "WIKI_NATIVE_PUBLISH_PASS"
