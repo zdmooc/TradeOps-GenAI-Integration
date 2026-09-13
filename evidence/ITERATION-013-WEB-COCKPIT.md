@@ -1,6 +1,6 @@
 # Iteration UI — TradeOps Web Cockpit implementation evidence
 
-Status: **IMPLEMENTED + TESTED IN CI / LIVE CRC PENDING**
+Status: **DEPLOYED LIVE ON CRC / PLATFORM VERIFIED / END-TO-END HITL LIVE PROOF PENDING**
 
 ## CI evidence — 2026-09-13
 
@@ -45,16 +45,66 @@ Graduation remains correctly blocked only by:
 - GitHub Actions Node build plus `i13_validate_web_cockpit.py`;
 - canonical demo URL catalog.
 
-## Claims intentionally not made yet
+## Live CRC evidence — 2026-09-13
 
-- no live CRC Route claim until deployment evidence exists;
-- no real-time IG feed claim; current market API is synthetic/demo;
-- no real-money execution;
-- no production OIDC/Entra browser auth claim;
-- no real performance claim from the UI's labelled `DEMO_SYNTHETIC` outcomes.
+Deployment source commit for the UI build:
 
-## Live target
+`c12356190e5daa3bf2a6a194df794b0565a7f240`
+
+Verified live facts:
+
+- OpenShift build `tradeops-ui-1`: `Complete`;
+- ImageStreamTag `tradeops-ui:i13-ui` published;
+- image digest `sha256:8ff2900c8cdc2859cb226af6757522934efb12de92685536f42066172b7dbecf`;
+- Helm release `tradeops`: `STATUS: deployed`, revision `5`;
+- `deployment.apps/tradeops-ui`: `1/1` Ready;
+- runtime pod `tradeops-ui-6d55454df9-dk4jl`: `1/1 Running`;
+- Service `tradeops-ui` exposed internally on port `8080`;
+- Route `tradeops-ui-tradeops.apps-crc.testing` created with edge TLS/Redirect;
+- UI `/`: HTTP 200;
+- `/healthz`: HTTP 200;
+- `/api/market/health`: HTTP 200;
+- `/api/workflow/health`: HTTP 200;
+- `/api/agent/health`: HTTP 200;
+- `scripts/i9_crc_verify.sh`: `I9_CRC_VERIFY_PASS`.
+
+Canonical LIVE URL:
 
 `https://tradeops-ui-tradeops.apps-crc.testing`
 
-The URL remains `PLANNED` until `scripts/i9_crc_deploy.sh` and `scripts/i9_crc_verify.sh` succeed against the real CRC and live evidence is committed.
+Detailed evidence:
+
+`evidence/graduation/live/ui/20260913/README.md`
+
+## Runtime capacity finding
+
+During deployment, two rebuild attempts of the heavy `tradeops-runtime` image were evicted by the single-node CRC kubelet because of low `ephemeral-storage`. DiskPressure returned to `False` after removal of failed builds. The already-published healthy `tradeops-runtime:i9` image and the running backend deployments were reused, while the dedicated `tradeops-ui` image built successfully.
+
+This is a CRC capacity/build-optimization finding, not a failure of the cockpit runtime deployment. Future work should slim or split the heavy runtime image and/or provision more ephemeral storage before a full rebuild.
+
+## Claims intentionally bounded
+
+The following claims are now supported:
+
+- the Web Cockpit is deployed and reachable on real CRC;
+- the canonical Route is LIVE;
+- the UI health endpoint works;
+- same-origin proxy health to Market, Workflow and Agent works;
+- the platform verification script passes.
+
+The following are still not claimed as live-proven:
+
+- complete `REVIEW_REQUIRED -> human review -> SHADOW/PAPER -> audit` business flow;
+- real-time IG feed; current market API remains synthetic/demo;
+- real-money execution;
+- production OIDC/Entra browser auth;
+- real performance from the UI's labelled `DEMO_SYNTHETIC` outcomes.
+
+## Remaining live functional proof
+
+1. create a governed decision proposal and observe `REVIEW_REQUIRED`;
+2. perform an explicit reviewer `APPROVE` or `REJECT`;
+3. for approval, execute `SHADOW` or `PAPER` only;
+4. verify the resulting audit event.
+
+No real-money order is permitted or required.
