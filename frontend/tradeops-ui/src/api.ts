@@ -20,10 +20,9 @@ export const getWorkflowHealth = () => request<Health>("/api/workflow/health");
 export const getPrice = (symbol: string) => request<{ symbol: string; last: number; ts: string }>(`/api/market/prices/${encodeURIComponent(symbol)}`);
 export const getAudit = (limit = 12) => request<{ items: AuditItem[] }>(`/api/workflow/audit?limit=${limit}`);
 
-export async function proposeDecision(signal: DemoSignal, agentToken: string, executionMode: "SHADOW" | "PAPER") {
+export async function proposeDecision(signal: DemoSignal, executionMode: "SHADOW" | "PAPER") {
   return request<{ case: Record<string, unknown> }>("/api/agent/decision/propose", {
     method: "POST",
-    headers: { Authorization: `Bearer ${agentToken}` },
     body: JSON.stringify({
       symbol: signal.symbol,
       direction: signal.direction,
@@ -50,17 +49,15 @@ export async function proposeDecision(signal: DemoSignal, agentToken: string, ex
   });
 }
 
-export async function reviewDecision(proposalId: string, reviewerToken: string, decision: "APPROVE" | "REJECT") {
+export async function reviewDecision(proposalId: string, decision: "APPROVE" | "REJECT") {
   return request<{ case: Record<string, unknown> }>(`/api/agent/decision/${proposalId}/review`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${reviewerToken}` },
     body: JSON.stringify({ decision, rationale: decision === "APPROVE" ? "Validated from TradeOps Web Cockpit" : "Rejected from TradeOps Web Cockpit" }),
   });
 }
 
-export async function executeDecision(proposalId: string, reviewerToken: string) {
+export async function executeDecision(proposalId: string) {
   return request<{ case: Record<string, unknown> }>(`/api/agent/decision/${proposalId}/execute`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${reviewerToken}` },
   });
 }
