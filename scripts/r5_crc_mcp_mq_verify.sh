@@ -40,7 +40,6 @@ oc -n mayabank-mq-local get endpointslice -o wide > "$OUT/09-mayabank-endpoints.
 curl -fsSk "https://$AGENT_HOST/health" > "$OUT/10-agent-health.json"
 curl -fsSk "https://$AGENT_HOST/agent/mcp/capabilities" > "$OUT/11-mcp-capabilities.json"
 curl -fsSk "https://$AGENT_HOST/agent/mcp/mq/health" > "$OUT/12-mq-health-via-mcp.json"
-curl -fsSk "https://$AGENT_HOST/agent/mcp/mq/queues/PAYMENT.REQUEST.Q" > "$OUT/13-request-queue-via-mcp.json"
 
 python - "$OUT/11-mcp-capabilities.json" <<'PY'
 import json, sys
@@ -53,15 +52,6 @@ if missing:
 print('MCP_TOOLS_PASS')
 PY
 
-MCP_DEPTH="$(python - "$OUT/13-request-queue-via-mcp.json" <<'PY'
-import json, sys
-p=json.load(open(sys.argv[1], encoding='utf-8'))['payload']
-assert p.get('qmgr') == 'QM.MAYABANK', p
-assert p.get('queue') == 'PAYMENT.REQUEST.Q', p
-print(int(p['current_depth']))
-PY
-)"
-
 python - "$OUT/12-mq-health-via-mcp.json" <<'PY'
 import json, sys
 p=json.load(open(sys.argv[1], encoding='utf-8'))['payload']
@@ -71,14 +61,40 @@ assert p.get('source') == 'ibm-mq', p
 print('MQ_HEALTH_PAYLOAD_PASS')
 PY
 
-printf 'DISPLAY QLOCAL(PAYMENT.REQUEST.Q) CURDEPTH MAXDEPTH IPPROCS OPPROCS\nEND\n' |
-  oc -n mayabank-mq-local exec -i deployment/mq -- runmqsc QM.MAYABANK \
-  > "$OUT/14-request-queue-runmqsc.txt"
+# The request queue can move while payment-processing is alive. Prove equivalence
+# with up to three tightly coupled MCP/runmqsc observations rather than assuming an
+# idle queue forever.
+MATCHED=0
+MCP_DEPTH=""
+MQ_DEPTH=""
+for attempt in 1 2 3; do
+  curl -fsSk "https://$AGENT_HOST/agent/mcp/mq/queues/PAYMENT.REQUEST.Q" \
+    > "$OUT/13-request-queue-via-mcp-attempt-${attempt}.json"
+  MCP_DEPTH="$(python - "$OUT/13-request-queue-via-mcp-attempt-${attempt}.json" <<'PY'
+import json, sys
+p=json.load(open(sys.argv[1], encoding='utf-8'))['payload']
+assert p.get('qmgr') == 'QM.MAYABANK', p
+assert p.get('queue') == 'PAYMENT.REQUEST.Q', p
+print(int(p['current_depth']))
+PY
+)"
 
-MQ_DEPTH="$(sed -n 's/.*CURDEPTH(\([0-9][0-9]*\)).*/\1/p' "$OUT/14-request-queue-runmqsc.txt" | head -n1)"
-[[ -n "$MQ_DEPTH" ]] || { echo "STOP: unable to parse CURDEPTH from runmqsc" >&2; exit 1; }
-[[ "$MCP_DEPTH" == "$MQ_DEPTH" ]] || {
-  echo "STOP: MCP depth=$MCP_DEPTH differs from runmqsc depth=$MQ_DEPTH" >&2
+  printf 'DISPLAY QLOCAL(PAYMENT.REQUEST.Q) CURDEPTH MAXDEPTH IPPROCS OPPROCS\nEND\n' |
+    oc -n mayabank-mq-local exec -i deployment/mq -- runmqsc QM.MAYABANK \
+    > "$OUT/14-request-queue-runmqsc-attempt-${attempt}.txt"
+  MQ_DEPTH="$(sed -n 's/.*CURDEPTH(\([0-9][0-9]*\)).*/\1/p' \
+    "$OUT/14-request-queue-runmqsc-attempt-${attempt}.txt" | head -n1)"
+  [[ -n "$MQ_DEPTH" ]] || { echo "STOP: unable to parse CURDEPTH from runmqsc" >&2; exit 1; }
+  if [[ "$MCP_DEPTH" == "$MQ_DEPTH" ]]; then
+    MATCHED=1
+    cp "$OUT/13-request-queue-via-mcp-attempt-${attempt}.json" "$OUT/13-request-queue-via-mcp.json"
+    cp "$OUT/14-request-queue-runmqsc-attempt-${attempt}.txt" "$OUT/14-request-queue-runmqsc.txt"
+    break
+  fi
+  sleep 1
+done
+[[ "$MATCHED" -eq 1 ]] || {
+  echo "STOP: MCP and runmqsc CURDEPTH did not match after 3 observations" >&2
   exit 1
 }
 printf 'mcp_current_depth=%s\nrunmqsc_current_depth=%s\nMATCH=PASS\n' \
