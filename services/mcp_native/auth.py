@@ -8,6 +8,10 @@ from mcp.server.auth.provider import AccessToken, TokenVerifier
 from services.security.identity import IdentityConfig, SecurityPrincipal, authenticate_authorization
 
 
+_DEFAULT_ISSUER = "http://keycloak:8080/realms/tradeops"
+_DEFAULT_RESOURCE = "http://mcp-native:8017/mcp"
+
+
 @dataclass(frozen=True, slots=True)
 class NativeMcpAuthConfig:
     issuer_url: str
@@ -15,8 +19,11 @@ class NativeMcpAuthConfig:
 
     @classmethod
     def from_env(cls) -> "NativeMcpAuthConfig":
-        resource_url = os.getenv("MCP_NATIVE_RESOURCE_URL", "http://mcp-native:8017/mcp").strip()
-        issuer_url = os.getenv("OIDC_ISSUER", "http://keycloak:8080/realms/tradeops").strip()
+        # `.env` commonly contains empty optional OIDC values in local/static mode.
+        # AuthSettings still requires valid metadata URLs, so empty values fall back
+        # to explicit local demonstrator identifiers instead of crashing startup.
+        resource_url = os.getenv("MCP_NATIVE_RESOURCE_URL", "").strip() or _DEFAULT_RESOURCE
+        issuer_url = os.getenv("OIDC_ISSUER", "").strip() or _DEFAULT_ISSUER
         return cls(issuer_url=issuer_url, resource_url=resource_url)
 
 
