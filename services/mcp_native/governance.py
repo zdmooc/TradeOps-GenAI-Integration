@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from mcp.server.auth.provider import AccessToken
 
@@ -78,15 +78,19 @@ class NativeMcpGovernor:
         tool_name: str,
         arguments: dict[str, Any],
         access_token: AccessToken | None,
+        tool_registry: Mapping[str, Mapping[str, Any]] | None = None,
+        executor: Callable[[str, dict[str, Any]], Any] | None = None,
     ) -> Any:
         principal = principal_from_access_token(access_token)
+        registry = tool_registry or TOOL_REGISTRY
+        tool_executor = executor or self.executor
         execution = self.governor.execute(
             tool_name=tool_name,
             arguments=arguments,
             principal=principal,
-            tool_registry=TOOL_REGISTRY,
+            tool_registry=registry,
             human_approved=False,
-            executor=self.executor,
+            executor=tool_executor,
         )
         self._audit(
             tool_name=tool_name,

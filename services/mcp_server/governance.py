@@ -58,6 +58,16 @@ class GovernedExecution:
 DEFAULT_TOOL_POLICIES: dict[str, ToolPolicy] = {
     "market.get_last_price": ToolPolicy(frozenset({"market.read"})),
     "risk.check_trade": ToolPolicy(frozenset({"risk.evaluate"})),
+    "mq.get_queue_status": ToolPolicy(
+        frozenset({"mq.read"}),
+        max_calls_per_minute=30,
+        timeout_seconds=4.0,
+    ),
+    "payments.get_mq_health": ToolPolicy(
+        frozenset({"mq.read"}),
+        max_calls_per_minute=30,
+        timeout_seconds=4.0,
+    ),
     "db.get_workflow": ToolPolicy(frozenset({"workflow.read"})),
     "db.list_audit": ToolPolicy(frozenset({"audit.read"}), max_calls_per_minute=20),
     "oms.place_order": ToolPolicy(

@@ -1,9 +1,8 @@
 """Native MCP v2 server for TradeOps.
 
-R1 introduced the protocol primitives. R3 adds the enterprise security boundary:
-OAuth/OIDC bearer verification at the HTTP resource-server layer, deterministic
-per-tool scopes through the existing ToolGovernor, and a HITL-bound paper-order
-tool whose order parameters come from the server-side approved workflow.
+R1 introduced the protocol primitives. R3 added the enterprise security boundary.
+R4 adds read-only IBM MQ payment observability through a separate MayaBank MQ
+adapter; the LLM never receives queue-manager credentials or arbitrary MQ access.
 """
 
 from __future__ import annotations
@@ -17,6 +16,7 @@ from pydantic import AnyHttpUrl
 
 from services.mcp_native.auth import NativeMcpAuthConfig, TradeOpsTokenVerifier
 from services.mcp_native.governance import NativeMcpGovernor
+from services.mcp_native.mq_client import MQ_TOOL_REGISTRY, execute_mq_tool
 from services.mcp_server.tools import market_get_last_price, risk_check_trade
 
 
@@ -108,6 +108,30 @@ def build_mcp(*, secure: bool = False, governor: NativeMcpGovernor | None = None
                 "roles": sorted((token.claims or {}).get("roles", [])),
                 "authn_method": (token.claims or {}).get("authn_method", "unknown"),
             }
+
+        @server.tool(name="mq.get_queue_status")
+        def get_mq_queue_status(queue: str) -> dict[str, object]:
+            """Read one allow-listed MayaBank IBM MQ payment queue status."""
+            result = native_governor.execute_read(
+                tool_name="mq.get_queue_status",
+                arguments={"queue": queue},
+                access_token=get_access_token(),
+                tool_registry=MQ_TOOL_REGISTRY,
+                executor=execute_mq_tool,
+            )
+            return dict(result)
+
+        @server.tool(name="payments.get_mq_health")
+        def get_payment_mq_health() -> dict[str, object]:
+            """Deterministically summarize the MayaBank payment MQ flow health."""
+            result = native_governor.execute_read(
+                tool_name="payments.get_mq_health",
+                arguments={},
+                access_token=get_access_token(),
+                tool_registry=MQ_TOOL_REGISTRY,
+                executor=execute_mq_tool,
+            )
+            return dict(result)
 
         @server.tool(name="oms.place_order")
         def place_approved_paper_order(workflow_id: str) -> dict[str, object]:
