@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import pytest
+from fastapi.testclient import TestClient
 from mcp.server.auth.provider import AccessToken
 
+from services.agent_controller.run import app
 from services.mcp_native.auth import static_principals
 from services.mcp_native.governance import NativeMcpGovernor, NativeMcpPolicyError
 from services.mcp_native.mq_client import (
@@ -132,3 +134,44 @@ def test_health_tool_has_no_mutating_arguments() -> None:
         "queue": {"type": "string", "required": True}
     }
     assert callable(execute_mq_tool)
+
+
+def test_agent_controller_exposes_mq_health_via_mcp_host(monkeypatch) -> None:
+    import services.agent_controller.mcp_routes as routes
+
+    monkeypatch.setattr(
+        routes,
+        "get_payment_mq_health_sync",
+        lambda: {
+            "source": "ibm-mq",
+            "qmgr": "QM.MAYABANK",
+            "status": "HEALTHY",
+            "reasons": [],
+            "summary": {"request_depth": 0, "dlq_depth": 0},
+        },
+    )
+    response = TestClient(app).get("/agent/mcp/mq/health")
+    assert response.status_code == 200
+    payload = response.json()["payload"]
+    assert payload["source"] == "ibm-mq"
+    assert payload["status"] == "HEALTHY"
+
+
+def test_agent_controller_exposes_allowlisted_queue_via_mcp_host(monkeypatch) -> None:
+    import services.agent_controller.mcp_routes as routes
+
+    monkeypatch.setattr(
+        routes,
+        "get_mq_queue_status_sync",
+        lambda queue: {
+            "qmgr": "QM.MAYABANK",
+            "queue": queue,
+            "current_depth": 3,
+            "maximum_depth": 1000,
+        },
+    )
+    response = TestClient(app).get("/agent/mcp/mq/queues/PAYMENT.REQUEST.Q")
+    assert response.status_code == 200
+    payload = response.json()["payload"]
+    assert payload["queue"] == "PAYMENT.REQUEST.Q"
+    assert payload["current_depth"] == 3
