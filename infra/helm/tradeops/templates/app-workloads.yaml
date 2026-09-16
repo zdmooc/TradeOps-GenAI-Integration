@@ -68,21 +68,36 @@ spec:
             - name: http
               containerPort: {{ $app.port }}
           startupProbe:
-            httpGet:
-              path: /health
+            {{- if $app.tcpProbe }}
+            tcpSocket:
               port: http
+            {{- else }}
+            httpGet:
+              path: {{ default "/health" $app.probePath }}
+              port: http
+            {{- end }}
             failureThreshold: 30
             periodSeconds: 5
           readinessProbe:
-            httpGet:
-              path: /health
+            {{- if $app.tcpProbe }}
+            tcpSocket:
               port: http
+            {{- else }}
+            httpGet:
+              path: {{ default "/health" $app.probePath }}
+              port: http
+            {{- end }}
             initialDelaySeconds: 2
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /health
+            {{- if $app.tcpProbe }}
+            tcpSocket:
               port: http
+            {{- else }}
+            httpGet:
+              path: {{ default "/health" $app.probePath }}
+              port: http
+            {{- end }}
             initialDelaySeconds: 10
             periodSeconds: 20
           {{- end }}

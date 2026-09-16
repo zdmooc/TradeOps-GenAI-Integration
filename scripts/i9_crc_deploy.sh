@@ -8,6 +8,7 @@ DEPLOY_MODE="${DEPLOY_MODE:-direct}"
 : "${GRAFANA_ADMIN_PASSWORD:?export GRAFANA_ADMIN_PASSWORD before deploying}"
 : "${MCP_AGENT_TOKEN:?export MCP_AGENT_TOKEN before deploying}"
 : "${MCP_REVIEWER_TOKEN:?export MCP_REVIEWER_TOKEN before deploying}"
+: "${MQ_OPS_SERVICE_TOKEN:?export MQ_OPS_SERVICE_TOKEN before deploying R5}"
 
 cd "$ROOT"
 
@@ -17,6 +18,7 @@ oc -n tradeops create secret generic tradeops-runtime-secrets \
   --from-literal=GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD}" \
   --from-literal=MCP_AGENT_TOKEN="${MCP_AGENT_TOKEN}" \
   --from-literal=MCP_REVIEWER_TOKEN="${MCP_REVIEWER_TOKEN}" \
+  --from-literal=MQ_OPS_API_TOKEN="${MQ_OPS_SERVICE_TOKEN}" \
   --dry-run=client -o yaml | oc apply -f -
 
 oc -n tradeops start-build tradeops-runtime --follow --wait

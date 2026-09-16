@@ -28,6 +28,30 @@ spec:
     - to:
         - podSelector: {}
 ---
+# R5: only the native MCP workload may cross into the MayaBank payment namespace,
+# and only to the read-only mq-ops-api on TCP/8080.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-native-to-mayabank-mq-ops
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-native
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mayabank-mq-local
+          podSelector:
+            matchLabels:
+              app: mq-ops-api
+      ports:
+        - protocol: TCP
+          port: 8080
+---
 # The business UI can call only the three backends intentionally exposed by its
 # same-origin reverse proxy. It cannot initiate connections to MCP, databases,
 # Kafka/Redpanda, Qdrant, Prometheus, OTEL or the paper OMS.

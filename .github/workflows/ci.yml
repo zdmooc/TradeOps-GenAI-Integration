@@ -23,6 +23,8 @@ jobs:
       - run: python scripts/security_audit.py
       - run: python scripts/generate_sbom.py --check
       - run: python scripts/validate_wiki.py
+      - name: Validate CRC shell scripts
+        run: bash -n scripts/i9_crc_deploy.sh scripts/r5_crc_mcp_mq_deploy.sh scripts/r5_crc_mcp_mq_verify.sh scripts/r5_crc_mcp_mq_run.sh
       - run: npm install --no-audit --no-fund
         working-directory: frontend/tradeops-ui
       - run: npm run build
