@@ -1,6 +1,6 @@
 # R4 — IBM MQ / Payments via MCP
 
-Statut : **IMPLEMENTED ON BRANCH / CI EVIDENCE PENDING / CRC NETWORK EVIDENCE PENDING**
+Statut : **TESTED IN CI / CRC NETWORK EVIDENCE PENDING**
 
 ## 1. Pourquoi IBM MQ est ajouté
 
@@ -139,15 +139,30 @@ L'agent pourra ensuite rapprocher ce constat d'OpenShift, du RAG/runbook et des 
 
 R4 ne redémarre rien et ne purge rien.
 
-## 7. Frontières de preuve
+## 7. Preuve CI obtenue
 
-Après CI verte, R4 pourra être marqué `TESTED IN CI` pour :
+La CI TradeOps est verte sur le code R4 :
+
+- installation Python ;
+- Ruff ;
+- audit sécurité ;
+- contrôle SBOM ;
+- validation documentation ;
+- build frontend ;
+- Helm lint/template ;
+- validateurs plateforme ;
+- Terraform fmt/init/validate ;
+- `pytest -q`, y compris les tests R4.
+
+R4 est donc `TESTED IN CI` pour :
 
 - allow-list de queues ;
 - `mq.read` et refus sans scope ;
 - classification HEALTHY/WARNING/DEGRADED ;
 - câblage MCP/Host ;
-- tests unitaires Java de la frontière MQ Ops.
+- routes Agent Controller de démonstration.
+
+La CI du dépôt MQ valide séparément la compilation Java réelle avec `com.ibm.mq.allclient 9.4.5.1` et les tests unitaires du MQ Ops Adapter.
 
 R4 ne sera pas `DEPLOYED/VERIFIED` tant que CRC n'aura pas produit une preuve réelle de :
 
@@ -167,6 +182,6 @@ Cette preuve appartient à R5.
 R1  MCP Server natif                         DONE
 R2  Agent Controller = MCP Host              DONE
 R3  OAuth/OIDC + scopes + HITL               DONE
-R4  IBM MQ / Payment observability via MCP   <- ici
-R5  CRC/OpenShift network + runtime evidence
+R4  IBM MQ / Payment observability via MCP   TESTED IN CI
+R5  CRC/OpenShift network + runtime evidence NEXT
 ```
