@@ -1,6 +1,6 @@
 # R2 — Agent Controller comme MCP Host
 
-Statut : **IMPLEMENTED ON BRANCH / CI EVIDENCE PENDING**
+Statut : **TESTED IN CI / NOT YET DEPLOYED ON NETWORK**
 
 ## 1. Le changement mental
 
@@ -125,23 +125,25 @@ curl -X POST http://localhost:8015/agent/mcp/context \
   -d '{"symbol":"CAC40","side":"BUY","qty":10}'
 ```
 
-## 5. Ce que R2 prouve
+## 5. Preuve R2 acquise
 
-Si les tests passent, R2 prouve :
+GitHub Actions a validé le lot avec succès : installation, Ruff, audit sécurité, SBOM, validations plateforme, Terraform et `pytest -q`.
+
+R2 prouve donc en CI :
 
 - l'Agent Controller contient un client MCP officiel ;
-- la découverte MCP fonctionne ;
+- la découverte MCP fonctionne en test protocolaire in-process ;
 - l'appel de tools structurés fonctionne ;
 - le contrat HTTP du Host reste séparé du protocole MCP interne ;
 - la mutation paper reste hors du chemin natif.
 
-R2 ne prouve pas encore : OAuth/OIDC, identité propagée, ToolGovernor sur MCP natif, IBM MQ, OpenShift ou déploiement réseau réel.
+R2 ne prouve pas encore : déploiement HTTP MCP réel, OAuth/OIDC, identité propagée, ToolGovernor sur MCP natif, IBM MQ ou OpenShift.
 
 ## 6. Suite
 
 ```text
 R1  MCP Server natif
-R2  Agent Controller = MCP Host      <- ici
+R2  Agent Controller = MCP Host      <- TESTED IN CI
 R3  OAuth/OIDC + ToolGovernor + HITL
 R4  IBM MQ / Payments MCP
 R5  OpenShift CRC + evidence
