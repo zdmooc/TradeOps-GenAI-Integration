@@ -1,0 +1,16 @@
+services:
+  agent-controller:
+    environment:
+      MCP_NATIVE_URL: http://mcp-native:8017/mcp
+    depends_on:
+      mcp-native:
+        condition: service_started
+
+  mcp-native:
+    build:
+      context: .
+      dockerfile: services/mcp_native/Dockerfile
+    environment:
+      SERVICE_NAME: mcp-native
+    ports:
+      - "8017:8017"
