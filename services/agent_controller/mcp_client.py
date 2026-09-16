@@ -2,7 +2,7 @@
 
 R3 adds authenticated Streamable HTTP for network calls. The Agent Controller uses
 an agent token for read/evaluate tools and a reviewer token only for the final
-HITL-approved paper-order tool.
+HITL-approved paper-order tool. R4 adds read-only IBM MQ observations.
 """
 
 from __future__ import annotations
@@ -96,7 +96,8 @@ async def get_trade_context(
     symbol = symbol.upper()
     side = side.upper()
 
-    async with _client(target, token=_agent_token() if isinstance(target or _target(), str) else None) as client:
+    token = _agent_token() if isinstance(target or _target(), str) else None
+    async with _client(target, token=token) as client:
         tools = await client.list_tools()
         names = {tool.name for tool in tools.tools}
         required = {"market.get_last_price", "risk.check_trade"}
@@ -133,6 +134,28 @@ async def get_trade_context(
         }
 
 
+async def get_mq_queue_status(queue: str, target: Any | None = None) -> dict[str, Any]:
+    """Read one governed IBM MQ payment queue status through MCP."""
+    token = _agent_token() if isinstance(target or _target(), str) else None
+    async with _client(target, token=token) as client:
+        result = await client.call_tool("mq.get_queue_status", {"queue": queue.upper()})
+        payload = result.structured_content
+        if not isinstance(payload, dict) or "queue" not in payload:
+            raise McpContextError("mq.get_queue_status returned invalid structured content")
+        return payload
+
+
+async def get_payment_mq_health(target: Any | None = None) -> dict[str, Any]:
+    """Read the deterministic payment MQ health summary through MCP."""
+    token = _agent_token() if isinstance(target or _target(), str) else None
+    async with _client(target, token=token) as client:
+        result = await client.call_tool("payments.get_mq_health", {})
+        payload = result.structured_content
+        if not isinstance(payload, dict) or "status" not in payload:
+            raise McpContextError("payments.get_mq_health returned invalid structured content")
+        return payload
+
+
 async def execute_approved_paper(workflow_id: str, target: Any | None = None) -> dict[str, Any]:
     """Invoke the native mutating tool with the reviewer identity only."""
     token = _reviewer_token()
@@ -157,6 +180,14 @@ def get_trade_context_sync(
     target: Any | None = None,
 ) -> dict[str, Any]:
     return asyncio.run(get_trade_context(symbol=symbol, side=side, qty=qty, target=target))
+
+
+def get_mq_queue_status_sync(queue: str, target: Any | None = None) -> dict[str, Any]:
+    return asyncio.run(get_mq_queue_status(queue=queue, target=target))
+
+
+def get_payment_mq_health_sync(target: Any | None = None) -> dict[str, Any]:
+    return asyncio.run(get_payment_mq_health(target=target))
 
 
 def execute_approved_paper_sync(workflow_id: str, target: Any | None = None) -> dict[str, Any]:
