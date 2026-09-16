@@ -11,6 +11,7 @@ EXPECTED_APPS = (
     "rag-api",
     "agent-controller",
     "mcp-server",
+    "mcp-native",
     "risk-engine",
     "paper-oms",
     "notifier",
@@ -40,13 +41,18 @@ def validate_platform() -> list[str]:
         "gitops/argocd/platform-guardrails.yaml",
         "gitops/argocd/kyverno-policies.yaml",
         "services/rag_api/vectorstore.py",
+        "services/mcp_native/server.py",
+        "services/mcp_native/mq_client.py",
         "scripts/i9_crc_preflight.sh",
         "scripts/i9_crc_deploy.sh",
         "scripts/i9_crc_verify.sh",
+        "scripts/r5_crc_mcp_mq_deploy.sh",
+        "scripts/r5_crc_mcp_mq_verify.sh",
+        "scripts/r5_crc_mcp_mq_run.sh",
     )
     for relpath in required_paths:
         if not (ROOT / relpath).is_file():
-            errors.append(f"missing required I9 artifact: {relpath}")
+            errors.append(f"missing required I9/R5 artifact: {relpath}")
 
     if errors:
         return errors
@@ -61,12 +67,21 @@ def validate_platform() -> list[str]:
         errors.append("Helm values must not use latest image tags")
     if "image: qdrant/qdrant:v1.19.0" not in values:
         errors.append("Qdrant server must stay aligned with qdrant-client 1.19.0")
+    for required in (
+        "MCP_NATIVE_URL: http://mcp-native:8017/mcp",
+        "MQ_OPS_API_URL: http://mq-ops-api.mayabank-mq-local.svc.cluster.local:8080",
+        "secretKey: MQ_OPS_API_TOKEN",
+        "tcpProbe: true",
+    ):
+        if required not in values:
+            errors.append(f"R5 native MCP runtime value missing: {required}")
 
     crc_values = _read("infra/helm/tradeops/values-crc.yaml")
     for required in (
         "ephemeralPlatformStorage: true",
         "HF_HOME: /tmp/huggingface",
         "pullPolicy: Always",
+        "mcp-native:",
     ):
         if required not in crc_values:
             errors.append(f"CRC runtime value missing: {required}")
@@ -76,6 +91,7 @@ def validate_platform() -> list[str]:
         "startupProbe:",
         "readinessProbe:",
         "livenessProbe:",
+        "tcpSocket:",
         "resources:",
         "allowPrivilegeEscalation",
         "secretKeyRef:",
@@ -110,6 +126,7 @@ def validate_platform() -> list[str]:
     for required in (
         "name: default-deny",
         "name: allow-intra-namespace",
+        "name: allow-mcp-native-to-mayabank-mq-ops",
         "name: allow-dns-egress",
         "name: allow-router-ingress",
         "name: allow-external-https-egress",
@@ -117,6 +134,14 @@ def validate_platform() -> list[str]:
     ):
         if required not in network:
             errors.append(f"NetworkPolicy missing: {required}")
+    for required in (
+        "app.kubernetes.io/name: mcp-native",
+        "kubernetes.io/metadata.name: mayabank-mq-local",
+        "app: mq-ops-api",
+        "port: 8080",
+    ):
+        if required not in network:
+            errors.append(f"R5 cross-namespace MQ policy incomplete: {required}")
     for required in (
         "key: openshift.io/build.name",
         "port: 443",
