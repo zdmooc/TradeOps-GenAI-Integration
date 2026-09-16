@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from services.agent_controller.contracts import AgentContext, Direction
 from services.agent_controller.graph import run_agent_graph
+from services.agent_controller.mcp_client import execute_approved_paper_sync
 from services.agent_controller.rag_governance import RagPolicy, assess_rag_hits
 from services.common.audit import log_audit
 from services.common.logging import setup_logging
@@ -33,11 +34,10 @@ from services.decision_fusion.workflow import (
 from services.security.identity import SecurityPrincipal, authenticate_authorization
 
 log = setup_logging("agent-controller")
-app = FastAPI(title="Agent Controller", version="0.4")
+app = FastAPI(title="Agent Controller", version="0.5")
 install(app, "agent-controller")
 
 RAG_API_URL = os.getenv("RAG_API_URL", "http://rag-api:8014")
-MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://mcp-server:8016")
 _decision_store = PostgresDecisionStore()
 
 
@@ -173,6 +173,7 @@ def health():
         "service": "agent-controller",
         "mode": "ANALYSIS_PLUS_HITL",
         "framework": "LangGraph",
+        "mcp": "NATIVE_V2_AUTHENTICATED",
         "execution": "SHADOW_OR_PAPER_AFTER_HUMAN_APPROVAL",
         "observability": "OTEL_PROMETHEUS_I8",
         "auth_modes": ["static", "oidc"],
@@ -294,37 +295,12 @@ def review_decision(
 
 
 def _execute_paper(case) -> dict[str, Any]:
-    token = os.getenv("MCP_REVIEWER_TOKEN", "")
-    if os.getenv("TRADEOPS_AUTH_MODE", "static").strip().lower() == "oidc":
-        token = os.getenv("OIDC_REVIEWER_ACCESS_TOKEN", "")
-    if not token:
-        raise WorkflowError("reviewer execution token is not configured")
-    item = case.proposal.input
-    with start_span("mcp.oms.place_order", kind=SpanKind.CLIENT):
-        response = httpx.post(
-            f"{MCP_SERVER_URL}/call",
-            headers=inject_headers({"Authorization": f"Bearer {token}"}),
-            json={
-                "tool": "oms.place_order",
-                "arguments": {
-                    "symbol": item.symbol,
-                    "side": "BUY" if item.direction.upper() == "LONG" else "SELL",
-                    "qty": item.qty,
-                    "workflow_id": case.proposal.proposal_id,
-                },
-                "correlation_id": case.proposal.correlation_id,
-                "workflow_id": case.proposal.proposal_id,
-                "purpose": "i7-hitl-approved-paper",
-                "human_approved": True,
-            },
-            timeout=5.0,
-        )
-    if response.status_code >= 400:
-        raise WorkflowError(f"governed paper execution failed: HTTP {response.status_code}")
-    result = response.json().get("result")
-    if not isinstance(result, dict):
-        raise WorkflowError("governed paper execution returned invalid result")
-    return result
+    """Execute through authenticated native MCP after server-side HITL validation."""
+    try:
+        with start_span("mcp.native.oms.place_order", kind=SpanKind.CLIENT):
+            return execute_approved_paper_sync(case.proposal.proposal_id)
+    except Exception as exc:
+        raise WorkflowError(f"native MCP paper execution failed: {exc}") from exc
 
 
 @app.post("/decision/{proposal_id}/execute", response_model=CaseResponse)
@@ -350,8 +326,8 @@ def autonomous_trade_disabled():
         detail={
             "code": "AUTONOMOUS_EXECUTION_DISABLED",
             "message": (
-                "Autonomous agent execution remains disabled. I7 requires a fusion "
-                "proposal plus authenticated human review before SHADOW/PAPER."
+                "Autonomous agent execution remains disabled. A fusion proposal plus "
+                "authenticated human review is required before SHADOW/PAPER."
             ),
         },
     )
