@@ -32,7 +32,7 @@ def static_principals() -> dict[str, SecurityPrincipal]:
         os.getenv("MCP_AGENT_TOKEN", ""): SecurityPrincipal(
             subject="agent-controller",
             roles=frozenset({"agent"}),
-            scopes=frozenset({"market.read", "risk.evaluate", "workflow.read"}),
+            scopes=frozenset({"market.read", "risk.evaluate", "workflow.read", "mq.read"}),
             authn_method="static",
         ),
         os.getenv("MCP_REVIEWER_TOKEN", ""): SecurityPrincipal(
@@ -43,6 +43,7 @@ def static_principals() -> dict[str, SecurityPrincipal]:
                     "market.read",
                     "risk.evaluate",
                     "workflow.read",
+                    "mq.read",
                     "audit.read",
                     "paper.execute",
                 }
