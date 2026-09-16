@@ -1,6 +1,6 @@
 # R3 — MCP natif sécurisé : identité, scopes et HITL
 
-Statut : **IMPLEMENTED ON BRANCH / CI EVIDENCE PENDING**
+Statut : **TESTED IN CI / NETWORK DEPLOYMENT EVIDENCE PENDING**
 
 ## 1. Le problème métier
 
@@ -250,9 +250,11 @@ Les secrets/tokens restent soumis au mécanisme de redaction existant.
 - serveur pédagogique R1/R2 reste non mutateur ;
 - serveur réseau sécurisé expose la mutation gouvernée.
 
+La CI GitHub Actions a validé également Ruff, audit sécurité, SBOM, validations Helm/Terraform et la suite complète `pytest -q`.
+
 ## 10. Ce que R3 prouve / ne prouve pas encore
 
-Après CI verte, R3 prouve au niveau code/test :
+R3 prouve au niveau code/test :
 
 - intégration du `TokenVerifier` MCP v2 ;
 - mapping identité TradeOps -> identité MCP ;
@@ -277,7 +279,7 @@ Ces preuves appartiennent à R4/R5.
 ```text
 R1  MCP Server natif                    DONE
 R2  Agent Controller = MCP Host         DONE
-R3  OAuth/OIDC + scopes + HITL           <- ici
+R3  OAuth/OIDC + scopes + HITL          TESTED IN CI
 R4  IBM MQ / Payments MCP
 R5  OpenShift CRC + evidence runtime
 ```
