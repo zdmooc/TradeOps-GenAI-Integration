@@ -1,6 +1,6 @@
 # R5 — CRC runtime : MCP natif -> IBM MQ réel
 
-Statut : **IMPLEMENTED ON BRANCH / CI EVIDENCE PENDING / CRC LIVE EVIDENCE PENDING**
+Statut : **TESTED IN CI / CRC LIVE EVIDENCE PENDING**
 
 ## 1. But
 
@@ -69,7 +69,28 @@ MayaBank Secret key: token
 
 Le mot de passe IBM MQ n'est jamais transmis à TradeOps.
 
-## 4. Une commande pour déployer et vérifier
+## 4. Preuve CI acquise
+
+Le head R5 a passé :
+
+- installation Python ;
+- Ruff ;
+- audit sécurité ;
+- contrôle SBOM ;
+- validation documentation ;
+- syntaxe de tous les scripts CRC R5 avec `bash -n` ;
+- build frontend ;
+- `helm lint` ;
+- `helm template` avec les valeurs CRC ;
+- validation plateforme I9 incluant désormais `mcp-native` ;
+- validateurs I10/I13 ;
+- Terraform fmt/init/validate ;
+- validateurs I11/I12 ;
+- totalité de `pytest -q`, y compris les tests de packaging R5.
+
+Cette preuve justifie **TESTED IN CI**. Elle ne prouve pas que ton CRC local a déjà exécuté la chaîne.
+
+## 5. Une commande pour déployer et vérifier
 
 Préconditions : CRC/OpenShift déjà démarré et les deux dépôts présents côte à côte, par exemple :
 
@@ -91,7 +112,7 @@ MQ_REPO=/c/workspaces/mayabank-ibm-mq-native-ha-openshift-eda-platform \
   bash scripts/r5_crc_mcp_mq_run.sh
 ```
 
-## 5. Ce que la vérification exige réellement
+## 6. Ce que la vérification exige réellement
 
 Le script ne valide pas seulement la disponibilité des pods.
 
@@ -144,7 +165,7 @@ doit être refusée.
 
 `agent-controller` tente directement une connexion TCP vers `mq-ops-api:8080`. Elle doit échouer par NetworkPolicy. Seul `mcp-native` possède l'egress inter-namespace.
 
-## 6. Evidence bundle
+## 7. Evidence bundle
 
 En cas de succès :
 
@@ -185,18 +206,18 @@ verification=R5_CRC_MCP_MQ_VERIFY_PASS
 evidence_class=LIVE_OPERATIONAL
 ```
 
-## 7. Règle de vérité
+## 8. Règle de vérité
 
-Avant l'exécution locale, R5 peut devenir **TESTED IN CI** mais pas **DEPLOYED/VERIFIED**.
+Le statut reste **CRC LIVE EVIDENCE PENDING** tant que la commande n'a pas été exécutée sur le poste local et que le bundle de preuves réel n'existe pas.
 
-Ce n'est qu'après un evidence bundle CRC réel que le statut pourra devenir :
+Ce n'est qu'après ce bundle que le statut pourra devenir :
 
 ```text
 DEPLOYED ON CRC
 VERIFIED LIVE
 ```
 
-## 8. Suite après R5
+## 9. Suite après R5
 
 Une fois cette lecture IBM MQ réellement prouvée, l'itération suivante pourra enrichir le diagnostic avec OpenShift et RAG :
 
