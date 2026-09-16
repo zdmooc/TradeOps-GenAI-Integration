@@ -64,6 +64,7 @@ apps:
     env:
       RAG_API_URL: http://rag-api:8014
       MCP_SERVER_URL: http://mcp-server:8016
+      MCP_NATIVE_URL: http://mcp-native:8017/mcp
       TRADEOPS_AUTH_MODE: static
     secretEnv:
       - name: MCP_AGENT_TOKEN
@@ -84,6 +85,25 @@ apps:
         secretKey: MCP_AGENT_TOKEN
       - name: MCP_REVIEWER_TOKEN
         secretKey: MCP_REVIEWER_TOKEN
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+  mcp-native:
+    enabled: true
+    module: services.mcp_native.server
+    port: 8017
+    tcpProbe: true
+    env:
+      TRADEOPS_AUTH_MODE: static
+      MCP_NATIVE_RESOURCE_URL: http://mcp-native:8017/mcp
+      MQ_OPS_API_URL: http://mq-ops-api.mayabank-mq-local.svc.cluster.local:8080
+    secretEnv:
+      - name: MCP_AGENT_TOKEN
+        secretKey: MCP_AGENT_TOKEN
+      - name: MCP_REVIEWER_TOKEN
+        secretKey: MCP_REVIEWER_TOKEN
+      - name: MQ_OPS_API_TOKEN
+        secretKey: MQ_OPS_API_TOKEN
     resources:
       requests: {cpu: 100m, memory: 128Mi}
       limits: {cpu: 500m, memory: 512Mi}
