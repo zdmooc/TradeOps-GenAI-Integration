@@ -1,0 +1,45 @@
+_format_version: "3.0"
+_transform: true
+
+consumers:
+  - username: mayabank-shared-keycloak
+    jwt_secrets:
+      - key: "__KEYCLOAK_ISSUER__"
+        algorithm: RS256
+        secret: "unused-for-rs256"
+        rsa_public_key: |-
+__KEYCLOAK_PUBLIC_KEY_INDENTED__
+
+plugins:
+  - name: opentelemetry
+    config:
+      traces_endpoint: "__OTEL_TRACES_ENDPOINT__"
+
+services:
+  - name: ai-access-policy
+    url: http://ai-access-policy.tradeops.svc:8020
+    routes:
+      - name: ai-chat-completions
+        paths:
+          - /ai
+        strip_path: true
+    plugins:
+      - name: correlation-id
+        config:
+          header_name: X-Correlation-ID
+          generator: uuid
+          echo_downstream: true
+      - name: rate-limiting
+        config:
+          minute: 180
+          policy: local
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 2
+          size_unit: megabytes
+      - name: jwt
+        config:
+          key_claim_name: iss
+          claims_to_verify:
+            - exp
+          hide_credentials: false
