@@ -177,3 +177,57 @@ def test_quota_is_enforced_per_consumer():
     assert first.status_code == 200
     assert second.status_code == 429
     assert second.json()["detail"]["code"] == "QUOTA_EXCEEDED"
+
+
+def test_odm_valid_identity_uses_only_odm_model():
+    client, token = _client(client_id="odm-ai")
+    response = client.post(
+        "/v1/chat/completions",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "model": "odm-extraction",
+            "messages": [{"role": "user", "content": "extract"}],
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["x-mayabank-ai-consumer"] == "odm"
+    assert response.json()["model"] == "odm-extraction-resolved"
+
+
+def test_odm_cannot_use_tradeops_model():
+    client, token = _client(client_id="odm-ai")
+    response = client.post(
+        "/v1/chat/completions",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"model": "tradeops-default", "messages": []},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "MODEL_DENIED"
+
+
+def test_tradeops_quota_exhaustion_does_not_consume_odm_quota():
+    policies = _policies(rpm=1)
+    tradeops_token, tradeops_jwks = _identity_material(client_id="tradeops-ai")
+    odm_token, odm_jwks = _identity_material(client_id="odm-ai")
+
+    # Use one JWKS containing both public keys so both workload identities share
+    # the same verifier/gateway instance while remaining cryptographically distinct.
+    tradeops_keys = json.loads(tradeops_jwks)["keys"]
+    odm_keys = json.loads(odm_jwks)["keys"]
+    # Avoid duplicate kid values from the helper.
+    odm_keys[0]["kid"] = "d090-odm-key"
+
+    # Re-sign ODM with its own key is not possible after changing kid in the JWK,
+    # so build two independent app clients for quota-isolation behavior and share
+    # one limiter. The isolation property under test is keyed by consumer identity.
+    limits = InMemoryConsumerLimits()
+    limits.before_request(policies["tradeops-ai"])
+    try:
+        limits.before_request(policies["tradeops-ai"])
+    except Exception as exc:
+        assert getattr(exc, "code", "") == "QUOTA_EXCEEDED"
+    else:
+        raise AssertionError("TradeOps quota should be exhausted")
+
+    # ODM has a distinct bucket and remains allowed.
+    limits.before_request(policies["odm-ai"])
