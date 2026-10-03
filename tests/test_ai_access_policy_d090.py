@@ -207,20 +207,8 @@ def test_odm_cannot_use_tradeops_model():
 
 def test_tradeops_quota_exhaustion_does_not_consume_odm_quota():
     policies = _policies(rpm=1)
-    tradeops_token, tradeops_jwks = _identity_material(client_id="tradeops-ai")
-    odm_token, odm_jwks = _identity_material(client_id="odm-ai")
-
-    # Use one JWKS containing both public keys so both workload identities share
-    # the same verifier/gateway instance while remaining cryptographically distinct.
-    tradeops_keys = json.loads(tradeops_jwks)["keys"]
-    odm_keys = json.loads(odm_jwks)["keys"]
-    # Avoid duplicate kid values from the helper.
-    odm_keys[0]["kid"] = "d090-odm-key"
-
-    # Re-sign ODM with its own key is not possible after changing kid in the JWK,
-    # so build two independent app clients for quota-isolation behavior and share
-    # one limiter. The isolation property under test is keyed by consumer identity.
     limits = InMemoryConsumerLimits()
+
     limits.before_request(policies["tradeops-ai"])
     try:
         limits.before_request(policies["tradeops-ai"])
@@ -229,5 +217,6 @@ def test_tradeops_quota_exhaustion_does_not_consume_odm_quota():
     else:
         raise AssertionError("TradeOps quota should be exhausted")
 
-    # ODM has a distinct bucket and remains allowed.
+    # Limits are keyed by the trusted server-side consumer identity. Exhausting
+    # TradeOps therefore does not consume ODM's distinct bucket.
     limits.before_request(policies["odm-ai"])
