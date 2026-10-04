@@ -172,3 +172,69 @@ spec:
       ports:
         - protocol: TCP
           port: 5000
+---
+# D-090: genai-api obtains its workload token from the shared Keycloak runtime.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-genai-api-to-shared-keycloak
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: genai-api
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keycloak-system
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# D-090: genai-api reaches the canonical API Management Kong service.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-genai-api-to-api-gateway
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: genai-api
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mayabank-api
+          podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# D-090: only the canonical API Management Kong workload may enter AI Access.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-gateway-to-ai-access-policy
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ai-access-policy
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mayabank-api
+          podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8020
