@@ -9,7 +9,34 @@ from dataclasses import dataclass
 import httpx
 import jwt
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+
+AI_ACCESS_REQUESTS = Counter(
+    "mayabank_ai_access_requests_total",
+    "Governed AI access requests by trusted consumer and outcome.",
+    ["consumer", "status"],
+)
+AI_ACCESS_DENIALS = Counter(
+    "mayabank_ai_access_denials_total",
+    "Governed AI access denials by reason code.",
+    ["code"],
+)
+AI_ACCESS_TOKENS = Counter(
+    "mayabank_ai_access_tokens_total",
+    "Provider-reported tokens observed by the AI access boundary.",
+    ["consumer", "direction"],
+)
+AI_ACCESS_COST_USD = Counter(
+    "mayabank_ai_access_cost_usd_total",
+    "Estimated lab cost accumulated from provider token usage and configured rates.",
+    ["consumer"],
+)
+AI_ACCESS_UPSTREAM_DURATION = Histogram(
+    "mayabank_ai_access_upstream_duration_seconds",
+    "Time spent calling the LiteLLM upstream.",
+    ["consumer"],
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,6 +241,10 @@ def create_app(
             "quota_store": "in-memory-single-replica",
         }
 
+    @app.get("/metrics")
+    def metrics():
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
     @app.post("/v1/chat/completions")
     async def chat_completions(
         request: Request,
@@ -229,9 +260,18 @@ def create_app(
                 raise PolicyError("MODEL_DENIED", 403)
 
             limiter.before_request(policy)
-            upstream = await forwarder.forward(payload)
+            started = time.perf_counter()
+            try:
+                upstream = await forwarder.forward(payload)
+            finally:
+                AI_ACCESS_UPSTREAM_DURATION.labels(
+                    consumer=policy.consumer_id
+                ).observe(time.perf_counter() - started)
             body = upstream.json()
             if upstream.status_code >= 400:
+                AI_ACCESS_REQUESTS.labels(
+                    consumer=policy.consumer_id, status="upstream_error"
+                ).inc()
                 return JSONResponse(
                     status_code=upstream.status_code,
                     content=body,
@@ -247,6 +287,17 @@ def create_app(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
             )
+            AI_ACCESS_REQUESTS.labels(
+                consumer=policy.consumer_id, status="ok"
+            ).inc()
+            AI_ACCESS_TOKENS.labels(
+                consumer=policy.consumer_id, direction="input"
+            ).inc(prompt_tokens)
+            AI_ACCESS_TOKENS.labels(
+                consumer=policy.consumer_id, direction="output"
+            ).inc(completion_tokens)
+            if cost > 0:
+                AI_ACCESS_COST_USD.labels(consumer=policy.consumer_id).inc(cost)
             provider = (
                 upstream.headers.get("x-mayabank-ai-provider")
                 or upstream.headers.get("x-litellm-provider")
@@ -262,6 +313,7 @@ def create_app(
                 },
             )
         except PolicyError as exc:
+            AI_ACCESS_DENIALS.labels(code=exc.code).inc()
             raise HTTPException(
                 status_code=exc.status_code,
                 detail={"code": exc.code},
