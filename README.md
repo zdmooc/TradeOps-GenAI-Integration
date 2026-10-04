@@ -12,6 +12,25 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 - OpenShift/CRC, GitOps/Argo CD, RHOAI/KServe et cible Azure/ARO ;
 - **TradeOps Web Cockpit** : IHM métier React/TypeScript **LIVE et vérifiée sur CRC**, avec preuve HITL métier end-to-end encore à capturer.
 
+
+## D-090 / D-092 current AI platform wave
+
+Current repository state on 2026-10-04:
+
+- G0 AI Access ADR: **CLOSED**;
+- G1 governed real-model path: **IMPLEMENTED + PACKAGED / LIVE PROVIDER EVIDENCE PENDING**;
+- G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED / LIVE GOVERNANCE EVIDENCE PENDING**;
+- G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
+- G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
+- D-092 targeted A2A Payment Operations agent: **SDK baseline implemented / A2A LIVE INTEROPERABILITY PENDING**.
+
+The existing native MCP path is stronger than a design-only target: TradeOps already has scoped CRC runtime evidence for native MCP integration with IBM MQ. D-092 adds A2A **above** that proven MCP boundary; it does not replace it.
+
+See:
+- [D-090 decision and gates](docs/37-ai-access-d090.md)
+- [AI Access runtime profile](infra/ai-access/README.md)
+- [D-092 A2A interoperability baseline](docs/39-a2a-interoperability-d092.md)
+
 ## Architecture
 
 Le projet combine plusieurs capacités complémentaires :
