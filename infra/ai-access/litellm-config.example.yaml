@@ -1,0 +1,17 @@
+# LiteLLM v1.103.0 lab configuration for D-090.
+# Provider/model choices and credentials are runtime inputs.
+model_list:
+  - model_name: tradeops-default
+    litellm_params:
+      model: os.environ/TRADEOPS_LITELLM_MODEL
+      api_key: os.environ/LITELLM_PROVIDER_API_KEY
+  - model_name: odm-extraction
+    litellm_params:
+      model: os.environ/ODM_LITELLM_MODEL
+      api_key: os.environ/LITELLM_PROVIDER_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  set_verbose: false
