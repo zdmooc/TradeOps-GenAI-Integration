@@ -215,7 +215,7 @@ async def _health(_request):
             "service": "a2a-ops-agent",
             "protocol_binding": "JSONRPC",
             "wire_protocol_version": "1.0",
-            "sdk_baseline": "a2a-sdk==1.1.5",
+            "sdk_baseline": "a2a-sdk==1.2.1",
             "runtime_evidence": "PENDING",
         }
     )
