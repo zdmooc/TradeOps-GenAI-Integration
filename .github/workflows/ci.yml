@@ -24,7 +24,7 @@ jobs:
       - run: python scripts/generate_sbom.py --check
       - run: python scripts/validate_wiki.py
       - name: Validate CRC shell scripts
-        run: bash -n scripts/i9_crc_deploy.sh scripts/r5_crc_mcp_mq_deploy.sh scripts/r5_crc_mcp_mq_verify.sh scripts/r5_crc_mcp_mq_run.sh
+        run: bash -n scripts/i9_crc_deploy.sh scripts/r5_crc_mcp_mq_deploy.sh scripts/r5_crc_mcp_mq_verify.sh scripts/r5_crc_mcp_mq_run.sh scripts/d090_bootstrap_oidc_crc.sh scripts/d090_prepare_crc.sh scripts/d090_deploy_litellm_crc.sh scripts/d090_enable_genai_crc.sh scripts/d090_run_g1_live_crc.sh
       - run: npm install --no-audit --no-fund
         working-directory: frontend/tradeops-ui
       - run: npm run build
