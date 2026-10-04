@@ -135,7 +135,7 @@ spec:
     matchExpressions:
       - key: app.kubernetes.io/name
         operator: In
-        values: [market-data, genai-api, rag-api]
+        values: [market-data, genai-api, rag-api, litellm]
   policyTypes: [Egress]
   egress:
     - to:
