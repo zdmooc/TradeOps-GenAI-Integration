@@ -37,6 +37,39 @@ apps:
     resources:
       requests: {cpu: 100m, memory: 128Mi}
       limits: {cpu: 500m, memory: 512Mi}
+  ai-access-policy:
+    enabled: false
+    module: services.ai_access_policy.run
+    port: 8020
+    env:
+      AI_ACCESS_OIDC_AUDIENCE: ai-gateway
+      AI_ACCESS_REQUIRED_SCOPE: ai.inference
+      AI_ACCESS_UPSTREAM_TIMEOUT_SECONDS: "30"
+    secretEnv:
+      - name: OIDC_JWKS_JSON
+        secretKey: AI_ACCESS_OIDC_JWKS_JSON
+      - name: AI_ACCESS_CONSUMERS_JSON
+        secretKey: AI_ACCESS_CONSUMERS_JSON
+      - name: LITELLM_API_KEY
+        secretKey: LITELLM_API_KEY
+    resources:
+      requests: {cpu: 50m, memory: 96Mi}
+      limits: {cpu: 300m, memory: 384Mi}
+  a2a-ops-agent:
+    enabled: false
+    module: services.a2a_ops_agent.run
+    port: 8021
+    env:
+      A2A_PUBLIC_URL: http://a2a-ops-agent:8021
+      A2A_ALLOWED_PEERS: investigation-agent
+      MCP_NATIVE_URL: http://mcp-native:8017/mcp
+      TRADEOPS_AUTH_MODE: static
+    secretEnv:
+      - name: MCP_AGENT_TOKEN
+        secretKey: MCP_AGENT_TOKEN
+    resources:
+      requests: {cpu: 50m, memory: 96Mi}
+      limits: {cpu: 300m, memory: 384Mi}
   genai-api:
     enabled: true
     module: services.genai_api.run
