@@ -25,6 +25,10 @@ def validate() -> list[str]:
         "scripts/d090_shared_isolation_probe.py",
         "scripts/d090_bootstrap_oidc_crc.sh",
         "scripts/d090_prepare_crc.sh",
+        "infra/ai-access/D090_CRC_RUNBOOK.md",
+        "scripts/d090_run_g1_live_crc.sh",
+        "scripts/d090_enable_genai_crc.sh",
+        "scripts/d090_deploy_litellm_crc.sh",
         "infra/ai-access/ai-access-policy-crc.yaml",
         "infra/ai-access/litellm-deployment-crc.yaml",
         "tests/test_ai_access_d090.py",
@@ -118,6 +122,47 @@ def validate() -> list[str]:
     ):
         if marker not in crc_policy:
             errors.append(f"G1 CRC AI Access manifest missing: {marker}")
+
+    litellm_crc = read("infra/ai-access/litellm-deployment-crc.yaml")
+    for marker in (
+        "ghcr.io/berriai/litellm:v1.103.0",
+        "tradeops-default",
+        "LITELLM_PROVIDER_API_KEY",
+        "d090-ai-model",
+    ):
+        if marker not in litellm_crc:
+            errors.append(f"G1 CRC LiteLLM manifest missing: {marker}")
+
+    deploy = read("scripts/d090_deploy_litellm_crc.sh")
+    for marker in (
+        "D090_LITELLM_MODEL",
+        "D090_PROVIDER_API_KEY",
+        "D090_LITELLM_DEPLOY=PASS",
+    ):
+        if marker not in deploy:
+            errors.append(f"G1-B LiteLLM deploy gate missing: {marker}")
+
+    enable = read("scripts/d090_enable_genai_crc.sh")
+    for marker in (
+        "LLM_PROVIDER=gateway",
+        "api-gateway.mayabank-api.svc:8000/ai",
+        "keycloak-service.keycloak-system.svc:8080",
+        "otel-collector.shared-observability.svc:4318",
+        "AI_OIDC_CLIENT_SECRET",
+        "D090_GENAI_GATEWAY_MODE=PASS",
+    ):
+        if marker not in enable:
+            errors.append(f"G1-B genai enable gate missing: {marker}")
+
+    live = read("scripts/d090_run_g1_live_crc.sh")
+    for marker in (
+        "d090_real_model_probe.py",
+        "D090_REAL_MODEL_PATH=PASS",
+        "mayabank_ai_access_requests_total",
+        "D090_G1_LIVE=PASS",
+    ):
+        if marker not in live:
+            errors.append(f"G1 live evidence wrapper missing: {marker}")
 
     return errors
 
