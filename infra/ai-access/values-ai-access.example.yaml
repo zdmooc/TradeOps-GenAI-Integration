@@ -1,0 +1,32 @@
+# D-090 G1/G2 opt-in overlay.
+# This file contains no credential. Supply real endpoints and Secret values at runtime.
+global:
+  env:
+    LLM_PROVIDER: gateway
+    AI_GATEWAY_BASE_URL: http://kong-proxy.tradeops.svc:8000/ai
+    AI_GATEWAY_MODEL_ALIAS: tradeops-default
+    AI_GATEWAY_AUTH_MODE: client_credentials
+    AI_ALLOWED_MODEL_ALIASES: tradeops-default
+    AI_OIDC_TOKEN_URL: https://shared-keycloak.example.invalid/realms/mayabank/protocol/openid-connect/token
+    AI_OIDC_CLIENT_ID: tradeops-ai
+    AI_OIDC_SCOPE: ai.inference
+    AI_OIDC_AUDIENCE: ai-gateway
+
+apps:
+  ai-access-policy:
+    enabled: true
+    env:
+      OIDC_ISSUER: https://shared-keycloak.example.invalid/realms/mayabank
+      LITELLM_BASE_URL: http://litellm.tradeops.svc:4000
+  genai-api:
+    secretEnv:
+      - name: AI_OIDC_CLIENT_SECRET
+        secretKey: AI_OIDC_CLIENT_SECRET
+
+# Runtime Secret keys expected in tradeops-runtime-secrets:
+# - AI_OIDC_CLIENT_SECRET
+# - AI_ACCESS_OIDC_JWKS_JSON
+# - AI_ACCESS_CONSUMERS_JSON
+# - LITELLM_API_KEY
+#
+# The example.invalid hostname is intentional. Replace it at deployment time.
