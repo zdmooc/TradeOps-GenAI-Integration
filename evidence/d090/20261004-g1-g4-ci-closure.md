@@ -76,7 +76,7 @@ Not yet proven:
 **IMPLEMENTED + TESTED IN CI**
 
 Present:
-- `a2a-sdk==1.1.5`;
+- `a2a-sdk==1.2.1`;
 - Payment Operations Agent;
 - Agent Card;
 - bounded skills;
