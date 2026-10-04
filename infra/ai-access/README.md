@@ -1,6 +1,6 @@
 # D-090 AI Access runtime profile
 
-Status: **IMPLEMENTED CONTRACT / REAL MODEL + CRC EVIDENCE PENDING**.
+Status: **G1/G2 IMPLEMENTED + PACKAGED / G3/G4 PROBES PREPARED / LIVE EVIDENCE PENDING**.
 
 Target:
 
@@ -72,3 +72,57 @@ D090_REAL_MODEL_PATH=PASS
 ```
 
 Only an observed pass can promote G1 to `DEPLOYED × SINGLE_CONSUMER`.
+
+
+## Packaging added on 2026-10-04
+
+Base Helm values contain `ai-access-policy`, disabled by default.
+
+Opt-in profile:
+
+```bash
+-f infra/ai-access/values-ai-access.example.yaml
+```
+
+LiteLLM reference:
+- pinned example image `ghcr.io/berriai/litellm:v1.103.0`;
+- aliases `tradeops-default` and `odm-extraction`;
+- provider/model/key are runtime inputs;
+- no provider credential is committed.
+
+The LiteLLM example is a lab/reference deployment. Production LiteLLM state, distributed quotas and HA require a separate ADR and evidence.
+
+## G2 metrics
+
+`ai-access-policy:/metrics` exposes:
+- `mayabank_ai_access_requests_total`;
+- `mayabank_ai_access_denials_total`;
+- `mayabank_ai_access_tokens_total`;
+- `mayabank_ai_access_cost_usd_total`;
+- `mayabank_ai_access_upstream_duration_seconds`.
+
+Labels use the trusted server-derived consumer where applicable.
+
+## G3/G4 shared-consumer probe
+
+After TradeOps and ODM credentials are provisioned against the same deployed gateway:
+
+```bash
+export AI_GATEWAY_BASE_URL=https://<gateway>/ai
+export AI_OIDC_TOKEN_URL=https://<keycloak>/realms/mayabank/protocol/openid-connect/token
+export AI_OIDC_CLIENT_ID=tradeops-ai
+export AI_OIDC_CLIENT_SECRET=<runtime-secret>
+export ODM_AI_CLIENT_ID=odm-ai
+export ODM_AI_CLIENT_SECRET=<runtime-secret>
+
+python scripts/d090_shared_isolation_probe.py \
+  --evidence-out evidence/d090/runtime/shared-isolation.json
+```
+
+Required final marker:
+
+```text
+D090_SHARED_ISOLATION=PASS
+```
+
+No secret is persisted in the evidence file.
