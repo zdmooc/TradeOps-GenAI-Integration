@@ -23,6 +23,10 @@ def validate() -> list[str]:
         "infra/ai-access/litellm-deployment.example.yaml",
         "scripts/d090_real_model_probe.py",
         "scripts/d090_shared_isolation_probe.py",
+        "scripts/d090_bootstrap_oidc_crc.sh",
+        "scripts/d090_prepare_crc.sh",
+        "infra/ai-access/ai-access-policy-crc.yaml",
+        "infra/ai-access/litellm-deployment-crc.yaml",
         "tests/test_ai_access_d090.py",
         "tests/test_ai_access_policy_d090.py",
     )
@@ -88,6 +92,32 @@ def validate() -> list[str]:
         errors.append("LiteLLM example must pin v1.103.0")
     if ":latest" in litellm:
         errors.append("LiteLLM example must not use latest")
+
+    bootstrap = read("scripts/d090_bootstrap_oidc_crc.sh")
+    for marker in (
+        "tradeops-ai",
+        "ai-gateway",
+        "ai.inference",
+        "D090_SHARED_OIDC_CLIENT=PASS",
+        "D090_RUNTIME_SECRET_MERGE=PASS",
+    ):
+        if marker not in bootstrap:
+            errors.append(f"G1 CRC OIDC bootstrap missing: {marker}")
+
+    prepare = read("scripts/d090_prepare_crc.sh")
+    if "D090_G1A_PREPARE=PASS" not in prepare:
+        errors.append("G1 CRC prepare marker missing")
+
+    crc_policy = read("infra/ai-access/ai-access-policy-crc.yaml")
+    for marker in (
+        "https://keycloak.apps-crc.testing/realms/mayabank",
+        "AI_ACCESS_OIDC_AUDIENCE",
+        "ai-gateway",
+        "LITELLM_BASE_URL",
+        "http://litellm:4000",
+    ):
+        if marker not in crc_policy:
+            errors.append(f"G1 CRC AI Access manifest missing: {marker}")
 
     return errors
 
