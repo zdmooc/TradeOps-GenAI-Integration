@@ -109,20 +109,20 @@ print(json.dumps({"tradeops-ai": obj["tradeops-ai"]}, separators=(",",":")))
 PY
 )"
 
-LITELLM_API_KEY="$(oc -n "${NAMESPACE}" get secret tradeops-runtime-secrets -o jsonpath='{.data.LITELLM_API_KEY}' 2>/dev/null | base64 -d 2>/dev/null || true)"
-if [[ -z "${LITELLM_API_KEY}" ]]; then
-  LITELLM_API_KEY="$(python -c 'import secrets; print("sk-d090-"+secrets.token_urlsafe(32))')"
+RUNTIME_LITELLM_KEY="$(oc -n "${NAMESPACE}" get secret tradeops-runtime-secrets -o jsonpath='{.data.LITELLM_API_KEY}' 2>/dev/null | base64 -d 2>/dev/null || true)"
+if [[ -z "${RUNTIME_LITELLM_KEY}" ]]; then
+  RUNTIME_LITELLM_KEY="$(python -c 'import secrets; print("sk-d090-"+secrets.token_urlsafe(32))')"
 fi
 
-export CLIENT_SECRET JWKS_JSON POLICIES_JSON LITELLM_API_KEY
+export CLIENT_SECRET JWKS_JSON POLICIES_JSON RUNTIME_LITELLM_KEY
 PATCH="$(python - <<'PY'
 import base64, json, os
-keys=["CLIENT_SECRET","JWKS_JSON","POLICIES_JSON","LITELLM_API_KEY"]
+keys=["CLIENT_SECRET","JWKS_JSON","POLICIES_JSON","RUNTIME_LITELLM_KEY"]
 mapping={
  "CLIENT_SECRET":"AI_OIDC_CLIENT_SECRET",
  "JWKS_JSON":"AI_ACCESS_OIDC_JWKS_JSON",
  "POLICIES_JSON":"AI_ACCESS_CONSUMERS_JSON",
- "LITELLM_API_KEY":"LITELLM_API_KEY",
+ "RUNTIME_LITELLM_KEY":"LITELLM_API_KEY",
 }
 data={}
 for env in keys:
@@ -132,7 +132,7 @@ PY
 )"
 oc -n "${NAMESPACE}" patch secret tradeops-runtime-secrets --type=merge -p "${PATCH}" >/dev/null
 
-unset ADMIN_TOKEN ADMIN_USER ADMIN_PASSWORD CLIENT_SECRET JWKS_JSON POLICIES_JSON LITELLM_API_KEY TOKEN_RESPONSE PATCH
+unset ADMIN_TOKEN ADMIN_USER ADMIN_PASSWORD CLIENT_SECRET JWKS_JSON POLICIES_JSON RUNTIME_LITELLM_KEY TOKEN_RESPONSE PATCH
 rm -f /tmp/d090-scope-link.out
 
 echo "D090_SHARED_OIDC_CLIENT=PASS client=${CLIENT_ID}"
