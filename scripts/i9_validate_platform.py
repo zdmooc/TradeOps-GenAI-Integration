@@ -131,6 +131,9 @@ def validate_platform() -> list[str]:
         "name: allow-router-ingress",
         "name: allow-external-https-egress",
         "name: allow-openshift-build-egress",
+        "name: allow-genai-api-to-shared-keycloak",
+        "name: allow-genai-api-to-api-gateway",
+        "name: allow-api-gateway-to-ai-access-policy",
     ):
         if required not in network:
             errors.append(f"NetworkPolicy missing: {required}")
@@ -153,6 +156,11 @@ def validate_platform() -> list[str]:
             errors.append(f"OpenShift build egress policy incomplete: {required}")
     for required in (
         "values: [market-data, genai-api, rag-api, litellm]",
+        "kubernetes.io/metadata.name: keycloak-system",
+        "kubernetes.io/metadata.name: mayabank-api",
+        "app: api-gateway",
+        "port: 8000",
+        "port: 8020",
         "port: 53",
         "port: 5353",
         "kubernetes.io/metadata.name: openshift-dns",
