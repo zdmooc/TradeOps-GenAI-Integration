@@ -108,7 +108,7 @@ def test_a2a_http_app_exposes_health_and_agent_card():
 
     health = client.get("/health")
     assert health.status_code == 200
-    assert health.json()["sdk_baseline"] == "a2a-sdk==1.1.5"
+    assert health.json()["sdk_baseline"] == "a2a-sdk==1.2.1"
     assert health.json()["runtime_evidence"] == "PENDING"
 
     card = client.get("/.well-known/agent-card.json")
