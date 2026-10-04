@@ -35,7 +35,7 @@ Dated 2026-10-04:
 
 - A2A specification release observed: **v1.0.1**;
 - A2A wire protocol used by the SDK/server interface: **1.0**;
-- Python SDK pinned by this repository: **a2a-sdk==1.1.5**.
+- Python SDK pinned by this repository: **a2a-sdk==1.2.1**.
 
 The implementation uses the current v1 route-factory model:
 
