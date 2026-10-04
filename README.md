@@ -18,13 +18,13 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 Current repository state on 2026-10-04:
 
 - G0 AI Access ADR: **CLOSED**;
-- G1 governed real-model path: **IMPLEMENTED + PACKAGED / LIVE PROVIDER EVIDENCE PENDING**;
-- G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED / LIVE GOVERNANCE EVIDENCE PENDING**;
+- G1 governed real-model path: **IMPLEMENTED + TESTED IN CI + PACKAGED / LIVE PROVIDER EVIDENCE PENDING**;
+- G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
-- D-092 targeted A2A Payment Operations agent: **SDK baseline implemented / A2A LIVE INTEROPERABILITY PENDING**.
+- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**.
 
-The existing native MCP path is stronger than a design-only target: TradeOps already has scoped CRC runtime evidence for native MCP integration with IBM MQ. D-092 adds A2A **above** that proven MCP boundary; it does not replace it.
+The native MCP path is already implemented and tested in CI through R1-R4. The dedicated R5 live CRC integration with IBM MQ remains **PENDING** until the local evidence bundle is actually captured. D-092 adds A2A above this MCP boundary; it does not replace it.
 
 See:
 - [D-090 decision and gates](docs/37-ai-access-d090.md)
