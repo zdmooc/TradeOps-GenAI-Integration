@@ -238,3 +238,23 @@ spec:
       ports:
         - protocol: TCP
           port: 8020
+---
+# D-090/G2: the real-model TradeOps span is exported to Shared OTel.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-genai-api-to-shared-otel
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: genai-api
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: shared-observability
+      ports:
+        - protocol: TCP
+          port: 4318
