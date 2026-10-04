@@ -1,0 +1,12 @@
+# D-092 targeted A2A interoperability opt-in overlay.
+apps:
+  a2a-ops-agent:
+    enabled: true
+    env:
+      A2A_PUBLIC_URL: http://a2a-ops-agent:8021
+      A2A_ALLOWED_PEERS: investigation-agent
+      MCP_NATIVE_URL: http://mcp-native:8017/mcp
+      TRADEOPS_AUTH_MODE: static
+
+# The A2A server is packaged but disabled in base values.
+# Live A2A -> MCP evidence must be captured before runtime interoperability is claimed.
