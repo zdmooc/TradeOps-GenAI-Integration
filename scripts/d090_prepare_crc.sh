@@ -13,6 +13,12 @@ curl -kfsS https://keycloak.apps-crc.testing/realms/mayabank/.well-known/openid-
 
 bash scripts/d090_bootstrap_oidc_crc.sh
 
+if ! oc -n tradeops get bc/tradeops-runtime >/dev/null 2>&1; then
+  oc apply -f infra/openshift/base/build.yaml >/dev/null
+fi
+oc -n tradeops start-build tradeops-runtime --follow --wait
+echo "D090_RUNTIME_IMAGE_BUILD=PASS"
+
 oc apply -f infra/openshift/base/networkpolicies.yaml >/dev/null
 oc apply -f infra/ai-access/ai-access-policy-crc.yaml >/dev/null
 oc -n tradeops rollout status deploy/ai-access-policy --timeout=180s
