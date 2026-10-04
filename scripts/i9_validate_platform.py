@@ -152,7 +152,7 @@ def validate_platform() -> list[str]:
         if required not in network:
             errors.append(f"OpenShift build egress policy incomplete: {required}")
     for required in (
-        "values: [market-data, genai-api, rag-api]",
+        "values: [market-data, genai-api, rag-api, litellm]",
         "port: 53",
         "port: 5353",
         "kubernetes.io/metadata.name: openshift-dns",
