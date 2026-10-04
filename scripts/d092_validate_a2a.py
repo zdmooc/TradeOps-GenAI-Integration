@@ -24,8 +24,8 @@ def validate() -> list[str]:
         return errors
 
     requirements = read("requirements.txt")
-    if "a2a-sdk==1.1.5" not in requirements:
-        errors.append("a2a-sdk must be pinned to 1.1.5")
+    if "a2a-sdk==1.2.1" not in requirements:
+        errors.append("a2a-sdk must be pinned to 1.2.1")
 
     service = read("services/a2a_ops_agent/main.py")
     for marker in (
