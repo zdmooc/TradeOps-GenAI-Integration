@@ -1,6 +1,6 @@
 # D-090 G0 — TradeOps AI Access decision
 
-**Status:** G0 DESIGN CLOSED / G1 IMPLEMENTATION NEXT  
+**Status:** G0 CLOSED / G1-G2 IMPLEMENTED CONTRACT + PACKAGING / LIVE REAL-MODEL EVIDENCE PENDING  
 **Date:** 2026-10-03
 
 ## Decision
@@ -45,3 +45,57 @@ ODM must consume the same gateway contract with a distinct workload identity. Cr
 ## Temporary debt
 
 From G3 through G4, AI Access is hosted by TradeOps. Exit gate G5 decides whether to keep it there, extract a small specialized capability or move to a managed gateway.
+
+
+## 2026-10-04 implementation update
+
+### G1 implementation/package
+
+Implemented:
+- `GatewayLLM` OpenAI-compatible non-mock path;
+- OAuth2 client-credentials token provider;
+- server-derived consumer identity;
+- AI Access policy service;
+- Kong target template;
+- LiteLLM v1.103.0 pinned deployment/config example;
+- Helm workloads for `ai-access-policy` (disabled by default);
+- opt-in `values-ai-access.example.yaml`;
+- real-model probe `scripts/d090_real_model_probe.py`;
+- static validator `scripts/d090_validate_ai_access.py`.
+
+The default remains `LLM_PROVIDER=mock`. The real path is never silently enabled.
+
+### G2 governance implementation
+
+Implemented in the policy boundary:
+- issuer/audience/signature validation;
+- required `ai.inference` scope;
+- trusted `azp/client_id -> consumer` mapping;
+- per-consumer model allowlist;
+- per-consumer RPM quota;
+- lab budget/cost accounting;
+- missing token / wrong audience / wrong scope / unknown consumer / forbidden model / quota / budget negative cases;
+- Prometheus metrics for request outcome, denials, tokens, estimated cost and upstream duration.
+
+The in-memory RPM/budget store remains **single-replica lab-only**.
+
+### G3/G4 prepared evidence
+
+`scripts/d090_shared_isolation_probe.py` is the live gate for:
+- TradeOps identity -> `tradeops-default`;
+- ODM identity -> `odm-extraction`;
+- TradeOps -> ODM model denial;
+- ODM -> TradeOps model denial;
+- same deployed gateway for both consumers.
+
+Unit/policy tests are not enough to promote `VERIFIED × SHARED` or `MULTI_TENANT_PROVEN`.
+
+### Current proof boundary
+
+```text
+G0 = CLOSED / DESIGNED
+G1 = IMPLEMENTED + PACKAGED / LIVE REAL MODEL PENDING
+G2 = IMPLEMENTED + TESTS PRESENT / LIVE GOVERNANCE EVIDENCE PENDING
+G3 = SECOND-CONSUMER CONTRACT + PROBE PREPARED / LIVE SHARED EVIDENCE PENDING
+G4 = ISOLATION POLICY + PROBE PREPARED / LIVE MULTI-TENANT EVIDENCE PENDING
+```
