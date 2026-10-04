@@ -34,6 +34,10 @@ jobs:
       - run: python scripts/i9_validate_platform.py
       - run: python scripts/i10_validate_ai_serving.py
       - run: python scripts/i13_validate_web_cockpit.py
+      - run: python scripts/d090_validate_ai_access.py
+      - run: python scripts/d092_validate_a2a.py
+      - run: helm template tradeops-ai-access infra/helm/tradeops --namespace tradeops -f infra/helm/tradeops/values.yaml -f infra/ai-access/values-ai-access.example.yaml > /tmp/tradeops-d090.yaml
+      - run: helm template tradeops-a2a infra/helm/tradeops --namespace tradeops -f infra/helm/tradeops/values.yaml -f infra/ai-access/values-a2a.example.yaml > /tmp/tradeops-d092-a2a.yaml
       - run: terraform fmt -check -recursive
         working-directory: infra/azure-enterprise/terraform
       - run: terraform init -backend=false -input=false
