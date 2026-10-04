@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-access-policy
+  namespace: tradeops
+  labels:
+    app.kubernetes.io/name: ai-access-policy
+    app.kubernetes.io/part-of: tradeops
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ai-access-policy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ai-access-policy
+        app.kubernetes.io/part-of: tradeops
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ai-access-policy
+          image: image-registry.openshift-image-registry.svc:5000/tradeops/tradeops-runtime:i9
+          imagePullPolicy: Always
+          command: ["python", "-m", "services.ai_access_policy.run"]
+          env:
+            - name: PORT
+              value: "8020"
+            - name: OIDC_ISSUER
+              value: https://keycloak.apps-crc.testing/realms/mayabank
+            - name: AI_ACCESS_OIDC_AUDIENCE
+              value: ai-gateway
+            - name: AI_ACCESS_REQUIRED_SCOPE
+              value: ai.inference
+            - name: LITELLM_BASE_URL
+              value: http://litellm:4000
+            - name: AI_ACCESS_UPSTREAM_TIMEOUT_SECONDS
+              value: "30"
+            - name: OIDC_JWKS_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: tradeops-runtime-secrets
+                  key: AI_ACCESS_OIDC_JWKS_JSON
+            - name: AI_ACCESS_CONSUMERS_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: tradeops-runtime-secrets
+                  key: AI_ACCESS_CONSUMERS_JSON
+            - name: LITELLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tradeops-runtime-secrets
+                  key: LITELLM_API_KEY
+          ports:
+            - name: http
+              containerPort: 8020
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 300m, memory: 384Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+            runAsNonRoot: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-access-policy
+  namespace: tradeops
+spec:
+  selector:
+    app.kubernetes.io/name: ai-access-policy
+  ports:
+    - name: http
+      port: 8020
+      targetPort: http
