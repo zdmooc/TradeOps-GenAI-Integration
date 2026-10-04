@@ -1,7 +1,7 @@
 # D-092 — A2A interoperability baseline over native MCP
 
 **Date:** 2026-10-04  
-**Status:** IMPLEMENTED BASELINE + TESTS ADDED / LIVE A2A INTEROPERABILITY PENDING
+**Status:** IMPLEMENTED + TESTED IN CI / LIVE A2A INTEROPERABILITY PENDING
 
 ## Purpose
 
@@ -81,7 +81,7 @@ Sensitive MCP mutation remains governed by the existing reviewer/HITL flow.
 
 ## Existing MCP evidence
 
-TradeOps already contains native MCP implementation and scoped CRC evidence, including live IBM MQ integration, in earlier R1-R5 work.
+TradeOps already contains the native MCP implementation. R1-R4 are tested in CI; the R5 native-MCP-to-IBM-MQ live CRC evidence remains pending until the local R5 evidence bundle exists.
 
 Therefore the remaining D-092 evidence gap is specifically:
 
@@ -132,5 +132,6 @@ Current claim remains:
 A2A SDK baseline = IMPLEMENTED
 A2A tests = ADDED / CI EVIDENCE TO OBSERVE
 A2A live interoperability = PENDING
-native MCP TradeOps -> IBM MQ tested scope = EXISTING CRC RUNTIME EVIDENCE
+native MCP R1-R4 = TESTED IN CI
+R5 native MCP -> IBM MQ live CRC = PENDING
 ```
