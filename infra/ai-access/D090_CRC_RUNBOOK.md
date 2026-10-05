@@ -43,8 +43,8 @@ The provider/model is deliberately a runtime choice, not committed configuration
 ```bash
 # Default path: OpenAI through LiteLLM.
 export OPENAI_API_KEY='<runtime secret>'
-# Optional override; default is openai/gpt-5.6-terra.
-export D090_LITELLM_MODEL='openai/gpt-5.6-terra'
+# Optional override; default is openai/gpt-6-luna.
+export D090_LITELLM_MODEL='openai/gpt-6-luna'
 
 bash scripts/d090_deploy_litellm_crc.sh
 unset OPENAI_API_KEY D090_PROVIDER_API_KEY
