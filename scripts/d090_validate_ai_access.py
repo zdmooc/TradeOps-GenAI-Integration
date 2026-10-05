@@ -120,6 +120,8 @@ def validate() -> list[str]:
         "ai-gateway",
         "LITELLM_BASE_URL",
         "http://litellm:4000",
+        "AI_ACCESS_UPSTREAM_TIMEOUT_SECONDS",
+        'value: "120"',
     ):
         if marker not in crc_policy:
             errors.append(f"G1 CRC AI Access manifest missing: {marker}")
@@ -180,6 +182,8 @@ def validate() -> list[str]:
         "keycloak-service.keycloak-system.svc:8080",
         "otel-collector.shared-observability.svc:4318",
         "AI_OIDC_CLIENT_SECRET",
+        "AI_GATEWAY_TIMEOUT_SECONDS=120",
+        "oc -n tradeops exec -i deploy/genai-api",
         "D090_GENAI_GATEWAY_MODE=PASS",
     ):
         if marker not in enable:
