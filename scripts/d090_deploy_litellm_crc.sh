@@ -9,6 +9,14 @@ PROVIDER_KEY="${D090_PROVIDER_API_KEY:-${OPENAI_API_KEY:-}}"
 
 : "${PROVIDER_KEY:?export OPENAI_API_KEY or D090_PROVIDER_API_KEY in the current shell; it is never written to Git}"
 
+case "${PROVIDER_KEY}" in
+  *TA_CLE*|*PLACEHOLDER*|*CHANGEME*|*YOUR_KEY*|*your-key*|*"<"*|*">"*)
+    echo "D090_PROVIDER_KEY_PRECHECK=FAIL placeholder_detected" >&2
+    exit 2
+    ;;
+esac
+echo "D090_PROVIDER_KEY_PRECHECK=PASS"
+
 oc -n tradeops get secret tradeops-runtime-secrets >/dev/null
 oc -n tradeops create configmap d090-ai-model   --from-literal=model="${MODEL}"   --dry-run=client -o yaml | oc apply -f - >/dev/null
 
