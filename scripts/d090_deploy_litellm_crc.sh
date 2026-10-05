@@ -36,6 +36,8 @@ case "${PROFILE}" in
         ;;
     esac
     echo "D090_PROVIDER_KEY_PRECHECK=PASS"
+    oc -n tradeops delete networkpolicy allow-litellm-to-local-ollama --ignore-not-found >/dev/null
+    echo "D090_LOCAL_OLLAMA_POLICY_CLEANUP=PASS"
     ;;
   *)
     echo "D090_LITELLM_PROFILE=FAIL supported=hosted,local-ollama observed=${PROFILE}" >&2
