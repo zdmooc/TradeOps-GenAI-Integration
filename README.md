@@ -18,7 +18,7 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 Current repository state on 2026-10-04:
 
 - G0 AI Access ADR: **CLOSED**;
-- G1 governed real-model path: **G1-A CRC RUNTIME_PROVEN / G1-B local-Ollama profile IMPLEMENTED, LIVE REAL-MODEL EVIDENCE PENDING**;
+- G1 governed real-model path: **G1-A CRC RUNTIME_PROVEN / G1-B local-Ollama profile IMPLEMENTED + CI-VALIDATED, LIVE REAL-MODEL EVIDENCE PENDING**;
 - G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
