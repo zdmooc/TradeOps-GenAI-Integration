@@ -40,7 +40,7 @@ spec:
             - name: LITELLM_BASE_URL
               value: http://litellm:4000
             - name: AI_ACCESS_UPSTREAM_TIMEOUT_SECONDS
-              value: "30"
+              value: "120"
             - name: OIDC_JWKS_JSON
               valueFrom:
                 secretKeyRef:
