@@ -41,11 +41,13 @@ D090_KONG_NO_TOKEN_DENY=PASS
 The provider/model is deliberately a runtime choice, not committed configuration.
 
 ```bash
-export D090_LITELLM_MODEL='<exact LiteLLM provider/model identifier>'
-export D090_PROVIDER_API_KEY='<runtime secret>'
+# Default path: OpenAI through LiteLLM.
+export OPENAI_API_KEY='<runtime secret>'
+# Optional override; default is openai/gpt-5.6-terra.
+export D090_LITELLM_MODEL='openai/gpt-5.6-terra'
 
 bash scripts/d090_deploy_litellm_crc.sh
-unset D090_PROVIDER_API_KEY
+unset OPENAI_API_KEY D090_PROVIDER_API_KEY
 
 bash scripts/d090_enable_genai_crc.sh
 bash scripts/d090_run_g1_live_crc.sh
