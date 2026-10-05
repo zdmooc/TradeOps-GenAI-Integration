@@ -23,7 +23,19 @@ oc -n tradeops patch secret tradeops-runtime-secrets --type=merge -p "${PATCH}" 
 unset PROVIDER_KEY PATCH
 
 oc apply -f infra/ai-access/litellm-deployment-crc.yaml >/dev/null
-oc -n tradeops rollout status deploy/litellm --timeout=300s
+
+if ! oc -n tradeops rollout status deploy/litellm --timeout=600s; then
+  echo "D090_LITELLM_ROLLOUT=FAIL" >&2
+  echo "===== LITELLM SNAPSHOT =====" >&2
+  oc -n tradeops get deploy,rs,pods -l app.kubernetes.io/name=litellm -o wide >&2 || true
+  oc -n tradeops describe deploy/litellm >&2 || true
+  oc -n tradeops describe pods -l app.kubernetes.io/name=litellm >&2 || true
+  oc -n tradeops logs -l app.kubernetes.io/name=litellm --tail=250 --prefix >&2 || true
+  oc -n tradeops logs -l app.kubernetes.io/name=litellm --previous --tail=250 --prefix >&2 || true
+  oc -n tradeops get events --sort-by=.lastTimestamp | tail -n 120 >&2 || true
+  exit 1
+fi
+echo "D090_LITELLM_ROLLOUT=PASS"
 
 oc -n tradeops exec deploy/ai-access-policy -- python - <<'PY'
 import urllib.request
