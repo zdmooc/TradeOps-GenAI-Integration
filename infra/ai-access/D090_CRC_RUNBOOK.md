@@ -47,7 +47,9 @@ Preferred no-cost proof path for the current local lab:
 ```bash
 export D090_LITELLM_PROFILE=local-ollama
 export D090_LITELLM_MODEL='ollama/qwen2.5:3b'
-export D090_LITELLM_API_BASE='http://host.crc.testing:11434'
+# Current HP ZBook / CRC Windows observation:
+# 192.168.56.1 (host-only adapter) is reachable from the CRC node.
+export D090_LITELLM_API_BASE='http://192.168.56.1:11434'
 
 bash scripts/d090_deploy_litellm_crc.sh
 bash scripts/d090_enable_genai_crc.sh
@@ -55,7 +57,7 @@ bash scripts/d090_run_g1_live_crc.sh
 ```
 
 The deploy script:
-- resolves `host.crc.testing` from inside CRC with Python/socket;
+- requires an explicit local Ollama `api_base` and resolves/validates its IPv4 from inside CRC;
 - renders `allow-litellm-to-local-ollama` with exactly one resolved IPv4 `/32`;
 - opens only TCP/11434 and only for the `litellm` pod selector;
 - does not require or persist a provider credential;
@@ -63,9 +65,14 @@ The deploy script:
 - verifies Ollama `/api/tags` from the LiteLLM pod;
 - executes a real `tradeops-default` chat completion through LiteLLM.
 
-Do **not** assume a fixed host IP in Git.
+Do **not** encode a workstation-specific IP as a platform-wide default in Git.
 
-First try with Ollama's current bind configuration. If `D090_OLLAMA_REACHABILITY=FAIL`, configure Windows Ollama with `OLLAMA_HOST=0.0.0.0:11434`, restart Ollama, and create a Windows Firewall inbound rule limited to TCP/11434 from the CRC virtual network only. Never open 11434 to Any for this lab.
+Observed on the current Windows workstation on 2026-10-05:
+- `host.crc.testing -> 192.168.127.254` timed out from the LiteLLM pod even with `host-network-access=true`;
+- CRC node debug successfully reached Ollama on `192.168.56.1`, `172.20.240.1`, and `192.168.1.37`;
+- `192.168.56.1` is preferred for this workstation because it is an internal host-only adapter and avoids exposing Ollama on the LAN address.
+
+For this workstation, bind Ollama to `192.168.56.1:11434` and use the same address as `D090_LITELLM_API_BASE`. The generated OpenShift egress policy will then be narrowed to `192.168.56.1/32:11434`.
 
 Successful local proof is classified as:
 
