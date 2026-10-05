@@ -18,11 +18,15 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 Current repository state on 2026-10-04:
 
 - G0 AI Access ADR: **CLOSED**;
-- G1 governed real-model path: **IMPLEMENTED + TESTED IN CI + PACKAGED / LIVE PROVIDER EVIDENCE PENDING**;
+- G1 governed real-model path: **G1-A CRC RUNTIME_PROVEN / G1-B local-Ollama profile IMPLEMENTED, LIVE REAL-MODEL EVIDENCE PENDING**;
 - G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
 - D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**.
+
+Local G1-B profile:
+`TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
+The Ollama host address is runtime-resolved and the egress policy is narrowed to one `/32:11434`. This remains `LIVE REAL-MODEL EVIDENCE PENDING` until the full probe emits `D090_REAL_MODEL_PATH=PASS` and `D090_G1_LIVE=PASS`.
 
 The native MCP path is already implemented and tested in CI through R1-R4. The dedicated R5 live CRC integration with IBM MQ remains **PENDING** until the local evidence bundle is actually captured. D-092 adds A2A above this MCP boundary; it does not replace it.
 
