@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
-MODEL="${D090_LITELLM_MODEL:-openai/gpt-5.6-terra}"
+MODEL="${D090_LITELLM_MODEL:-openai/gpt-6-luna}"
 PROVIDER_KEY="${D090_PROVIDER_API_KEY:-${OPENAI_API_KEY:-}}"
 
 : "${PROVIDER_KEY:?export OPENAI_API_KEY or D090_PROVIDER_API_KEY in the current shell; it is never written to Git}"
