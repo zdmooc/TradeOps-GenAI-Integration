@@ -139,7 +139,7 @@ def validate() -> list[str]:
         "D090_LITELLM_MODEL",
         "D090_PROVIDER_API_KEY",
         "D090_LITELLM_DEPLOY=PASS",
-        "openai/gpt-5.6-terra",
+        "openai/gpt-6-luna",
         "OPENAI_API_KEY",
     ):
         if marker not in deploy:
