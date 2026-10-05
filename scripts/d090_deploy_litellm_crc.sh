@@ -20,7 +20,7 @@ fi
 case "${PROFILE}" in
   local-ollama)
     MODEL="${MODEL:-ollama/qwen2.5:3b}"
-    API_BASE="${API_BASE:-http://host.crc.testing:11434}"
+    : "${API_BASE:?export D090_LITELLM_API_BASE explicitly for local-ollama; do not rely on host.crc.testing on CRC Windows}"
     if [[ "${MODEL}" != ollama/* ]]; then
       echo "D090_LOCAL_OLLAMA_PRECHECK=FAIL model_must_start_with_ollama/" >&2
       exit 2
