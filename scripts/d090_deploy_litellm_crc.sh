@@ -4,11 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
-MODEL="${D090_LITELLM_MODEL:-}"
-PROVIDER_KEY="${D090_PROVIDER_API_KEY:-}"
+MODEL="${D090_LITELLM_MODEL:-openai/gpt-5.6-terra}"
+PROVIDER_KEY="${D090_PROVIDER_API_KEY:-${OPENAI_API_KEY:-}}"
 
-: "${MODEL:?export D090_LITELLM_MODEL, for example an exact LiteLLM provider/model identifier}"
-: "${PROVIDER_KEY:?export D090_PROVIDER_API_KEY in the current shell; it is never written to Git}"
+: "${PROVIDER_KEY:?export OPENAI_API_KEY or D090_PROVIDER_API_KEY in the current shell; it is never written to Git}"
 
 oc -n tradeops get secret tradeops-runtime-secrets >/dev/null
 oc -n tradeops create configmap d090-ai-model   --from-literal=model="${MODEL}"   --dry-run=client -o yaml | oc apply -f - >/dev/null
