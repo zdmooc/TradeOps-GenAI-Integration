@@ -258,3 +258,10 @@ spec:
       ports:
         - protocol: TCP
           port: 4318
+
+---
+# D-090 local-model note:
+# The optional local Ollama egress is NOT broadened here because host.crc.testing
+# is runtime-resolved from inside CRC. scripts/d090_deploy_litellm_crc.sh renders
+# infra/ai-access/networkpolicy-local-ollama-crc.template.yaml to a single /32
+# and TCP/11434 for app.kubernetes.io/name=litellm only.
