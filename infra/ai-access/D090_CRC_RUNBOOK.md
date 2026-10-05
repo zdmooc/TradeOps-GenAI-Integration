@@ -36,9 +36,51 @@ D090_KONG_AI_ROUTE=PASS
 D090_KONG_NO_TOKEN_DENY=PASS
 ```
 
-## G1-B — real provider
+## G1-B — real model
 
-The provider/model is deliberately a runtime choice, not committed configuration.
+The model/provider is deliberately a runtime choice, not committed configuration.
+
+### Free local profile — Ollama on the Windows CRC host
+
+Preferred no-cost proof path for the current local lab:
+
+```bash
+export D090_LITELLM_PROFILE=local-ollama
+export D090_LITELLM_MODEL='ollama/qwen2.5:3b'
+export D090_LITELLM_API_BASE='http://host.crc.testing:11434'
+
+bash scripts/d090_deploy_litellm_crc.sh
+bash scripts/d090_enable_genai_crc.sh
+bash scripts/d090_run_g1_live_crc.sh
+```
+
+The deploy script:
+- resolves `host.crc.testing` from inside CRC with Python/socket;
+- renders `allow-litellm-to-local-ollama` with exactly one resolved IPv4 `/32`;
+- opens only TCP/11434 and only for the `litellm` pod selector;
+- does not require or persist a provider credential;
+- removes any stale `LITELLM_PROVIDER_API_KEY` from the TradeOps runtime secret;
+- verifies Ollama `/api/tags` from the LiteLLM pod;
+- executes a real `tradeops-default` chat completion through LiteLLM.
+
+Do **not** assume a fixed host IP in Git.
+
+First try with Ollama's current bind configuration. If `D090_OLLAMA_REACHABILITY=FAIL`, configure Windows Ollama with `OLLAMA_HOST=0.0.0.0:11434`, restart Ollama, and create a Windows Firewall inbound rule limited to TCP/11434 from the CRC virtual network only. Never open 11434 to Any for this lab.
+
+Successful local proof is classified as:
+
+```text
+G1 = DEPLOYED × SINGLE_CONSUMER
+claim = LOCAL_REAL_MODEL_PROVEN
+runtime = CRC single-node
+model = Ollama / qwen2.5:3b
+```
+
+It is not an external-provider, cloud, HA or production claim.
+
+### Hosted provider profile
+
+The hosted path remains supported:
 
 ```bash
 # Default path: OpenAI through LiteLLM.
