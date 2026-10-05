@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-litellm-to-local-ollama
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: litellm
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: "__OLLAMA_HOST_CIDR__"
+      ports:
+        - protocol: TCP
+          port: 11434
