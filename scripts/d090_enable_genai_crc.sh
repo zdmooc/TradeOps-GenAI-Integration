@@ -2,6 +2,8 @@
 set -euo pipefail
 
 oc -n tradeops wait --for=condition=Available deploy/ai-access-policy --timeout=120s >/dev/null
+oc -n tradeops set env deploy/ai-access-policy AI_ACCESS_UPSTREAM_TIMEOUT_SECONDS=120 >/dev/null
+oc -n tradeops rollout status deploy/ai-access-policy --timeout=300s >/dev/null
 oc -n tradeops wait --for=condition=Available deploy/litellm --timeout=120s >/dev/null
 oc -n mayabank-api wait --for=condition=Available deploy/api-gateway --timeout=120s >/dev/null
 oc -n shared-observability wait --for=condition=Available deploy/otel-collector --timeout=120s >/dev/null
