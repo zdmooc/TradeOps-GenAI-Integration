@@ -26,7 +26,7 @@ Current repository state on 2026-10-04:
 
 Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
-The Ollama host address is runtime-resolved and the egress policy is narrowed to one `/32:11434`. This remains `LIVE REAL-MODEL EVIDENCE PENDING` until the full probe emits `D090_REAL_MODEL_PATH=PASS` and `D090_G1_LIVE=PASS`.
+The Ollama host endpoint is supplied explicitly at runtime and the egress policy is narrowed to exactly that IPv4 `/32:11434`. On the current Windows CRC workstation, `host.crc.testing` was not usable for Ollama; `192.168.56.1` was proven reachable from the CRC node. This remains `LIVE REAL-MODEL EVIDENCE PENDING` until the full probe emits `D090_REAL_MODEL_PATH=PASS` and `D090_G1_LIVE=PASS`.
 
 The native MCP path is already implemented and tested in CI through R1-R4. The dedicated R5 live CRC integration with IBM MQ remains **PENDING** until the local evidence bundle is actually captured. D-092 adds A2A above this MCP boundary; it does not replace it.
 
