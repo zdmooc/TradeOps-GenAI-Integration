@@ -171,6 +171,7 @@ def validate() -> list[str]:
     for marker in (
         "D090_LOCAL_REAL_MODEL_PROFILE=PASS",
         "D090_G1_CLAIM=LOCAL_REAL_MODEL_PROVEN",
+        "MSYS_NO_PATHCONV=1 oc -n tradeops exec deploy/genai-api",
     ):
         if marker not in live:
             errors.append(f"G1 local evidence wrapper missing: {marker}")
