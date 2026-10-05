@@ -32,7 +32,7 @@ unset PROVIDER_KEY PATCH
 
 oc apply -f infra/ai-access/litellm-deployment-crc.yaml >/dev/null
 
-if ! oc -n tradeops rollout status deploy/litellm --timeout=600s; then
+if ! oc -n tradeops rollout status deploy/litellm --timeout=1200s; then
   echo "D090_LITELLM_ROLLOUT=FAIL" >&2
   echo "===== LITELLM SNAPSHOT =====" >&2
   oc -n tradeops get deploy,rs,pods -l app.kubernetes.io/name=litellm -o wide >&2 || true
