@@ -114,3 +114,26 @@ oc -n tradeops rollout status deploy/genai-api --timeout=300s
 ```
 
 The D-090 AI Access/LiteLLM lab may then be scaled down without changing the existing Payment API route.
+
+
+## PRECHECK RUNTIME PROOF — 2026-10-05
+
+Observed on the current CRC/Windows workstation:
+
+```text
+D090_OLLAMA_HOST_RESOLUTION=PASS host=192.168.56.1 cidr=192.168.56.1/32
+D090_OLLAMA_NETWORKPOLICY=PASS cidr=192.168.56.1/32 port=11434
+D090_LITELLM_ROLLOUT=PASS
+D090_LITELLM_READINESS=PASS
+D090_OLLAMA_REACHABILITY=PASS
+D090_LITELLM_LOCAL_MODEL_E2E=PASS model=tradeops-default
+D090_LOCAL_REAL_MODEL_PRECHECK=PASS
+D090_LITELLM_DEPLOY=PASS profile=local-ollama model=ollama/qwen2.5:3b
+```
+
+Classification:
+`LiteLLM -> local Ollama/qwen2.5:3b` = **RUNTIME_PROVEN on single-node CRC**.
+
+This does **not** close G1 yet. G1 closes only after the full governed
+`genai-api -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama`
+probe emits `D090_REAL_MODEL_PATH=PASS` and `D090_G1_LIVE=PASS`.
