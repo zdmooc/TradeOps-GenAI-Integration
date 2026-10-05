@@ -25,11 +25,11 @@ oc -n tradeops wait --for=condition=Available deploy/ai-access-policy --timeout=
 oc -n tradeops wait --for=condition=Available deploy/litellm --timeout=120s >/dev/null
 oc -n mayabank-api wait --for=condition=Available deploy/api-gateway --timeout=120s >/dev/null
 
-oc -n tradeops exec deploy/genai-api --   python /app/scripts/d090_real_model_probe.py   --evidence-out /tmp/d090-real-model.json | tee "${OUT}/01-real-model-probe.txt"
+oc -n tradeops exec deploy/genai-api --   python /app/scripts/d090_real_model_probe.py   --timeout "${D090_G1_PROBE_TIMEOUT:-120}"   --evidence-out /tmp/d090-real-model.json | tee "${OUT}/01-real-model-probe.txt"
 
 oc -n tradeops exec deploy/genai-api -- cat /tmp/d090-real-model.json   > "${OUT}/02-real-model.json"
 
-oc -n tradeops exec deploy/ai-access-policy -- python - <<'PY'   > "${OUT}/03-ai-access-metrics.txt"
+oc -n tradeops exec -i deploy/ai-access-policy -- python - <<'PY'   > "${OUT}/03-ai-access-metrics.txt"
 import urllib.request
 print(urllib.request.urlopen("http://127.0.0.1:8020/metrics", timeout=10).read().decode())
 PY
