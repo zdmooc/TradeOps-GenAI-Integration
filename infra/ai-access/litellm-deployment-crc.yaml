@@ -10,6 +10,10 @@ data:
         litellm_params:
           model: os.environ/TRADEOPS_LITELLM_MODEL
           api_key: os.environ/LITELLM_PROVIDER_API_KEY
+      - model_name: odm-extraction
+        litellm_params:
+          model: os.environ/TRADEOPS_LITELLM_MODEL
+          api_key: os.environ/LITELLM_PROVIDER_API_KEY
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
     litellm_settings:
