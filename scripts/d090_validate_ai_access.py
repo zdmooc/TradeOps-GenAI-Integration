@@ -127,11 +127,10 @@ def validate() -> list[str]:
     litellm_crc = read("infra/ai-access/litellm-deployment-crc.yaml")
     for marker in (
         "ghcr.io/berriai/litellm:v1.103.0",
-        "tradeops-default",
-        "odm-extraction",
         "LITELLM_PROVIDER_API_KEY",
         "TRADEOPS_LITELLM_API_BASE",
         "d090-ai-model",
+        "d090-litellm-config",
     ):
         if marker not in litellm_crc:
             errors.append(f"G1 CRC LiteLLM manifest missing: {marker}")
@@ -143,6 +142,8 @@ def validate() -> list[str]:
         "D090_LITELLM_DEPLOY=PASS",
         "openai/gpt-6-luna",
         "OPENAI_API_KEY",
+        "tradeops-default",
+        "odm-extraction",
         "local-ollama",
         "ollama/qwen2.5:3b",
         "D090_OLLAMA_HOST_RESOLUTION=PASS",
