@@ -31,6 +31,7 @@ def validate() -> list[str]:
         "scripts/d090_deploy_litellm_crc.sh",
         "infra/ai-access/ai-access-policy-crc.yaml",
         "infra/ai-access/litellm-deployment-crc.yaml",
+        "infra/ai-access/networkpolicy-local-ollama-crc.template.yaml",
         "tests/test_ai_access_d090.py",
         "tests/test_ai_access_policy_d090.py",
     )
@@ -129,6 +130,7 @@ def validate() -> list[str]:
         "tradeops-default",
         "odm-extraction",
         "LITELLM_PROVIDER_API_KEY",
+        "TRADEOPS_LITELLM_API_BASE",
         "d090-ai-model",
     ):
         if marker not in litellm_crc:
@@ -141,9 +143,34 @@ def validate() -> list[str]:
         "D090_LITELLM_DEPLOY=PASS",
         "openai/gpt-6-luna",
         "OPENAI_API_KEY",
+        "local-ollama",
+        "ollama/qwen2.5:3b",
+        "D090_OLLAMA_HOST_RESOLUTION=PASS",
+        "D090_OLLAMA_NETWORKPOLICY=PASS",
+        "D090_OLLAMA_REACHABILITY=PASS",
+        "D090_LITELLM_LOCAL_MODEL_E2E=PASS",
+        "D090_LOCAL_REAL_MODEL_PRECHECK=PASS",
     ):
         if marker not in deploy:
             errors.append(f"G1-B LiteLLM deploy gate missing: {marker}")
+
+    local_np = read("infra/ai-access/networkpolicy-local-ollama-crc.template.yaml")
+    for marker in (
+        "allow-litellm-to-local-ollama",
+        "__OLLAMA_HOST_CIDR__",
+        "app.kubernetes.io/name: litellm",
+        "port: 11434",
+    ):
+        if marker not in local_np:
+            errors.append(f"G1 local Ollama NetworkPolicy missing: {marker}")
+
+    live = read("scripts/d090_run_g1_live_crc.sh")
+    for marker in (
+        "D090_LOCAL_REAL_MODEL_PROFILE=PASS",
+        "D090_G1_CLAIM=LOCAL_REAL_MODEL_PROVEN",
+    ):
+        if marker not in live:
+            errors.append(f"G1 local evidence wrapper missing: {marker}")
 
     enable = read("scripts/d090_enable_genai_crc.sh")
     for marker in (
