@@ -10,6 +10,16 @@ mkdir -p "${OUT}"
 
 TRACE_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+PROFILE="$(oc -n tradeops get configmap d090-ai-model -o jsonpath='{.data.profile}' 2>/dev/null || true)"
+MODEL_CFG="$(oc -n tradeops get configmap d090-ai-model -o jsonpath='{.data.model}' 2>/dev/null || true)"
+API_BASE_CFG="$(oc -n tradeops get configmap d090-ai-model -o jsonpath='{.data.api_base}' 2>/dev/null || true)"
+
+if [[ "${PROFILE}" == "local-ollama" ]]; then
+  [[ "${MODEL_CFG}" == ollama/* ]]
+  [[ "${API_BASE_CFG}" == http://*:11434 ]]
+  echo "D090_LOCAL_REAL_MODEL_PROFILE=PASS model=${MODEL_CFG} api_base=${API_BASE_CFG}" | tee -a "${OUT}/05-summary.txt"
+fi
+
 oc -n tradeops wait --for=condition=Available deploy/genai-api --timeout=120s >/dev/null
 oc -n tradeops wait --for=condition=Available deploy/ai-access-policy --timeout=120s >/dev/null
 oc -n tradeops wait --for=condition=Available deploy/litellm --timeout=120s >/dev/null
@@ -36,5 +46,8 @@ fi
 grep -q 'D090_REAL_MODEL_PATH=PASS' "${OUT}/01-real-model-probe.txt"
 grep -q 'mayabank_ai_access_requests_total' "${OUT}/03-ai-access-metrics.txt"
 
+if [[ "${PROFILE}" == "local-ollama" ]]; then
+  echo "D090_G1_CLAIM=LOCAL_REAL_MODEL_PROVEN" | tee -a "${OUT}/05-summary.txt"
+fi
 echo "D090_G1_LIVE=PASS" | tee -a "${OUT}/05-summary.txt"
 echo "D090_EVIDENCE_DIR=${OUT}"
