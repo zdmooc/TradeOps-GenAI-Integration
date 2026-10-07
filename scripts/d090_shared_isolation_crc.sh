@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 SHARED_REPO="${SHARED_PLATFORM_REPO:-$(cd "$ROOT/.." && pwd)/shared-platform-services-openshift}"
+DECISION_REPO="${DECISION_REPO:-$(cd "$ROOT/.." && pwd)/mayabank-ibm-odm-ai-decision-architecture}"
 ODM_NS="${ODM_NAMESPACE:-mayainsurance-decision-local}"
 TRADEOPS_NS="${TRADEOPS_NAMESPACE:-tradeops}"
 API_NS="${API_NAMESPACE:-mayabank-api}"
@@ -24,6 +25,10 @@ done
 
 if [[ ! -f "$SHARED_REPO/scripts/d090_bootstrap_ai_consumers_crc.py" ]]; then
   echo "D090_SHARED_PRECHECK=FAIL shared_platform_repo=$SHARED_REPO" >&2
+  exit 2
+fi
+if [[ ! -f "$DECISION_REPO/scripts/d090_odm_real_gateway_probe.py" ]]; then
+  echo "D090_SHARED_PRECHECK=FAIL decision_repo=$DECISION_REPO" >&2
   exit 2
 fi
 
@@ -111,6 +116,21 @@ export ODM_AI_CLIENT_SECRET="$(oc -n "$ODM_NS" get secret odm-ai-client-secret -
 
 mkdir -p "$(dirname "$OUT")"
 python scripts/d090_shared_isolation_probe.py   --timeout 120   --evidence-out "$OUT"
+
+(
+  cd "$DECISION_REPO"
+  export AI_GATEWAY_BASE_URL="http://127.0.0.1:${GW_LOCAL_PORT}/ai"
+  export AI_GATEWAY_MODEL_ALIAS="odm-extraction"
+  export AI_GATEWAY_AUTH_MODE="client_credentials"
+  export AI_OIDC_TOKEN_URL="http://127.0.0.1:${KC_LOCAL_PORT}/realms/mayabank/protocol/openid-connect/token"
+  export AI_OIDC_CLIENT_ID="odm-ai"
+  export AI_OIDC_CLIENT_SECRET="$ODM_AI_CLIENT_SECRET"
+  export AI_OIDC_SCOPE="ai.inference"
+  export AI_EXPECTED_CONSUMER="odm"
+  export AI_GATEWAY_TIMEOUT_SECONDS="120"
+  python scripts/d090_odm_real_gateway_probe.py
+)
+echo "D090_ODM_REAL_CONSUMER_PATH=PASS"
 
 echo "D090_G3_SHARED_GATEWAY=PASS"
 echo "D090_G4_CROSS_CONSUMER_ISOLATION=PASS"

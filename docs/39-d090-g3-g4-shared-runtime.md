@@ -5,7 +5,8 @@
 Prove on the same deployed AI Access path:
 
 - `tradeops-ai -> tradeops-default` = allow;
-- `odm-ai -> odm-extraction` = allow;
+- `odm-ai -> odm-extraction` = allow via the generic shared probe;
+- the Decision flagship's real ODM extraction probe also passes with `consumer=odm`, non-mock provider/model and `businessDecision=null`;
 - `tradeops-ai -> odm-extraction` = deny;
 - `odm-ai -> tradeops-default` = deny.
 
@@ -39,6 +40,8 @@ Expected final markers:
 D090_G1_LIVE=PASS
 D090_TRADEOPS_CONSUMER=PASS
 D090_ODM_CONSUMER=PASS
+D090_ODM_REAL_GATEWAY_PATH=PASS
+D090_ODM_REAL_CONSUMER_PATH=PASS
 D090_CROSS_MODEL_ISOLATION=PASS
 D090_SHARED_ISOLATION=PASS
 D090_G3_SHARED_GATEWAY=PASS
