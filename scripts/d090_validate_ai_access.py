@@ -23,6 +23,7 @@ def validate() -> list[str]:
         "infra/ai-access/litellm-deployment.example.yaml",
         "scripts/d090_real_model_probe.py",
         "scripts/d090_g2_governance_probe.py",
+        "scripts/d090_patch_prometheus_config.py",
         "scripts/crc/d090-g2-live-governance-from-park.sh",
         "scripts/d090_shared_isolation_probe.py",
         "scripts/d090_bootstrap_oidc_crc.sh",
