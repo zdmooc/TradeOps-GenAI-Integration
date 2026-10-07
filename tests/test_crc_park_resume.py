@@ -42,6 +42,14 @@ def test_suspend_never_scales_statefulsets_and_preserves_prometheus_by_default()
     assert "TRADEOPS_PROMETHEUS_PRESERVED=PASS" in script
 
 
+def test_suspend_captures_cluster_capacity_before_and_after():
+    script = read(SUSPEND)
+    assert "08-cluster-pending-before.txt" in script
+    assert "09-node-describe-before.txt" in script
+    assert "23-node-describe-after.txt" in script
+    assert "24-cluster-pending-after.txt" in script
+
+
 def test_deep_park_requires_explicit_tsdb_loss_confirmation():
     script = read(SUSPEND)
     assert "TRADEOPS_DEEP_PARK_CONFIRM_TSDB_LOSS" in script
