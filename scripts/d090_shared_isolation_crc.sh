@@ -53,19 +53,21 @@ TRADEOPS_NAMESPACE="$TRADEOPS_NS" ODM_NAMESPACE="$ODM_NS" python "$SHARED_REPO/s
 
 TRADEOPS_SECRET_B64="$(oc -n "$TRADEOPS_NS" get secret tradeops-ai-client-secret -o jsonpath='{.data.client-secret}')"
 POLICIES_JSON="$(cat infra/ai-access/consumers.example.json)"
-PATCH="$(TRADEOPS_SECRET_B64="$TRADEOPS_SECRET_B64" POLICIES_JSON="$POLICIES_JSON" python - <<'PY'
+JWKS_JSON="$(curl -kfsS https://keycloak.apps-crc.testing/realms/mayabank/protocol/openid-connect/certs)"
+PATCH="$(TRADEOPS_SECRET_B64="$TRADEOPS_SECRET_B64" POLICIES_JSON="$POLICIES_JSON" JWKS_JSON="$JWKS_JSON" python - <<'PY'
 import base64, json, os
 payload={
   "data":{
     "AI_OIDC_CLIENT_SECRET": os.environ["TRADEOPS_SECRET_B64"],
     "AI_ACCESS_CONSUMERS_JSON": base64.b64encode(os.environ["POLICIES_JSON"].encode()).decode(),
+    "AI_ACCESS_OIDC_JWKS_JSON": base64.b64encode(os.environ["JWKS_JSON"].encode()).decode(),
   }
 }
 print(json.dumps(payload,separators=(",",":")))
 PY
-)"
+)
 oc -n "$TRADEOPS_NS" patch secret tradeops-runtime-secrets --type=merge -p "$PATCH" >/dev/null
-unset TRADEOPS_SECRET_B64 POLICIES_JSON PATCH
+unset TRADEOPS_SECRET_B64 POLICIES_JSON JWKS_JSON PATCH
 
 oc -n "$TRADEOPS_NS" rollout restart deploy/ai-access-policy >/dev/null
 oc -n "$TRADEOPS_NS" rollout status deploy/ai-access-policy --timeout=300s >/dev/null
