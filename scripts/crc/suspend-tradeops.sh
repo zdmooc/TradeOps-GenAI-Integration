@@ -80,6 +80,10 @@ capture_best_effort 04-top-before.txt oc adm top pods -n "$NAMESPACE"
 capture_best_effort 05-quota-before.txt oc -n "$NAMESPACE" get resourcequota,limitrange
 capture_best_effort 06-hpa-before.txt oc -n "$NAMESPACE" get hpa
 capture_best_effort 07-cronjobs-before.txt oc -n "$NAMESPACE" get cronjobs.batch
+capture_best_effort 08-cluster-pending-before.txt oc get pods -A --field-selector=status.phase=Pending -o wide
+capture_best_effort 09-node-describe-before.txt oc describe node
+capture_best_effort 10-cluster-pods-before.json oc get pods -A -o json
+capture_best_effort 11-nodes-before.json oc get nodes -o json
 
 oc -n "$NAMESPACE" get deployments.apps -o json > "$OUT/deployments.json"
 oc -n "$NAMESPACE" get statefulsets.apps -o json > "$OUT/statefulsets.json"
@@ -252,6 +256,9 @@ capture_best_effort 20-pods-after.txt oc -n "$NAMESPACE" get pods -o wide
 capture_best_effort 21-workloads-after.txt oc -n "$NAMESPACE" get deployment,statefulset -o wide
 capture_best_effort 22-top-after.txt oc adm top pods -n "$NAMESPACE"
 capture_best_effort 23-node-describe-after.txt oc describe node
+capture_best_effort 24-cluster-pending-after.txt oc get pods -A --field-selector=status.phase=Pending -o wide
+capture_best_effort 25-cluster-pods-after.json oc get pods -A -o json
+capture_best_effort 26-nodes-after.json oc get nodes -o json
 
 printf '%s\n' "PARKED" > "$OUT/status"
 printf '%s\n' "$OUT" > "$LATEST_FILE"
