@@ -15,14 +15,14 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 
 ## D-090 / D-092 current AI platform wave
 
-Current repository state on 2026-10-04:
+Current repository state on 2026-10-07:
 
 - G0 AI Access ADR: **CLOSED**;
 - G1 governed real-model path: **G1-A CRC RUNTIME_PROVEN / G1-B local-Ollama PRECHECK RUNTIME_PROVEN (LiteLLM -> Ollama/qwen2.5:3b), FULL GOVERNED PATH EVIDENCE PENDING**;
 - G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
-- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**.
+- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;\n- CRC PARK/RESUME safety workflow: **IMPLEMENTED / CI VALIDATION PENDING / LIVE CRC EVIDENCE PENDING** — StatefulSets are never scaled, Prometheus is retained in normal PARK, and automated Argo/HPA/CronJob conflicts fail closed.
 
 Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
