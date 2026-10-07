@@ -79,16 +79,26 @@ def test_g2_uses_real_genai_path_for_shared_otel():
     assert "D090_G2_SHARED_OTEL_TRACE=PASS" in script
 
 
-def test_g2_prometheus_scrape_query_preserves_tsdb():
+def test_g2_prometheus_scrape_query_uses_shared_openshift_monitoring():
     script = read(WRAPPER)
     helm = read(ROOT / "infra" / "helm" / "tradeops" / "templates" / "platform.yaml")
     standalone = read(ROOT / "infra" / "observability" / "prometheus.yml")
+    crc_manifest = read(ROOT / "infra" / "ai-access" / "ai-access-policy-crc.yaml")
 
     assert "ai-access-policy:8020" in helm
     assert 'targets: ["ai-access-policy:8020"]' in standalone
+
+    assert "kind: ServiceMonitor" in crc_manifest
+    assert "openshift-user-workload-monitoring" in crc_manifest
+    assert "allow-user-workload-monitoring-to-ai-access-policy" in crc_manifest
+    assert "thanos-querier" in script
+    assert "D090_G2_SHARED_PROMETHEUS_INTENT=PASS" in script
     assert "D090_G2_PROMETHEUS_TARGET=PASS" in script
     assert "D090_G2_PROMETHEUS_QUERY=PASS" in script
-    assert "kill -HUP 1" in script
+    assert "D090_G2_SHARED_PROMETHEUS=PASS" in script
+
+    assert "patch configmap prometheus-config" not in script
+    assert "kill -HUP 1" not in script
     assert "rollout restart deploy/prometheus" not in script
 
 
@@ -99,10 +109,9 @@ def test_g2_probe_does_not_print_credentials():
     assert "Authorization" in probe
 
 
-def test_g2_waits_for_configmap_projection_before_hup():
+def test_g2_does_not_depend_on_product_prometheus_configmap_projection():
     script = read(WRAPPER)
-    assert 'D090_G2_PROM_CONFIG_WAIT_SECONDS:-180' in script
-    assert 'D090_G2_PROMETHEUS_PROJECTION=PASS' in script
-    assert 'kill -HUP 1' in script
-    assert script.index('D090_G2_PROMETHEUS_PROJECTION=PASS') < script.index('kill -HUP 1')
-    assert 'rollout restart deploy/prometheus' not in script
+    assert "D090_G2_PROM_CONFIG_WAIT_SECONDS" not in script
+    assert "D090_G2_PROMETHEUS_PROJECTION=PASS" not in script
+    assert "prometheus-config" not in script
+    assert "D090_G2_SHARED_PROM_TIMEOUT_SECONDS:-180" in script

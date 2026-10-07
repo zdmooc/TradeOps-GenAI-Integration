@@ -15,7 +15,7 @@ The bounded G2 gate proves on the single-node CRC lab:
 - live per-consumer RPM quota denial;
 - live budget denial after measured provider usage;
 - AI Access Prometheus counters;
-- Prometheus target health and PromQL query;
+- shared OpenShift user-workload Prometheus target health and Thanos PromQL query;
 - a real `genai-api /review` call through `ObservedLLM`;
 - Shared OTel trace reception during that real application call;
 - policy-secret restoration;
@@ -86,32 +86,34 @@ The original Secret value is restored even on failure.
 
 ## Prometheus proof
 
-The chart now declares:
+The repository still declares `ai-access-policy:8020` in the product Prometheus desired configuration.
+
+Three CRC attempts showed that the **already-running product Prometheus pod** can keep a stale ConfigMap projection even while the API ConfigMap already contains the new target. Because that pod stores its TSDB on `emptyDir`, G2 deliberately stops trying to mutate/restart it just to prove a scrape.
+
+The runtime gate now consumes the same shared OpenShift observability plane already proven by the ODM workload:
+
+- `ServiceMonitor/ai-access-policy` in namespace `tradeops`;
+- a NetworkPolicy allowing only `openshift-user-workload-monitoring` to reach TCP/8020;
+- the cluster `thanos-querier` route for runtime PromQL evidence.
+
+The AI Access CRC manifest carries those monitoring resources, and the G2 wrapper requires:
 
 ```text
-ai-access-policy:8020
+D090_G2_SHARED_PROMETHEUS_INTENT=PASS
+D090_G2_PROMETHEUS_TARGET=PASS source=openshift-user-workload-monitoring
+D090_G2_PROMETHEUS_QUERY=PASS source=thanos
+D090_G2_SHARED_PROMETHEUS=PASS
 ```
 
-as a Prometheus target.
-
-For an already-running CRC Prometheus, the wrapper updates the existing ConfigMap, waits for the projected volume to contain the target and sends `SIGHUP` to PID 1. This reloads configuration **without restarting the pod or losing its emptyDir TSDB**.
-
-OpenShift/Kubernetes ConfigMap projection is asynchronous. The default G2 wait is now **180 seconds** (`D090_G2_PROM_CONFIG_WAIT_SECONDS`) and the wrapper emits `D090_G2_PROMETHEUS_PROJECTION=PASS` before sending SIGHUP. This explicitly avoids treating kubelet projection latency as a Prometheus failure.
-
-The runtime gate then requires:
-
-```text
-D090_G2_PROMETHEUS_TARGET=PASS
-D090_G2_PROMETHEUS_QUERY=PASS
-```
-
-The PromQL proof queries:
+The gate waits up to 180 seconds for both the AI Access target to report `up == 1` and:
 
 ```promql
 mayabank_ai_access_requests_total{consumer="tradeops",status="ok"}
 ```
 
-and requires a value greater than zero.
+to become greater than zero.
+
+This proves live Prometheus scrape/query without mutating or restarting the product Prometheus pod. The stale local projection remains a CRC runtime anomaly and is no longer a G2 dependency.
 
 ## Shared OTel proof
 
@@ -140,7 +142,7 @@ D090_G2_AUTH_MATERIAL_REFRESH=PASS
 D090_G2_WINDOW_BASE_ACTIVE=PASS
 D090_G2_WINDOW_ACTIVE=PASS
 D090_G2_AUTH_CHAIN=PASS
-D090_G2_PROMETHEUS_CONFIG=PASS
+D090_G2_SHARED_PROMETHEUS_INTENT=PASS
 D090_G2_SUCCESS=PASS consumer=tradeops
 D090_G2_MODEL_DENIED=PASS http=403
 D090_G2_BASELINE=PASS
@@ -148,7 +150,8 @@ D090_G2_BASELINE_METRICS=PASS
 D090_G2_GENAI_REVIEW=PASS
 D090_G2_SHARED_OTEL_TRACE=PASS
 D090_G2_PROMETHEUS_TARGET=PASS
-D090_G2_PROMETHEUS_QUERY=PASS
+D090_G2_PROMETHEUS_QUERY=PASS source=thanos
+D090_G2_SHARED_PROMETHEUS=PASS
 D090_G2_QUOTA_EXCEEDED=PASS http=429
 D090_G2_QUOTA=PASS
 D090_G2_QUOTA_METRICS=PASS

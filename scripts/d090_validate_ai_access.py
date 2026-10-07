@@ -207,8 +207,10 @@ def validate() -> list[str]:
     for marker in (
         "D090_G2_BASELINE_METRICS=PASS",
         "D090_G2_SHARED_OTEL_TRACE=PASS",
+        "D090_G2_SHARED_PROMETHEUS_INTENT=PASS",
         "D090_G2_PROMETHEUS_TARGET=PASS",
         "D090_G2_PROMETHEUS_QUERY=PASS",
+        "D090_G2_SHARED_PROMETHEUS=PASS",
         "D090_G2_QUOTA_METRICS=PASS",
         "D090_G2_COST_METRIC=PASS",
         "D090_G2_POLICY_RESTORE=PASS",
@@ -220,6 +222,16 @@ def validate() -> list[str]:
     prom = read("infra/helm/tradeops/templates/platform.yaml")
     if "ai-access-policy:8020" not in prom:
         errors.append("G2 Prometheus target missing: ai-access-policy:8020")
+
+    crc_monitoring = read("infra/ai-access/ai-access-policy-crc.yaml")
+    for marker in (
+        "kind: ServiceMonitor",
+        "allow-user-workload-monitoring-to-ai-access-policy",
+        "openshift-user-workload-monitoring",
+        "port: 8020",
+    ):
+        if marker not in crc_monitoring:
+            errors.append(f"G2 shared monitoring intent missing: {marker}")
 
     return errors
 

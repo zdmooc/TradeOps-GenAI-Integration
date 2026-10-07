@@ -80,6 +80,9 @@ kind: Service
 metadata:
   name: ai-access-policy
   namespace: tradeops
+  labels:
+    app.kubernetes.io/name: ai-access-policy
+    app.kubernetes.io/part-of: tradeops
 spec:
   selector:
     app.kubernetes.io/name: ai-access-policy
@@ -87,3 +90,46 @@ spec:
     - name: http
       port: 8020
       targetPort: http
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-access-policy
+  namespace: tradeops
+  labels:
+    app.kubernetes.io/name: ai-access-policy
+    app.kubernetes.io/part-of: tradeops
+    mayabank.io/capability: ai-access
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ai-access-policy
+  namespaceSelector:
+    matchNames:
+      - tradeops
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-user-workload-monitoring-to-ai-access-policy
+  namespace: tradeops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ai-access-policy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+      ports:
+        - protocol: TCP
+          port: 8020

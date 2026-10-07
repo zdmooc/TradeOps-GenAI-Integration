@@ -18,7 +18,7 @@ ORIGINAL_POLICY_B64=""
 RUNTIME_ISSUER=""
 OUT=""
 
-for cmd in oc python awk grep; do
+for cmd in oc python awk grep curl; do
   command -v "$cmd" >/dev/null 2>&1 || {
     echo "D090_G2_FAIL: missing required command: $cmd" >&2
     exit 2
@@ -163,7 +163,6 @@ oc whoami >/dev/null
 oc get namespace "$NAMESPACE" >/dev/null
 oc -n mayabank-api wait --for=condition=Available deploy/api-gateway --timeout=120s >/dev/null
 oc -n shared-observability wait --for=condition=Available deploy/otel-collector --timeout=120s >/dev/null
-oc -n "$NAMESPACE" wait --for=condition=Available deploy/prometheus --timeout=120s >/dev/null
 
 for name in "${ACTIVATION_DEPLOYMENTS[@]}"; do
   replicas="$(awk -F '\t' -v n="$name" '$1==n {print $2}' "$WINDOW_FILE")"
@@ -201,44 +200,26 @@ oc -n "$NAMESPACE" rollout status deploy/ai-access-policy --timeout=300s >/dev/n
 )
 echo "D090_G2_AUTH_CHAIN=PASS"
 
-# Persist the desired AI Access scrape target without restarting Prometheus/losing emptyDir TSDB.
-PROM_CONFIG="$(oc -n "$NAMESPACE" get configmap prometheus-config -o jsonpath='{.data.prometheus\.yml}')"
-UPDATED_PROM_CONFIG="$(printf '%s' "$PROM_CONFIG" | python scripts/d090_patch_prometheus_config.py)"
-if [[ "$UPDATED_PROM_CONFIG" != "$PROM_CONFIG" ]]; then
-  PROM_PATCH="$(UPDATED_PROM_CONFIG="$UPDATED_PROM_CONFIG" python - <<'PY'
-import json, os
-print(json.dumps({"data":{"prometheus.yml":os.environ["UPDATED_PROM_CONFIG"]}},separators=(",",":")))
-PY
-)"
-  oc -n "$NAMESPACE" patch configmap prometheus-config --type=merge -p "$PROM_PATCH" >/dev/null
+# Apply AI Access plus the shared monitoring intent. G2 no longer mutates
+# or restarts the existing product Prometheus pod.
+oc apply -f infra/ai-access/ai-access-policy-crc.yaml >/dev/null
+oc -n "$NAMESPACE" rollout status deploy/ai-access-policy --timeout=300s >/dev/null
+oc -n "$NAMESPACE" set env deploy/ai-access-policy OIDC_ISSUER="$RUNTIME_ISSUER" >/dev/null
+oc -n "$NAMESPACE" rollout status deploy/ai-access-policy --timeout=300s >/dev/null
+
+if ! oc get namespace openshift-user-workload-monitoring >/dev/null 2>&1; then
+  echo "D090_G2_SHARED_PROMETHEUS=BLOCKED namespace=openshift-user-workload-monitoring_missing" >&2
+  exit 1
 fi
-
-PROM_CONFIG_WAIT_SECONDS="${D090_G2_PROM_CONFIG_WAIT_SECONDS:-180}"
-[[ "$PROM_CONFIG_WAIT_SECONDS" =~ ^[0-9]+$ ]] && (( PROM_CONFIG_WAIT_SECONDS >= 30 )) || {
-  echo "D090_G2_FAIL: D090_G2_PROM_CONFIG_WAIT_SECONDS must be an integer >= 30" >&2
-  exit 2
-}
-
-PROM_CONFIG_VISIBLE=false
-PROM_CONFIG_WAITED=0
-while (( PROM_CONFIG_WAITED <= PROM_CONFIG_WAIT_SECONDS )); do
-  if oc -n "$NAMESPACE" exec deploy/prometheus -- grep -q 'ai-access-policy:8020' /etc/prometheus/prometheus.yml 2>/dev/null; then
-    PROM_CONFIG_VISIBLE=true
-    break
-  fi
-  sleep 5
-  PROM_CONFIG_WAITED=$((PROM_CONFIG_WAITED + 5))
-done
-
-[[ "$PROM_CONFIG_VISIBLE" == "true" ]] || {
-  rv="$(oc -n "$NAMESPACE" get configmap prometheus-config -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null || true)"
-  echo "D090_G2_PROMETHEUS_CONFIG=FAIL mounted config did not update within ${PROM_CONFIG_WAIT_SECONDS}s resourceVersion=${rv:-unknown}" >&2
+THANOS_HOST="$(oc -n openshift-monitoring get route thanos-querier -o jsonpath='{.spec.host}' 2>/dev/null || true)"
+[[ -n "$THANOS_HOST" ]] || {
+  echo "D090_G2_SHARED_PROMETHEUS=BLOCKED route=thanos-querier_missing" >&2
   exit 1
 }
-echo "D090_G2_PROMETHEUS_PROJECTION=PASS waited_seconds=$PROM_CONFIG_WAITED"
+oc -n "$NAMESPACE" get servicemonitor ai-access-policy >/dev/null
+oc -n "$NAMESPACE" get networkpolicy allow-user-workload-monitoring-to-ai-access-policy >/dev/null
+echo "D090_G2_SHARED_PROMETHEUS_INTENT=PASS"
 
-oc -n "$NAMESPACE" exec deploy/prometheus -- sh -c 'kill -HUP 1'
-echo "D090_G2_PROMETHEUS_CONFIG=PASS"
 
 capture_metrics() {
   local out="$1"
@@ -297,32 +278,96 @@ else
   exit 1
 fi
 
-# Prometheus must actually scrape and query the AI Access metrics.
-sleep 20
-MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- python - <<'PY' | tee "$OUT/14-prometheus-proof.txt"
-import json, urllib.parse, urllib.request
+# Shared OpenShift user-workload monitoring must scrape and query AI Access.
+PROM_TIMEOUT="${D090_G2_SHARED_PROM_TIMEOUT_SECONDS:-180}"
+[[ "$PROM_TIMEOUT" =~ ^[0-9]+$ ]] && (( PROM_TIMEOUT >= 30 )) || {
+  echo "D090_G2_FAIL: D090_G2_SHARED_PROM_TIMEOUT_SECONDS must be an integer >= 30" >&2
+  exit 2
+}
+THANOS_TOKEN="$(oc whoami -t)"
+query_thanos() {
+  local expr="$1"
+  curl -ksS --fail \
+    -H "Authorization: Bearer $THANOS_TOKEN" \
+    -G "https://$THANOS_HOST/api/v1/query" \
+    --data-urlencode "query=$expr"
+}
 
-with urllib.request.urlopen("http://prometheus:9090/api/v1/targets", timeout=10) as response:
-    targets=json.load(response)
-active=targets["data"]["activeTargets"]
-matches=[
-    item for item in active
-    if item.get("labels",{}).get("instance") == "ai-access-policy:8020"
-    or item.get("discoveredLabels",{}).get("__address__") == "ai-access-policy:8020"
-]
-assert matches, "ai-access-policy target absent"
-assert any(item.get("health") == "up" for item in matches), matches
-print("D090_G2_PROMETHEUS_TARGET=PASS")
+UP_EXPR="up{namespace=\"$NAMESPACE\"}"
+METRIC_EXPR='mayabank_ai_access_requests_total{consumer="tradeops",status="ok"}'
+PROM_DEADLINE=$((SECONDS + PROM_TIMEOUT))
+UP_BODY=""
+METRIC_BODY=""
 
-query='mayabank_ai_access_requests_total{consumer="tradeops",status="ok"}'
-url="http://prometheus:9090/api/v1/query?"+urllib.parse.urlencode({"query":query})
-with urllib.request.urlopen(url, timeout=10) as response:
-    payload=json.load(response)
-result=payload.get("data",{}).get("result",[])
-assert result, payload
-assert any(float(item["value"][1]) > 0 for item in result), result
-print("D090_G2_PROMETHEUS_QUERY=PASS")
+shared_prometheus_ok() {
+  UP_BODY="$UP_BODY" METRIC_BODY="$METRIC_BODY" NAMESPACE="$NAMESPACE" python - <<'PY'
+import json, os, sys
+
+def rows(name):
+    try:
+        body=json.loads(os.environ.get(name,""))
+    except Exception:
+        return []
+    if body.get("status") != "success":
+        return []
+    return body.get("data",{}).get("result",[])
+
+up_ok=False
+for row in rows("UP_BODY"):
+    metric=row.get("metric",{})
+    service=metric.get("service","")
+    job=metric.get("job","")
+    if metric.get("namespace")==os.environ["NAMESPACE"] and (
+        service=="ai-access-policy" or "ai-access-policy" in job
+    ):
+        try:
+            if float(row.get("value",["0","0"])[1]) == 1.0:
+                up_ok=True
+        except Exception:
+            pass
+
+metric_ok=False
+for row in rows("METRIC_BODY"):
+    metric=row.get("metric",{})
+    if metric.get("consumer")!="tradeops" or metric.get("status")!="ok":
+        continue
+    namespace=metric.get("namespace")
+    service=metric.get("service","")
+    if namespace not in (None, "", os.environ["NAMESPACE"]):
+        continue
+    if namespace in (None, "") and service not in ("", "ai-access-policy"):
+        continue
+    try:
+        if float(row.get("value",["0","0"])[1]) > 0:
+            metric_ok=True
+    except Exception:
+        pass
+
+sys.exit(0 if up_ok and metric_ok else 1)
 PY
+}
+
+while (( SECONDS < PROM_DEADLINE )); do
+  UP_BODY="$(query_thanos "$UP_EXPR" || true)"
+  METRIC_BODY="$(query_thanos "$METRIC_EXPR" || true)"
+  if shared_prometheus_ok; then
+    break
+  fi
+  sleep 5
+done
+
+printf '%s\n' "$UP_BODY" > "$OUT/14-shared-prometheus-up.json"
+printf '%s\n' "$METRIC_BODY" > "$OUT/15-shared-prometheus-metric.json"
+
+if ! shared_prometheus_ok; then
+  echo "D090_G2_SHARED_PROMETHEUS=FAIL" >&2
+  unset THANOS_TOKEN
+  exit 1
+fi
+unset THANOS_TOKEN
+echo "D090_G2_PROMETHEUS_TARGET=PASS source=openshift-user-workload-monitoring"
+echo "D090_G2_PROMETHEUS_QUERY=PASS source=thanos"
+echo "D090_G2_SHARED_PROMETHEUS=PASS"
 
 # Quota denial: first request allowed, second denied within the same 60-second window.
 patch_policy_variant quota
