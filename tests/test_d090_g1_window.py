@@ -33,6 +33,7 @@ def test_g1_window_requires_existing_park_snapshot_and_local_profile():
 def test_g1_window_wakes_only_required_tradeops_deployments():
     script = read()
     assert "REQUIRED_DEPLOYMENTS=(ai-access-policy genai-api litellm)" in script
+    assert "ACTIVATION_DEPLOYMENTS=(ai-access-policy genai-api)" in script
     assert 'scale "deployment/$name" --replicas="$replicas"' in script
     for forbidden in (
         "agent-controller",
@@ -53,6 +54,7 @@ def test_g1_window_wakes_only_required_tradeops_deployments():
 def test_g1_window_runs_existing_g1_chain_and_reparks():
     script = read()
     assert "bash scripts/d090_deploy_litellm_crc.sh" in script
+    assert "D090_G1_WINDOW_BASE_ACTIVE=PASS" in script
     assert "bash scripts/d090_enable_genai_crc.sh" in script
     assert "bash scripts/d090_run_g1_live_crc.sh" in script
     assert 'scale "deployment/$name" --replicas=0' in script
