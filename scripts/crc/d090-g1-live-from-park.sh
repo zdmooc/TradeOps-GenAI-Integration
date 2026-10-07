@@ -12,6 +12,7 @@ MODEL="${D090_LITELLM_MODEL:-ollama/qwen2.5:3b}"
 API_BASE="${D090_LITELLM_API_BASE:-}"
 
 REQUIRED_DEPLOYMENTS=(ai-access-policy genai-api litellm)
+ACTIVATION_DEPLOYMENTS=(ai-access-policy genai-api)
 WINDOW_FILE=""
 
 for cmd in oc awk grep; do
@@ -110,22 +111,24 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-while IFS=$'\t' read -r name replicas; do
+for name in "${ACTIVATION_DEPLOYMENTS[@]}"; do
+  replicas="$(awk -F '\t' -v n="$name" '$1==n {print $2}' "$WINDOW_FILE")"
   echo "G1 WINDOW deployment/$name: 0 -> $replicas"
   oc -n "$NAMESPACE" scale "deployment/$name" --replicas="$replicas"
-done < "$WINDOW_FILE"
+done
 
-for name in "${REQUIRED_DEPLOYMENTS[@]}"; do
+for name in "${ACTIVATION_DEPLOYMENTS[@]}"; do
   oc -n "$NAMESPACE" rollout status "deployment/$name" --timeout=300s
 done
 
-echo "D090_G1_WINDOW_ACTIVE=PASS"
+echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"
 
 export D090_LITELLM_PROFILE="$PROFILE"
 export D090_LITELLM_MODEL="$MODEL"
 export D090_LITELLM_API_BASE="$API_BASE"
 
 bash scripts/d090_deploy_litellm_crc.sh
+echo "D090_G1_WINDOW_ACTIVE=PASS"
 bash scripts/d090_enable_genai_crc.sh
 bash scripts/d090_run_g1_live_crc.sh
 
