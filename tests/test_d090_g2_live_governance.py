@@ -97,3 +97,12 @@ def test_g2_probe_does_not_print_credentials():
     assert "print(token)" not in probe
     assert "print(client_secret)" not in probe
     assert "Authorization" in probe
+
+
+def test_g2_waits_for_configmap_projection_before_hup():
+    script = read(WRAPPER)
+    assert 'D090_G2_PROM_CONFIG_WAIT_SECONDS:-180' in script
+    assert 'D090_G2_PROMETHEUS_PROJECTION=PASS' in script
+    assert 'kill -HUP 1' in script
+    assert script.index('D090_G2_PROMETHEUS_PROJECTION=PASS') < script.index('kill -HUP 1')
+    assert 'rollout restart deploy/prometheus' not in script
