@@ -401,6 +401,7 @@ data:
               - market-data:8011
               - workflow-api:8012
               - genai-api:8013
+              - ai-access-policy:8020
               - rag-api:8014
               - agent-controller:8015
               - mcp-server:8016
