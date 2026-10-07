@@ -21,3 +21,10 @@ def test_g1_probe_keeps_windows_path_conversion_guard():
     runner = RUNNER.read_text(encoding="utf-8")
     assert "MSYS_NO_PATHCONV=1 oc -n tradeops exec -i deploy/genai-api --" in runner
     assert "MSYS_NO_PATHCONV=1 oc -n tradeops exec deploy/genai-api --" in runner
+
+
+def test_real_model_probe_reports_bounded_http_failure():
+    probe = (ROOT / "scripts" / "d090_real_model_probe.py").read_text(encoding="utf-8")
+    assert "urllib.error.HTTPError" in probe
+    assert "D090_GATEWAY_HTTP_FAIL status=" in probe
+    assert "[:512]" in probe
