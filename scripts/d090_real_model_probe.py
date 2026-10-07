@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -85,24 +86,33 @@ def main() -> int:
         return 3
     print("D090_OIDC_TOKEN=PASS")
 
-    body, headers = _post_json(
-        args.gateway_url.rstrip("/") + "/v1/chat/completions",
-        {
-            "model": args.model,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": (
-                        "Return exactly the short phrase D090_REAL_MODEL_OK. "
-                        "Do not include secrets or external data."
-                    ),
-                }
-            ],
-            "temperature": 0,
-        },
-        token,
-        args.timeout,
-    )
+    try:
+        body, headers = _post_json(
+            args.gateway_url.rstrip("/") + "/v1/chat/completions",
+            {
+                "model": args.model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            "Return exactly the short phrase D090_REAL_MODEL_OK. "
+                            "Do not include secrets or external data."
+                        ),
+                    }
+                ],
+                "temperature": 0,
+            },
+            token,
+            args.timeout,
+        )
+    except urllib.error.HTTPError as exc:
+        raw = exc.read(2048).decode("utf-8", errors="replace")
+        safe = " ".join(raw.split())[:512]
+        print(
+            f"D090_GATEWAY_HTTP_FAIL status={exc.code} body={safe or 'empty'}",
+            file=sys.stderr,
+        )
+        return 8
 
     consumer = headers.get("x-mayabank-ai-consumer", "")
     provider = headers.get("x-mayabank-ai-provider", "")
