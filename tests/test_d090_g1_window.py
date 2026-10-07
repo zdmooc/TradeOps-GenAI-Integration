@@ -71,6 +71,19 @@ def test_g1_window_refreshes_identity_and_canonical_kong_before_probe():
 
     bootstrap = script.index("bash scripts/d090_bootstrap_oidc_crc.sh")
     activate = script.index('echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"')
+    configure_genai = script.index("bash scripts/d090_enable_genai_crc.sh")
+    observe_issuer = script.index("scripts/d090_runtime_issuer_probe.py")
+    align_policy = script.index('set env deploy/ai-access-policy OIDC_ISSUER="$RUNTIME_ISSUER"')
     kong = script.index("bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh")
     probe = script.index("bash scripts/d090_run_g1_live_crc.sh")
-    assert bootstrap < activate < kong < probe
+    assert bootstrap < activate < configure_genai < observe_issuer < align_policy < kong < probe
+
+
+def test_g1_window_aligns_policy_and_kong_to_observed_issuer():
+    script = read()
+    assert 'RUNTIME_ISSUER="$(' in script
+    assert "scripts/d090_runtime_issuer_probe.py" in script
+    assert "D090_RUNTIME_TOKEN_ISSUER=" in script
+    assert 'OIDC_ISSUER="$RUNTIME_ISSUER"' in script
+    assert 'KEYCLOAK_ISSUER_OVERRIDE="$RUNTIME_ISSUER"' in script
+    assert "D090_POLICY_ISSUER_ALIGN=PASS" in script

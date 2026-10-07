@@ -28,3 +28,12 @@ def test_real_model_probe_reports_bounded_http_failure():
     assert "urllib.error.HTTPError" in probe
     assert "D090_GATEWAY_HTTP_FAIL status=" in probe
     assert "[:512]" in probe
+
+
+def test_runtime_issuer_probe_emits_only_issuer_contract():
+    probe = (ROOT / "scripts" / "d090_runtime_issuer_probe.py").read_text(encoding="utf-8")
+    assert "AI_OIDC_TOKEN_URL" in probe
+    assert "AI_OIDC_CLIENT_SECRET" in probe
+    assert 'claims.get("iss"' in probe
+    assert "print(issuer)" in probe
+    assert "print(token)" not in probe

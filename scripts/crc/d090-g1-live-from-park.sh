@@ -133,19 +133,36 @@ done
 
 echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"
 
-(
-  cd "$API_REPO"
-  bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh
-)
-echo "D090_G1_KONG_JWT_REFRESH=PASS"
-
 export D090_LITELLM_PROFILE="$PROFILE"
 export D090_LITELLM_MODEL="$MODEL"
 export D090_LITELLM_API_BASE="$API_BASE"
 
 bash scripts/d090_deploy_litellm_crc.sh
 echo "D090_G1_WINDOW_ACTIVE=PASS"
+
 bash scripts/d090_enable_genai_crc.sh
+
+RUNTIME_ISSUER="$(
+  MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- \
+    python - < scripts/d090_runtime_issuer_probe.py
+)"
+if [[ -z "$RUNTIME_ISSUER" ]]; then
+  echo "D090_RUNTIME_ISSUER_FAIL empty" >&2
+  exit 1
+fi
+echo "D090_RUNTIME_TOKEN_ISSUER=$RUNTIME_ISSUER"
+
+oc -n "$NAMESPACE" set env deploy/ai-access-policy OIDC_ISSUER="$RUNTIME_ISSUER" >/dev/null
+oc -n "$NAMESPACE" rollout status deploy/ai-access-policy --timeout=300s >/dev/null
+echo "D090_POLICY_ISSUER_ALIGN=PASS issuer=$RUNTIME_ISSUER"
+
+(
+  cd "$API_REPO"
+  KEYCLOAK_ISSUER_OVERRIDE="$RUNTIME_ISSUER" \
+    bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh
+)
+echo "D090_G1_KONG_JWT_REFRESH=PASS issuer=$RUNTIME_ISSUER"
+
 bash scripts/d090_run_g1_live_crc.sh
 
 if [[ "${D090_RUN_G3_G4_SHARED_ISOLATION:-no}" == "yes" ]]; then
