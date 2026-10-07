@@ -1,6 +1,6 @@
 # D-090 G0 — TradeOps AI Access decision
 
-**Status:** G0 CLOSED / G1-G2 IMPLEMENTED CONTRACT + PACKAGING / LIVE REAL-MODEL EVIDENCE PENDING  
+**Status:** G0 CLOSED / G1 CRC_RUNTIME_PROVEN / G2 IMPLEMENTED + CI_VALIDATED / LIVE GOVERNANCE PENDING  
 **Date:** 2026-10-03
 
 ## Decision
@@ -94,8 +94,31 @@ Unit/policy tests are not enough to promote `VERIFIED × SHARED` or `MULTI_TENAN
 
 ```text
 G0 = CLOSED / DESIGNED
-G1 = IMPLEMENTED + TESTED IN CI + PACKAGED / LIVE REAL MODEL PENDING
-G2 = IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING
+G1 = CRC_RUNTIME_PROVEN / VERIFIED × SINGLE_CONSUMER
+G2 = IMPLEMENTED + CI_VALIDATED / LIVE GOVERNANCE EVIDENCE PENDING
 G3 = SECOND-CONSUMER CONTRACT + PROBE PREPARED / LIVE SHARED EVIDENCE PENDING
 G4 = ISOLATION POLICY + PROBE PREPARED / LIVE MULTI-TENANT EVIDENCE PENDING
 ```
+
+
+## 2026-10-07 G1 closure / G2 runtime gate
+
+G1 is now runtime-proven on CRC through the full governed path:
+`genai-api -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
+
+Canonical evidence: `evidence/d090/20261007-g1-crc-runtime-proof.md`.
+
+G2 live tooling is merged and CI-validated:
+- bounded PARK-aware window;
+- model denial;
+- live RPM quota;
+- live budget denial;
+- AI Access metrics;
+- Prometheus `ai-access-policy:8020` scrape target + PromQL proof;
+- real `genai-api /review` path through `ObservedLLM`;
+- Shared OTel collector receipt;
+- policy restore + automatic re-PARK.
+
+Runtime script: `scripts/crc/d090-g2-live-governance-from-park.sh`.
+
+G2 remains **LIVE GOVERNANCE EVIDENCE PENDING** until that script passes on CRC.
