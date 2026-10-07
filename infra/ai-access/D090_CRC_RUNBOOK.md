@@ -55,11 +55,16 @@ The default sibling API Management checkout is `../mayabank-api-management-archi
 
 
 ```bash
+# Optional: provide a preferred endpoint. The wrapper now validates it and
+# automatically falls back to another reachable Windows IPv4 endpoint if stale.
 export D090_LITELLM_API_BASE='http://192.168.56.1:11434'
 bash scripts/crc/d090-g1-live-from-park.sh
 ```
 
 The wrapper:
+- dynamically validates the current Ollama endpoint before opening the G1 window;
+- if the existing endpoint is stale, it discovers Windows IPv4 addresses where Ollama answers and selects only an address also reachable from the CRC node;
+- does not hard-code any workstation IP in Git;
 - requires the existing PARK snapshot;
 - restores only `ai-access-policy` and `genai-api` from their snapshotted replica counts;
 - lets the canonical LiteLLM deployment script activate LiteLLM;
