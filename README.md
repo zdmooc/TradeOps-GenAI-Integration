@@ -31,7 +31,7 @@ Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
 The Ollama host endpoint is supplied explicitly at runtime and the egress policy is narrowed to exactly that IPv4 `/32:11434`. On the current Windows CRC workstation, `host.crc.testing` was not usable for Ollama; `192.168.56.1` was proven reachable from the CRC node. The full governed path is now runtime-proven on CRC; Shared OTel trace observation remains a separate G2 live-governance gate.
 
-The native MCP path is already implemented and tested in CI through R1-R4. The dedicated R5 live CRC integration with IBM MQ remains **PENDING** until the local evidence bundle is actually captured. D-092 adds A2A above this MCP boundary; it does not replace it.
+The native MCP path is implemented and tested in CI through R1-R4. R5 is now **PARK-SAFE / CI_VALIDATED / CRC LIVE EVIDENCE PENDING**: PR #20 merged as `5c424b67a7320aac6f8ac4b49b7caf71a76271b0`, CI `37658725168` SUCCESS. With an active TradeOps PARK it wakes only `agent-controller + mcp-native`, preserves D-090 Secret material, verifies native MCP -> `mq-ops-api` -> `QM.MAYABANK`, then re-PARKs automatically. D-092 adds A2A above this MCP boundary; it does not replace it.
 
 See:
 - [D-090 decision and gates](docs/37-ai-access-d090.md)
