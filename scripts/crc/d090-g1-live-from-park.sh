@@ -10,6 +10,7 @@ SNAPSHOT="${TRADEOPS_PARK_SNAPSHOT:-}"
 PROFILE="${D090_LITELLM_PROFILE:-local-ollama}"
 MODEL="${D090_LITELLM_MODEL:-ollama/qwen2.5:3b}"
 API_BASE="${D090_LITELLM_API_BASE:-}"
+API_REPO="${D090_API_MANAGEMENT_REPO:-$(cd "$ROOT/.." && pwd)/mayabank-api-management-architecture}"
 
 REQUIRED_DEPLOYMENTS=(ai-access-policy genai-api litellm)
 ACTIVATION_DEPLOYMENTS=(ai-access-policy genai-api)
@@ -51,6 +52,15 @@ if [[ "$MODEL" != ollama/* ]]; then
 fi
 
 : "${API_BASE:?export D090_LITELLM_API_BASE explicitly, e.g. http://192.168.56.1:11434}"
+
+if [[ ! -f "$API_REPO/runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh" ]]; then
+  echo "D090_G1_WINDOW_FAIL: API Management repository/script not found: $API_REPO" >&2
+  echo "Set D090_API_MANAGEMENT_REPO to the local mayabank-api-management-architecture checkout." >&2
+  exit 2
+fi
+
+bash scripts/d090_bootstrap_oidc_crc.sh
+echo "D090_G1_AUTH_MATERIAL_REFRESH=PASS"
 
 WINDOW_FILE="$SNAPSHOT/g1-window.tsv"
 : > "$WINDOW_FILE"
@@ -122,6 +132,12 @@ for name in "${ACTIVATION_DEPLOYMENTS[@]}"; do
 done
 
 echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"
+
+(
+  cd "$API_REPO"
+  bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh
+)
+echo "D090_G1_KONG_JWT_REFRESH=PASS"
 
 export D090_LITELLM_PROFILE="$PROFILE"
 export D090_LITELLM_MODEL="$MODEL"
