@@ -51,12 +51,21 @@ if [[ "$MODEL" != ollama/* ]]; then
   exit 2
 fi
 
-: "${API_BASE:?export D090_LITELLM_API_BASE explicitly, e.g. http://192.168.56.1:11434}"
-
 if [[ ! -f "$API_REPO/runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh" ]]; then
   echo "D090_G1_WINDOW_FAIL: API Management repository/script not found: $API_REPO" >&2
   echo "Set D090_API_MANAGEMENT_REPO to the local mayabank-api-management-architecture checkout." >&2
   exit 2
+fi
+
+if [[ "$PROFILE" == "local-ollama" ]]; then
+  API_BASE="$(
+    D090_PREFERRED_API_BASE="$API_BASE"       bash scripts/crc/d090-resolve-ollama-endpoint.sh
+  )"
+  if [[ -z "$API_BASE" ]]; then
+    echo "D090_G1_WINDOW_FAIL: Ollama endpoint discovery returned empty value" >&2
+    exit 2
+  fi
+  echo "D090_G1_OLLAMA_ENDPOINT_RESOLVED=PASS api_base=$API_BASE"
 fi
 
 bash scripts/d090_bootstrap_oidc_crc.sh
