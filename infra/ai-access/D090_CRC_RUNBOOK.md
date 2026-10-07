@@ -71,6 +71,8 @@ D090_G1_FROM_PARK=PASS
 D090_G1_WINDOW_REPARK=PASS
 ```
 
+The full-path probe is streamed from the checked-out repository into the running `genai-api` container with `oc exec -i ... python -`. It is intentionally **not baked into the application image**; the runtime image remains limited to application code while the evidence probe stays an external test artifact.
+
 The lower-level commands remain available when a full manual investigation is needed:
 
 ```bash

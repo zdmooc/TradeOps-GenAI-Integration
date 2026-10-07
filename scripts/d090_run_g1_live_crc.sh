@@ -25,9 +25,14 @@ oc -n tradeops wait --for=condition=Available deploy/ai-access-policy --timeout=
 oc -n tradeops wait --for=condition=Available deploy/litellm --timeout=120s >/dev/null
 oc -n mayabank-api wait --for=condition=Available deploy/api-gateway --timeout=120s >/dev/null
 
-MSYS_NO_PATHCONV=1 oc -n tradeops exec deploy/genai-api --   python /app/scripts/d090_real_model_probe.py   --timeout "${D090_G1_PROBE_TIMEOUT:-120}"   --evidence-out /tmp/d090-real-model.json | tee "${OUT}/01-real-model-probe.txt"
+MSYS_NO_PATHCONV=1 oc -n tradeops exec -i deploy/genai-api -- \
+  python - \
+  --timeout "${D090_G1_PROBE_TIMEOUT:-120}" \
+  --evidence-out /tmp/d090-real-model.json \
+  < scripts/d090_real_model_probe.py | tee "${OUT}/01-real-model-probe.txt"
 
-MSYS_NO_PATHCONV=1 oc -n tradeops exec deploy/genai-api -- cat /tmp/d090-real-model.json   > "${OUT}/02-real-model.json"
+MSYS_NO_PATHCONV=1 oc -n tradeops exec deploy/genai-api -- \
+  cat /tmp/d090-real-model.json > "${OUT}/02-real-model.json"
 
 oc -n tradeops exec -i deploy/ai-access-policy -- python - <<'PY'   > "${OUT}/03-ai-access-metrics.txt"
 import urllib.request
