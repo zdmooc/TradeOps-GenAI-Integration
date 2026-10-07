@@ -69,6 +69,8 @@ MayaBank Secret key: token
 
 Le mot de passe IBM MQ n'est jamais transmis à TradeOps.
 
+Le Secret `tradeops-runtime-secrets` est traité par **merge**, jamais recréé intégralement : les clés D-090 AI/OIDC/LiteLLM déjà prouvées par G1/G2 doivent rester intactes.
+
 ## 4. Preuve CI acquise
 
 Le head R5 a passé :
@@ -103,6 +105,31 @@ Depuis `TradeOps-GenAI-Integration` :
 
 ```bash
 bash scripts/r5_crc_mcp_mq_run.sh
+```
+
+Si un snapshot PARK actif existe, le lanceur sélectionne automatiquement :
+
+```text
+R5_CRC_RUN_MODE=BOUNDED_FROM_PARK
+```
+
+et délègue à `scripts/crc/r5_crc_mcp_mq_from_park.sh`.
+
+Dans ce mode, R5 :
+- exige que `CapabilityConsumption/tradeops-crc` reste en `Observe` ;
+- ne fait **aucun Helm upgrade complet** de TradeOps ;
+- réutilise l'image `tradeops-runtime:i9` si elle contient déjà `services.mcp_native`, sinon ne reconstruit que cette image runtime ;
+- rend/applique uniquement `mcp-native` depuis le chart ;
+- réveille temporairement seulement `agent-controller` + `mcp-native` ;
+- merge uniquement la clé `MQ_OPS_API_TOKEN` dans le Secret TradeOps et vérifie que toutes les autres clés restent bit-à-bit identiques ;
+- laisse PostgreSQL, Redpanda/Kafka, Qdrant, RAG, UI, Grafana et les autres Deployments dans leur état PARK ;
+- exécute la preuve R5 ;
+- re-PARK `agent-controller` et retire `mcp-native` s'il n'existait pas dans le snapshot initial.
+
+Le marqueur de sécurité final du mode borné est :
+
+```text
+R5_CRC_WINDOW_REPARK=PASS
 ```
 
 Si le dépôt MQ est ailleurs :
