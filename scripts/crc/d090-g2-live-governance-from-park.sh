@@ -262,8 +262,7 @@ echo "D090_G2_BASELINE_METRICS=PASS"
 
 # Exercise the real genai-api path so ObservedLLM emits llm.complete to Shared OTel.
 TRACE_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- python - <<'PY' \
-  | tee "$OUT/12-genai-review.txt"
+MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- python - <<'PY' | tee "$OUT/12-genai-review.txt"
 import json, urllib.request, uuid
 payload={
   "workflow_id": str(uuid.uuid4()),
@@ -296,8 +295,7 @@ fi
 
 # Prometheus must actually scrape and query the AI Access metrics.
 sleep 20
-MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- python - <<'PY' \
-  | tee "$OUT/14-prometheus-proof.txt"
+MSYS_NO_PATHCONV=1 oc -n "$NAMESPACE" exec -i deploy/genai-api -- python - <<'PY' | tee "$OUT/14-prometheus-proof.txt"
 import json, urllib.parse, urllib.request
 
 with urllib.request.urlopen("http://prometheus:9090/api/v1/targets", timeout=10) as response:
