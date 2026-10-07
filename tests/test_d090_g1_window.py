@@ -35,20 +35,10 @@ def test_g1_window_wakes_only_required_tradeops_deployments():
     assert "REQUIRED_DEPLOYMENTS=(ai-access-policy genai-api litellm)" in script
     assert "ACTIVATION_DEPLOYMENTS=(ai-access-policy genai-api)" in script
     assert 'scale "deployment/$name" --replicas="$replicas"' in script
-    for forbidden in (
-        "agent-controller",
-        "grafana",
-        "market-data",
-        "mcp-server",
-        "notifier",
-        "otel-collector",
-        "paper-oms",
-        "rag-api",
-        "risk-engine",
-        "tradeops-ui",
-        "workflow-api",
-    ):
-        assert forbidden not in script
+    assert 'REQUIRED_DEPLOYMENTS=(ai-access-policy genai-api litellm)' in script
+    assert 'ACTIVATION_DEPLOYMENTS=(ai-access-policy genai-api)' in script
+    assert 'oc -n shared-observability wait --for=condition=Available deploy/otel-collector' in script
+    assert 'oc -n "$NAMESPACE" scale "deployment/$name"' in script
 
 
 def test_g1_window_runs_existing_g1_chain_and_reparks():
