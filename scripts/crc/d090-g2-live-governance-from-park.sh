@@ -213,18 +213,30 @@ PY
   oc -n "$NAMESPACE" patch configmap prometheus-config --type=merge -p "$PROM_PATCH" >/dev/null
 fi
 
+PROM_CONFIG_WAIT_SECONDS="${D090_G2_PROM_CONFIG_WAIT_SECONDS:-180}"
+[[ "$PROM_CONFIG_WAIT_SECONDS" =~ ^[0-9]+$ ]] && (( PROM_CONFIG_WAIT_SECONDS >= 30 )) || {
+  echo "D090_G2_FAIL: D090_G2_PROM_CONFIG_WAIT_SECONDS must be an integer >= 30" >&2
+  exit 2
+}
+
 PROM_CONFIG_VISIBLE=false
-for _ in $(seq 1 30); do
+PROM_CONFIG_WAITED=0
+while (( PROM_CONFIG_WAITED <= PROM_CONFIG_WAIT_SECONDS )); do
   if oc -n "$NAMESPACE" exec deploy/prometheus -- grep -q 'ai-access-policy:8020' /etc/prometheus/prometheus.yml 2>/dev/null; then
     PROM_CONFIG_VISIBLE=true
     break
   fi
-  sleep 2
+  sleep 5
+  PROM_CONFIG_WAITED=$((PROM_CONFIG_WAITED + 5))
 done
+
 [[ "$PROM_CONFIG_VISIBLE" == "true" ]] || {
-  echo "D090_G2_PROMETHEUS_CONFIG=FAIL mounted config did not update" >&2
+  rv="$(oc -n "$NAMESPACE" get configmap prometheus-config -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null || true)"
+  echo "D090_G2_PROMETHEUS_CONFIG=FAIL mounted config did not update within ${PROM_CONFIG_WAIT_SECONDS}s resourceVersion=${rv:-unknown}" >&2
   exit 1
 }
+echo "D090_G2_PROMETHEUS_PROJECTION=PASS waited_seconds=$PROM_CONFIG_WAITED"
+
 oc -n "$NAMESPACE" exec deploy/prometheus -- sh -c 'kill -HUP 1'
 echo "D090_G2_PROMETHEUS_CONFIG=PASS"
 
