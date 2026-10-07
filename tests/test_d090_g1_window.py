@@ -58,3 +58,19 @@ def test_g1_window_does_not_touch_statefulsets_or_global_prune():
     assert "oc delete namespace" not in script
     assert "oc delete project" not in script
     assert "oc adm prune" not in script
+
+
+def test_g1_window_refreshes_identity_and_canonical_kong_before_probe():
+    script = read()
+    assert "D090_API_MANAGEMENT_REPO" in script
+    assert "mayabank-api-management-architecture" in script
+    assert "bash scripts/d090_bootstrap_oidc_crc.sh" in script
+    assert "D090_G1_AUTH_MATERIAL_REFRESH=PASS" in script
+    assert "runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh" in script
+    assert "D090_G1_KONG_JWT_REFRESH=PASS" in script
+
+    bootstrap = script.index("bash scripts/d090_bootstrap_oidc_crc.sh")
+    activate = script.index('echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"')
+    kong = script.index("bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh")
+    probe = script.index("bash scripts/d090_run_g1_live_crc.sh")
+    assert bootstrap < activate < kong < probe
