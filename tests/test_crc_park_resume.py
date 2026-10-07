@@ -48,6 +48,10 @@ def test_suspend_captures_cluster_capacity_before_and_after():
     assert "09-node-describe-before.txt" in script
     assert "23-node-describe-after.txt" in script
     assert "24-cluster-pending-after.txt" in script
+    assert "10-cluster-pods-before.json" in script
+    assert "25-cluster-pods-after.json" in script
+    assert "11-nodes-before.json" in script
+    assert "26-nodes-after.json" in script
 
 
 def test_deep_park_requires_explicit_tsdb_loss_confirmation():
