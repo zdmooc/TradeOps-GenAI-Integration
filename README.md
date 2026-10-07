@@ -25,6 +25,7 @@ Current repository state on 2026-10-07:
 - D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;
 - CRC PARK/RESUME safety workflow: **CRC RUNTIME PROVEN** on 2026-10-07 — `TRADEOPS_PARK=PASS`, StatefulSets preserved, Prometheus retained in normal PARK, and 14 stateless Deployments parked. PR #7 merged as `cafa0567b68c88984818fd23d508f3a399fa16f0`; CI run `37607645373` passed.
 - CRC T2 capacity/GitOps gate: **CRC RUNTIME PROVEN** — corrected T2 passed twice after PR #9; Pending pods `3 -> 0`, unscheduled memory `1792Mi -> 0`, current CPU/memory scheduler pressure `0/0`, GitOps controllers PASS and ClusterOperators PASS. Evidence: `evidence/d090/20261007-t1-t2-crc-runtime-proof.md`.
+- D-090 G1 bounded CRC window: **IMPLEMENTED + CI VALIDATED / LIVE PROOF PENDING** — PR #10 merged as `555d13467689490ee04cdd9e5a3d89c927edf9e4`; CI run `37612421774` SUCCESS. It wakes only `ai-access-policy`, `genai-api` and canonical LiteLLM for the G1 proof, then re-parks them automatically.
 
 Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
