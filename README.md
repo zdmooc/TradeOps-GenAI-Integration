@@ -22,7 +22,7 @@ Current repository state on 2026-10-07:
 - G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
-- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;\n- CRC PARK/RESUME safety workflow: **IMPLEMENTED / CI VALIDATION PENDING / LIVE CRC EVIDENCE PENDING** — StatefulSets are never scaled, Prometheus is retained in normal PARK, and automated Argo/HPA/CronJob conflicts fail closed.
+- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;\n- CRC PARK/RESUME safety workflow: **IMPLEMENTED + CI VALIDATED / LIVE CRC EVIDENCE PENDING** — StatefulSets are never scaled, Prometheus is retained in normal PARK, and automated Argo/HPA/CronJob conflicts fail closed. PR #7 was merged as `cafa0567b68c88984818fd23d508f3a399fa16f0`; CI run `37607645373` passed.
 
 Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
