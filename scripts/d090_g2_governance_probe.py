@@ -116,7 +116,7 @@ def _expect_denial(token: str, model: str, status_expected: int, code_expected: 
             f"expected HTTP {status_expected}/{code_expected}, "
             f"observed HTTP {status}/{observed or payload}"
         )
-    print(f"D090_G2_{code_expected}=PASS http={status}")
+    return
 
 
 def main() -> int:
@@ -135,18 +135,21 @@ def main() -> int:
         if args.mode == "baseline":
             _expect_success(token)
             _expect_denial(token, "odm-extraction", 403, "MODEL_DENIED")
+            print("D090_G2_MODEL_DENIED=PASS http=403")
             print("D090_G2_BASELINE=PASS")
             return 0
 
         if args.mode == "quota":
             _expect_success(token)
             _expect_denial(token, "tradeops-default", 429, "QUOTA_EXCEEDED")
+            print("D090_G2_QUOTA_EXCEEDED=PASS http=429")
             print("D090_G2_QUOTA=PASS")
             return 0
 
         if args.mode == "budget":
             _expect_success(token)
             _expect_denial(token, "tradeops-default", 429, "BUDGET_EXCEEDED")
+            print("D090_G2_BUDGET_EXCEEDED=PASS http=429")
             print("D090_G2_BUDGET=PASS")
             return 0
 
