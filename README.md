@@ -24,7 +24,7 @@ Current repository state on 2026-10-07:
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
 - D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;
 - CRC PARK/RESUME safety workflow: **CRC RUNTIME PROVEN** on 2026-10-07 — `TRADEOPS_PARK=PASS`, StatefulSets preserved, Prometheus retained in normal PARK, and 14 stateless Deployments parked. PR #7 merged as `cafa0567b68c88984818fd23d508f3a399fa16f0`; CI run `37607645373` passed.
-- CRC T2 capacity/GitOps gate: **CAPACITY RUNTIME PROVEN / GITOPS REVALIDATION PENDING** — first live run cleared Pending pods `3 -> 0`, unscheduled memory `1792Mi -> 0`, and current CPU/memory scheduler pressure `0/0`. The initial GitOps false negative on terminal `Failed` pods was fixed by PR #9, merged as `39095063b4a3cd60d35a4854f5d0a2ecb9ce1365`; CI run `37609405957` passed.
+- CRC T2 capacity/GitOps gate: **CRC RUNTIME PROVEN** — corrected T2 passed twice after PR #9; Pending pods `3 -> 0`, unscheduled memory `1792Mi -> 0`, current CPU/memory scheduler pressure `0/0`, GitOps controllers PASS and ClusterOperators PASS. Evidence: `evidence/d090/20261007-t1-t2-crc-runtime-proof.md`.
 
 Local G1-B profile:
 `TradeOps -> Shared Keycloak -> canonical Kong -> AI Access -> LiteLLM -> Ollama/qwen2.5:3b`.
