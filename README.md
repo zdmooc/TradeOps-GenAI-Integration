@@ -19,7 +19,7 @@ Current repository state on 2026-10-07:
 
 - G0 AI Access ADR: **CLOSED**;
 - G1 governed real-model path: **CRC RUNTIME_PROVEN / SINGLE_CONSUMER GOVERNED REAL-MODEL PATH** — `D090_OIDC_TOKEN=PASS`, consumer `tradeops`, provider `litellm`, model `tradeops-default`, `D090_REAL_MODEL_PATH=PASS`, `D090_G1_LIVE=PASS`; evidence `evidence/d090/20261007-g1-crc-runtime-proof.md`;
-- G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
+- G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + CI VALIDATED / CRC LIVE GOVERNANCE PENDING** — bounded PARK-aware gate merged as `989939f4f7cf80bfb3661f4aaf5ddf85eec41c54`; CI `37629146984` SUCCESS; proves model denial, RPM quota, budget, AI Access metrics, Prometheus scrape/query and Shared OTel without restarting Prometheus;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
 - D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;
@@ -38,6 +38,7 @@ See:
 - [AI Access runtime profile](infra/ai-access/README.md)
 - [CRC TradeOps PARK/RESUME runbook](docs/runbooks/CRC_TRADEOPS_PARK_RESUME.md)
 - [CRC T2 capacity/GitOps runbook](docs/runbooks/CRC_T2_CAPACITY_GITOPS.md)
+- [D-090 G2 live governance runbook](docs/runbooks/CRC_D090_G2_LIVE_GOVERNANCE.md)
 - [D-092 A2A interoperability baseline](docs/39-a2a-interoperability-d092.md)
 
 ## Architecture
