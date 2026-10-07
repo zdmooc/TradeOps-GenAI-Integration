@@ -22,7 +22,8 @@ Current repository state on 2026-10-07:
 - G2 identity/model/quota/budget/telemetry controls: **IMPLEMENTED + TESTED IN CI / LIVE GOVERNANCE EVIDENCE PENDING**;
 - G3 ODM second-consumer contract: **IMPLEMENTED in ODM / SAME-GATEWAY LIVE EVIDENCE PENDING**;
 - G4 cross-consumer isolation: **policy/tests + live probe prepared / MULTI_TENANT_PROVEN NOT CLAIMED**;
-- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;\n- CRC PARK/RESUME safety workflow: **IMPLEMENTED + CI VALIDATED / LIVE CRC EVIDENCE PENDING** — StatefulSets are never scaled, Prometheus is retained in normal PARK, and automated Argo/HPA/CronJob conflicts fail closed. PR #7 was merged as `cafa0567b68c88984818fd23d508f3a399fa16f0`; CI run `37607645373` passed.
+- D-092 targeted A2A Payment Operations agent: **IMPLEMENTED + TESTED IN CI / A2A LIVE INTEROPERABILITY PENDING**;
+- CRC PARK/RESUME safety workflow: **IMPLEMENTED + CI VALIDATED / LIVE CRC EVIDENCE PENDING** — StatefulSets are never scaled, Prometheus is retained in normal PARK, and automated Argo/HPA/CronJob conflicts fail closed. PR #7 was merged as `cafa0567b68c88984818fd23d508f3a399fa16f0`; CI run `37607645373` passed.
 - CRC T2 capacity/GitOps gate: **IMPLEMENTED + CI VALIDATED / LIVE CRC EVIDENCE PENDING** — structured before/after/current request accounting, scheduler-pressure classification, OpenShift GitOps pod readiness and ClusterOperator health. PR #8 merged as `74362aaf87506f70627dde13fa130bc338d9bd4c`; CI run `37608255368` passed.
 
 Local G1-B profile:
@@ -34,6 +35,8 @@ The native MCP path is already implemented and tested in CI through R1-R4. The d
 See:
 - [D-090 decision and gates](docs/37-ai-access-d090.md)
 - [AI Access runtime profile](infra/ai-access/README.md)
+- [CRC TradeOps PARK/RESUME runbook](docs/runbooks/CRC_TRADEOPS_PARK_RESUME.md)
+- [CRC T2 capacity/GitOps runbook](docs/runbooks/CRC_T2_CAPACITY_GITOPS.md)
 - [D-092 A2A interoperability baseline](docs/39-a2a-interoperability-d092.md)
 
 ## Architecture
