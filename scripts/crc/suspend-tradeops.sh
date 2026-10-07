@@ -140,7 +140,7 @@ blockers = []
 for item in data.get("items", []):
     spec = item.get("spec", {})
     destination = spec.get("destination", {})
-    automated = spec.get("syncPolicy", {}).get("automated")
+    automated = (spec.get("syncPolicy") or {}).get("automated")
     if destination.get("namespace") == namespace and automated is not None:
         meta = item.get("metadata", {})
         blockers.append(f"{meta.get('namespace', '?')}/{meta.get('name', '?')}")
