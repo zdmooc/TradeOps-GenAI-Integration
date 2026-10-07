@@ -70,6 +70,8 @@ printf '%s\n' "=== R5/1 MayaBank MQ read-only adapter ==="
 printf '%s\n' "=== R5/2 TradeOps native MCP runtime ==="
 (
   cd "$ROOT"
+  # i9_crc_deploy.sh still owns full-stack deploy semantics. R5 callers in an
+  # active PARK must use scripts/crc/r5_crc_mcp_mq_from_park.sh instead.
   DEPLOY_MODE=direct bash scripts/i9_crc_deploy.sh
 )
 

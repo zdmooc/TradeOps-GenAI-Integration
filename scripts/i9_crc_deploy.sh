@@ -13,13 +13,32 @@ DEPLOY_MODE="${DEPLOY_MODE:-direct}"
 cd "$ROOT"
 
 oc apply -k infra/openshift/overlays/crc
-oc -n tradeops create secret generic tradeops-runtime-secrets \
-  --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
-  --from-literal=GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD}" \
-  --from-literal=MCP_AGENT_TOKEN="${MCP_AGENT_TOKEN}" \
-  --from-literal=MCP_REVIEWER_TOKEN="${MCP_REVIEWER_TOKEN}" \
-  --from-literal=MQ_OPS_API_TOKEN="${MQ_OPS_SERVICE_TOKEN}" \
-  --dry-run=client -o yaml | oc apply -f -
+SECRET_PATCH="$(POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+  GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD}" \
+  MCP_AGENT_TOKEN="${MCP_AGENT_TOKEN}" \
+  MCP_REVIEWER_TOKEN="${MCP_REVIEWER_TOKEN}" \
+  MQ_OPS_SERVICE_TOKEN="$MQ_OPS_SERVICE_TOKEN" python - <<'PY'
+import base64
+import json
+import os
+
+values = {
+    "POSTGRES_PASSWORD": os.environ["POSTGRES_PASSWORD"],
+    "GRAFANA_ADMIN_PASSWORD": os.environ["GRAFANA_ADMIN_PASSWORD"],
+    "MCP_AGENT_TOKEN": os.environ["MCP_AGENT_TOKEN"],
+    "MCP_REVIEWER_TOKEN": os.environ["MCP_REVIEWER_TOKEN"],
+    "MQ_OPS_API_TOKEN": os.environ["MQ_OPS_SERVICE_TOKEN"],
+}
+print(json.dumps({
+    "data": {
+        key: base64.b64encode(value.encode()).decode()
+        for key, value in values.items()
+    }
+}, separators=(",", ":")))
+PY
+)"
+oc -n tradeops patch secret tradeops-runtime-secrets --type=merge -p "$SECRET_PATCH" >/dev/null
+unset SECRET_PATCH
 
 oc -n tradeops start-build tradeops-runtime --follow --wait
 oc -n tradeops start-build tradeops-ui --follow --wait
