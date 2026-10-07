@@ -132,4 +132,9 @@ echo "D090_G1_WINDOW_ACTIVE=PASS"
 bash scripts/d090_enable_genai_crc.sh
 bash scripts/d090_run_g1_live_crc.sh
 
+if [[ "${D090_RUN_G3_G4_SHARED_ISOLATION:-no}" == "yes" ]]; then
+  bash scripts/d090_shared_isolation_crc.sh
+  echo "D090_G3_G4_FROM_PARK=PASS"
+fi
+
 echo "D090_G1_FROM_PARK=PASS"
