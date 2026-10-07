@@ -1,6 +1,6 @@
 # D-090 AI Access runtime profile
 
-Status: **G1/G2 IMPLEMENTED + TESTED IN CI + PACKAGED / G3/G4 PROBES PREPARED / LIVE EVIDENCE PENDING**.
+Status: **G1 CRC_RUNTIME_PROVEN / G2 IMPLEMENTED + CI_VALIDATED, CRC LIVE PENDING / G3-G4 PROBES PREPARED**.
 
 Target:
 
@@ -71,7 +71,7 @@ D090_MODEL_EVIDENCE=PASS model=<actual>
 D090_REAL_MODEL_PATH=PASS
 ```
 
-Only an observed pass can promote G1 to `DEPLOYED × SINGLE_CONSUMER`.
+G1 was observed passing on CRC on 2026-10-07 and is promoted to `VERIFIED × SINGLE_CONSUMER`. Evidence: `evidence/d090/20261007-g1-crc-runtime-proof.md`.
 
 
 ## Packaging added on 2026-10-04
