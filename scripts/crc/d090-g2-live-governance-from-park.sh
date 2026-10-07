@@ -203,16 +203,8 @@ echo "D090_G2_AUTH_CHAIN=PASS"
 
 # Persist the desired AI Access scrape target without restarting Prometheus/losing emptyDir TSDB.
 PROM_CONFIG="$(oc -n "$NAMESPACE" get configmap prometheus-config -o jsonpath='{.data.prometheus\.yml}')"
-if ! printf '%s\n' "$PROM_CONFIG" | grep -q 'ai-access-policy:8020'; then
-  UPDATED_PROM_CONFIG="$(PROM_CONFIG="$PROM_CONFIG" python - <<'PY'
-import os
-text=os.environ["PROM_CONFIG"]
-needle="              - genai-api:8013\n"
-if needle not in text:
-    raise SystemExit("genai-api target anchor missing")
-print(text.replace(needle, needle+"              - ai-access-policy:8020\n", 1), end="")
-PY
-)"
+UPDATED_PROM_CONFIG="$(printf '%s' "$PROM_CONFIG" | python scripts/d090_patch_prometheus_config.py)"
+if [[ "$UPDATED_PROM_CONFIG" != "$PROM_CONFIG" ]]; then
   PROM_PATCH="$(UPDATED_PROM_CONFIG="$UPDATED_PROM_CONFIG" python - <<'PY'
 import json, os
 print(json.dumps({"data":{"prometheus.yml":os.environ["UPDATED_PROM_CONFIG"]}},separators=(",",":")))
