@@ -42,7 +42,36 @@ The model/provider is deliberately a runtime choice, not committed configuration
 
 ### Free local profile — Ollama on the Windows CRC host
 
-Preferred no-cost proof path for the current local lab:
+Preferred no-cost proof path for the current local lab.
+
+When TradeOps is still PARKED after the T1/T2 capacity gate, use the bounded G1 window instead of resuming the full product:
+
+```bash
+export D090_LITELLM_API_BASE='http://192.168.56.1:11434'
+bash scripts/crc/d090-g1-live-from-park.sh
+```
+
+The wrapper:
+- requires the existing PARK snapshot;
+- restores only `ai-access-policy` and `genai-api` from their snapshotted replica counts;
+- lets the canonical LiteLLM deployment script activate LiteLLM;
+- runs `d090_deploy_litellm_crc.sh`, `d090_enable_genai_crc.sh` and `d090_run_g1_live_crc.sh`;
+- automatically scales `ai-access-policy`, `genai-api` and `litellm` back to zero on success or failure;
+- never scales StatefulSets;
+- leaves the rest of TradeOps PARKED.
+
+Expected success markers include:
+
+```text
+D090_G1_WINDOW_BASE_ACTIVE=PASS
+D090_LOCAL_REAL_MODEL_PRECHECK=PASS
+D090_REAL_MODEL_PATH=PASS
+D090_G1_LIVE=PASS
+D090_G1_FROM_PARK=PASS
+D090_G1_WINDOW_REPARK=PASS
+```
+
+The lower-level commands remain available when a full manual investigation is needed:
 
 ```bash
 export D090_LITELLM_PROFILE=local-ollama
