@@ -44,7 +44,15 @@ The model/provider is deliberately a runtime choice, not committed configuration
 
 Preferred no-cost proof path for the current local lab.
 
-When TradeOps is still PARKED after the T1/T2 capacity gate, use the bounded G1 window instead of resuming the full product:
+When TradeOps is still PARKED after the T1/T2 capacity gate, use the bounded G1 window instead of resuming the full product.
+
+The wrapper also refreshes the D-090 authentication chain before the live request:
+- `scripts/d090_bootstrap_oidc_crc.sh` refreshes the workload client secret, audience/scope contract and current Keycloak JWKS in the TradeOps runtime Secret;
+- the sibling `mayabank-api-management-architecture` checkout re-renders and hot-reloads the canonical Kong `/ai` route with the current Keycloak RSA public key;
+- this avoids relying on stale JWT verification material left from an earlier CRC session.
+
+The default sibling API Management checkout is `../mayabank-api-management-architecture`. Override it with `D090_API_MANAGEMENT_REPO` when needed.
+
 
 ```bash
 export D090_LITELLM_API_BASE='http://192.168.56.1:11434'
