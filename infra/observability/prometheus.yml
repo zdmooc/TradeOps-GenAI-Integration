@@ -14,6 +14,9 @@ scrape_configs:
   - job_name: genai-api
     static_configs:
       - targets: ["genai-api:8013"]
+  - job_name: ai-access-policy
+    static_configs:
+      - targets: ["ai-access-policy:8020"]
   - job_name: rag-api
     static_configs:
       - targets: ["rag-api:8014"]

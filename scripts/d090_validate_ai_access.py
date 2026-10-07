@@ -22,6 +22,8 @@ def validate() -> list[str]:
         "infra/ai-access/litellm-config.example.yaml",
         "infra/ai-access/litellm-deployment.example.yaml",
         "scripts/d090_real_model_probe.py",
+        "scripts/d090_g2_governance_probe.py",
+        "scripts/crc/d090-g2-live-governance-from-park.sh",
         "scripts/d090_shared_isolation_probe.py",
         "scripts/d090_bootstrap_oidc_crc.sh",
         "scripts/d090_prepare_crc.sh",
@@ -199,6 +201,24 @@ def validate() -> list[str]:
     ):
         if marker not in live:
             errors.append(f"G1 live evidence wrapper missing: {marker}")
+
+    g2 = read("scripts/crc/d090-g2-live-governance-from-park.sh")
+    for marker in (
+        "D090_G2_BASELINE_METRICS=PASS",
+        "D090_G2_SHARED_OTEL_TRACE=PASS",
+        "D090_G2_PROMETHEUS_TARGET=PASS",
+        "D090_G2_PROMETHEUS_QUERY=PASS",
+        "D090_G2_QUOTA_METRICS=PASS",
+        "D090_G2_COST_METRIC=PASS",
+        "D090_G2_POLICY_RESTORE=PASS",
+        "D090_G2_GOVERNANCE=PASS",
+    ):
+        if marker not in g2:
+            errors.append(f"G2 live governance wrapper missing: {marker}")
+
+    prom = read("infra/helm/tradeops/templates/platform.yaml")
+    if "ai-access-policy:8020" not in prom:
+        errors.append("G2 Prometheus target missing: ai-access-policy:8020")
 
     return errors
 
