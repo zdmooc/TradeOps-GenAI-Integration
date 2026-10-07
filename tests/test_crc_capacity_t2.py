@@ -102,6 +102,11 @@ def test_t2_script_is_read_only_and_bash_syntax_valid():
     assert "applications.argoproj.io" in script
     assert "clusteroperators.config.openshift.io" in script
     assert '"unscheduled_insufficient_memory"' in script
+    assert 'phase in {"Succeeded", "Failed"}' in script
+    assert "gitops-deployments.json" in script
+    assert "gitops-statefulsets.json" in script
+    assert "T2_GITOPS_TERMINAL_PODS_IGNORED" in script
+    assert "T2_GITOPS_WORKLOAD_CONTROLLERS=PASS" in script
     assert "T2_SCHEDULER_CAPACITY_GATE=PASS" in script
     assert "T2_CAPACITY_GITOPS_GATE=PASS" in script
     assert " oc scale " not in script
