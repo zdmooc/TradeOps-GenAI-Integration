@@ -71,6 +71,6 @@ def test_g1_window_refreshes_identity_and_canonical_kong_before_probe():
 
     bootstrap = script.index("bash scripts/d090_bootstrap_oidc_crc.sh")
     activate = script.index('echo "D090_G1_WINDOW_BASE_ACTIVE=PASS"')
-    kong = script.index("runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh")
+    kong = script.index("bash runtime/shared-platform/scripts/enable-d090-ai-access-crc.sh")
     probe = script.index("bash scripts/d090_run_g1_live_crc.sh")
     assert bootstrap < activate < kong < probe
