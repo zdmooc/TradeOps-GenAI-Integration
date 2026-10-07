@@ -46,6 +46,8 @@ oc get pods -A -o json > "$OUT/current-pods.json"
 oc get nodes -o json > "$OUT/current-nodes.json"
 oc get clusteroperators.config.openshift.io -o json > "$OUT/clusteroperators.json"
 oc -n "$GITOPS_NAMESPACE" get pods -o json > "$OUT/gitops-pods.json"
+oc -n "$GITOPS_NAMESPACE" get deployments.apps -o json > "$OUT/gitops-deployments.json"
+oc -n "$GITOPS_NAMESPACE" get statefulsets.apps -o json > "$OUT/gitops-statefulsets.json"
 
 if oc api-resources --api-group=argoproj.io -o name 2>/dev/null | grep -qx 'applications.argoproj.io'; then
   oc get applications.argoproj.io -A -o json > "$OUT/argocd-applications.json"
@@ -112,31 +114,86 @@ with open(output_path, "w", encoding="utf-8") as handle:
         handle.write(line + "\n")
 PY
 
-if ! python - "$OUT/gitops-pods.json" <<'PY'
+if ! python - \
+  "$OUT/gitops-pods.json" \
+  "$OUT/gitops-deployments.json" \
+  "$OUT/gitops-statefulsets.json" <<'PY'
 import json
 import sys
 
-data = json.load(open(sys.argv[1], encoding="utf-8"))
+pods_path, deployments_path, statefulsets_path = sys.argv[1:4]
+
+pods = json.load(open(pods_path, encoding="utf-8"))
 active = []
-problems = []
-for pod in data.get("items", []):
+terminal = []
+pod_problems = []
+
+for pod in pods.get("items", []):
     name = pod.get("metadata", {}).get("name", "?")
     phase = pod.get("status", {}).get("phase", "Unknown")
-    if phase in {"Succeeded"}:
+    if phase in {"Succeeded", "Failed"}:
+        terminal.append(f"{name}:{phase}")
         continue
+
     active.append(name)
     statuses = pod.get("status", {}).get("containerStatuses") or []
     ready = phase == "Running" and statuses and all(item.get("ready") for item in statuses)
     if not ready:
-        problems.append(f"{name}:{phase}")
+        pod_problems.append(f"{name}:{phase}")
 
 if not active:
-    print("T2_GITOPS_CORE_FAIL: no active pod in GitOps namespace", file=sys.stderr)
+    print("T2_GITOPS_CORE_FAIL: no non-terminal pod in GitOps namespace", file=sys.stderr)
     raise SystemExit(1)
-if problems:
-    print("T2_GITOPS_CORE_FAIL: " + ", ".join(problems), file=sys.stderr)
+
+if pod_problems:
+    print("T2_GITOPS_CORE_FAIL: non-terminal pod(s) not Ready: " + ", ".join(pod_problems), file=sys.stderr)
     raise SystemExit(1)
+
+workload_problems = []
+
+deployments = json.load(open(deployments_path, encoding="utf-8"))
+for item in deployments.get("items", []):
+    name = item.get("metadata", {}).get("name", "?")
+    spec = item.get("spec") or {}
+    status = item.get("status") or {}
+    desired = spec.get("replicas", 1)
+    if desired == 0:
+        continue
+    ready = status.get("readyReplicas", 0) or 0
+    available = status.get("availableReplicas", 0) or 0
+    updated = status.get("updatedReplicas", 0) or 0
+    if ready < desired or available < desired or updated < desired:
+        workload_problems.append(
+            f"deployment/{name}:desired={desired},ready={ready},"
+            f"available={available},updated={updated}"
+        )
+
+statefulsets = json.load(open(statefulsets_path, encoding="utf-8"))
+for item in statefulsets.get("items", []):
+    name = item.get("metadata", {}).get("name", "?")
+    spec = item.get("spec") or {}
+    status = item.get("status") or {}
+    desired = spec.get("replicas", 1)
+    if desired == 0:
+        continue
+    ready = status.get("readyReplicas", 0) or 0
+    current = status.get("currentReplicas", 0) or 0
+    if ready < desired or current < desired:
+        workload_problems.append(
+            f"statefulset/{name}:desired={desired},ready={ready},current={current}"
+        )
+
+if workload_problems:
+    print("T2_GITOPS_CORE_FAIL: GitOps workload controller(s) not Ready:", file=sys.stderr)
+    for problem in workload_problems:
+        print(f"  - {problem}", file=sys.stderr)
+    raise SystemExit(1)
+
 print(f"T2_GITOPS_READY_PODS={len(active)}")
+print(f"T2_GITOPS_TERMINAL_PODS_IGNORED={len(terminal)}")
+if terminal:
+    print("T2_GITOPS_TERMINAL_PODS=" + ",".join(sorted(terminal)))
+print("T2_GITOPS_WORKLOAD_CONTROLLERS=PASS")
 PY
 then
   exit 1
