@@ -96,6 +96,8 @@ as a Prometheus target.
 
 For an already-running CRC Prometheus, the wrapper updates the existing ConfigMap, waits for the projected volume to contain the target and sends `SIGHUP` to PID 1. This reloads configuration **without restarting the pod or losing its emptyDir TSDB**.
 
+OpenShift/Kubernetes ConfigMap projection is asynchronous. The default G2 wait is now **180 seconds** (`D090_G2_PROM_CONFIG_WAIT_SECONDS`) and the wrapper emits `D090_G2_PROMETHEUS_PROJECTION=PASS` before sending SIGHUP. This explicitly avoids treating kubelet projection latency as a Prometheus failure.
+
 The runtime gate then requires:
 
 ```text
