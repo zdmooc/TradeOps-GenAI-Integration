@@ -39,7 +39,18 @@ oc -n mayabank-mq-local get endpointslice -o wide > "$OUT/09-mayabank-endpoints.
 
 curl -fsSk "https://$AGENT_HOST/health" > "$OUT/10-agent-health.json"
 curl -fsSk "https://$AGENT_HOST/agent/mcp/capabilities" > "$OUT/11-mcp-capabilities.json"
-curl -fsSk "https://$AGENT_HOST/agent/mcp/mq/health" > "$OUT/12-mq-health-via-mcp.json"
+MQ_HTTP_CODE="$(curl -sSk --connect-timeout 5 --max-time 20 \
+  -o "$OUT/12-mq-health-via-mcp.json" \
+  -w '%{http_code}' \
+  "https://$AGENT_HOST/agent/mcp/mq/health")" || MQ_HTTP_CODE="${MQ_HTTP_CODE:-000}"
+
+if [[ "$MQ_HTTP_CODE" != "200" ]]; then
+  echo "R5_MQ_HEALTH_HTTP_FAIL status=$MQ_HTTP_CODE evidence=$OUT" >&2
+  oc -n tradeops logs deployment/agent-controller --tail=200 > "$OUT/20-agent-controller.log" 2>&1 || true
+  oc -n tradeops logs deployment/mcp-native --tail=200 > "$OUT/19-mcp-native.log" 2>&1 || true
+  oc -n mayabank-mq-local logs deployment/mq-ops-api --tail=200 > "$OUT/21-mq-ops-api.log" 2>&1 || true
+  exit 1
+fi
 
 python - "$OUT/11-mcp-capabilities.json" <<'PY'
 import json, sys
@@ -102,10 +113,16 @@ printf 'mcp_current_depth=%s\nrunmqsc_current_depth=%s\nMATCH=PASS\n' \
 
 NEG_CODE="$(curl -sk -o "$OUT/16-forbidden-queue.json" -w '%{http_code}' \
   "https://$AGENT_HOST/agent/mcp/mq/queues/SYSTEM.ADMIN.COMMAND.QUEUE")"
-[[ "$NEG_CODE" != "200" ]] || {
-  echo "STOP: forbidden SYSTEM.ADMIN.COMMAND.QUEUE unexpectedly returned HTTP 200" >&2
+[[ "$NEG_CODE" == "403" ]] || {
+  echo "STOP: expected explicit HTTP 403, got HTTP $NEG_CODE" >&2
   exit 1
 }
+python - "$OUT/16-forbidden-queue.json" <<'CHECK'
+import json, sys
+body = json.load(open(sys.argv[1], encoding="utf-8"))
+assert body.get("detail") == "queue is not allowed", body
+print("R5_FORBIDDEN_QUEUE_POLICY_PASS")
+CHECK
 echo "forbidden_queue_http=$NEG_CODE" > "$OUT/17-negative-tool-policy.txt"
 
 # Network isolation proof: agent-controller is not allowed to bypass MCP and call
