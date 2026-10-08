@@ -135,11 +135,28 @@ runtime_image() {
 }
 
 image_supports_mcp_native() {
-  local image="$1" pod="r5-module-check-$STAMP" phase=""
+  local image="$1" pod="r5-module-check-${STAMP,,}" phase=""
   [[ -n "$image" ]] || return 1
   oc -n "$NAMESPACE" delete pod "$pod" --ignore-not-found --wait=false >/dev/null 2>&1 || true
   oc -n "$NAMESPACE" run "$pod" --image="$image" --restart=Never \
-    --command -- python -c 'import services.mcp_native.server; print("R5_MCP_NATIVE_MODULE_PASS")' >/dev/null
+    --command --dry-run=client -o json -- python -c \
+    'import services.mcp_native.server; print("R5_MCP_NATIVE_MODULE_PASS")' |
+    python -c '
+import json, sys
+pod = json.load(sys.stdin)
+pod["spec"]["enableServiceLinks"] = False
+pod["spec"]["securityContext"] = {
+    "runAsNonRoot": True,
+    "seccompProfile": {"type": "RuntimeDefault"}
+}
+for container in pod["spec"]["containers"]:
+    container["securityContext"] = {
+        "allowPrivilegeEscalation": False,
+        "capabilities": {"drop": ["ALL"]},
+        "runAsNonRoot": True
+    }
+json.dump(pod, sys.stdout)
+' | oc -n "$NAMESPACE" apply -f - >/dev/null
   for _ in $(seq 1 60); do
     phase="$(oc -n "$NAMESPACE" get pod "$pod" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
     case "$phase" in
@@ -165,6 +182,10 @@ RUNTIME_IMAGE="$(runtime_image)"
 if image_supports_mcp_native "$RUNTIME_IMAGE"; then
   echo "R5_CRC_RUNTIME_IMAGE=REUSED"
 else
+  if [[ "${R5_NO_AUTO_REBUILD:-false}" == "true" ]]; then
+    echo "R5_CRC_RUNTIME_PROBE_FAILED_NO_REBUILD log=$WORK/10-runtime-image-check.log" >&2
+    exit 1
+  fi
   echo "R5_CRC_RUNTIME_IMAGE=REBUILD_REQUIRED"
   oc -n "$NAMESPACE" start-build tradeops-runtime --follow --wait
   RUNTIME_IMAGE="$(runtime_image)"
@@ -279,7 +300,7 @@ helm template tradeops infra/helm/tradeops \
   -f "$R5_VALUES" \
   --show-only templates/app-workloads.yaml \
   > "$WORK/21-mcp-native-rendered.yaml"
-oc apply -f "$WORK/21-mcp-native-rendered.yaml" >/dev/null
+oc -n "$NAMESPACE" apply -f "$WORK/21-mcp-native-rendered.yaml" >/dev/null
 oc -n "$NAMESPACE" set image deploy/mcp-native "mcp-native=$RUNTIME_IMAGE" >/dev/null
 
 # Apply only the canonical R5 NetworkPolicy document from the base file.
@@ -292,7 +313,7 @@ for doc in re.split(r"(?m)^---\s*$", text):
         raise SystemExit(0)
 raise SystemExit("R5 NetworkPolicy document not found")
 PY
-oc apply -f "$WORK/22-r5-networkpolicy.yaml" >/dev/null
+oc -n "$NAMESPACE" apply -f "$WORK/22-r5-networkpolicy.yaml" >/dev/null
 
 oc -n "$NAMESPACE" set image deploy/agent-controller "agent-controller=$RUNTIME_IMAGE" >/dev/null
 oc -n "$NAMESPACE" set env deploy/agent-controller MCP_NATIVE_URL=http://mcp-native:8017/mcp >/dev/null

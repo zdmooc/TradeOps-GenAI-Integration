@@ -15,6 +15,7 @@ from services.agent_controller.mcp_client import (
     get_payment_mq_health_sync,
     get_trade_context_sync,
 )
+from services.mcp_native.mq_client import PAYMENT_QUEUES
 from services.common.otel import current_correlation_id
 
 router = APIRouter(prefix="/agent/mcp", tags=["agent-mcp"])
@@ -71,6 +72,8 @@ def mcp_payment_mq_health() -> McpHostResponse:
 @router.get("/mq/queues/{queue}", response_model=McpHostResponse)
 def mcp_mq_queue_status(queue: str) -> McpHostResponse:
     """Return one allow-listed IBM MQ payment queue status through MCP."""
+    if queue.strip().upper() not in PAYMENT_QUEUES:
+        raise HTTPException(status_code=403, detail="queue is not allowed")
     try:
         return _response(get_mq_queue_status_sync(queue))
     except McpContextError as exc:

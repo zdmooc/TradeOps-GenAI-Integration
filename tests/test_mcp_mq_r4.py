@@ -175,3 +175,21 @@ def test_agent_controller_exposes_allowlisted_queue_via_mcp_host(monkeypatch) ->
     payload = response.json()["payload"]
     assert payload["queue"] == "PAYMENT.REQUEST.Q"
     assert payload["current_depth"] == 3
+
+
+def test_agent_controller_rejects_forbidden_queue_before_mcp(monkeypatch) -> None:
+    import services.agent_controller.mcp_routes as routes
+
+    def forbidden_rpc_call(queue):
+        raise AssertionError("MCP must not be called for forbidden queues")
+
+    monkeypatch.setattr(
+        routes, "get_mq_queue_status_sync", forbidden_rpc_call
+    )
+
+    response = TestClient(app).get(
+        "/agent/mcp/mq/queues/SYSTEM.ADMIN.COMMAND.QUEUE"
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "queue is not allowed"
