@@ -13,6 +13,10 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 - **TradeOps Web Cockpit** : IHM métier React/TypeScript **LIVE et vérifiée sur CRC**, avec preuve HITL métier end-to-end encore à capturer.
 
 
+## Démonstration canonique CRC — Platform Engineering / Agentic AI
+
+Le parcours unifié de démonstration (préflight read-only, checklist, runbook A–Z, scénarios, présentation et dépannage) est dans **[demo/README.md](demo/README.md)**. Il réutilise les scripts de preuve et les [deux dossiers PDF du 08/10/2026](docs/dossiers/README.md), sans reprendre une exécution runtime en mode PARK ni relancer R5/G1/G2 automatiquement.
+
 ## D-090 / D-092 current AI platform wave
 
 Current repository state on 2026-10-07:

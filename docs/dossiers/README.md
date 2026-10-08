@@ -32,3 +32,7 @@ Références méthodologiques :
 - [Runbook CaaS Day-2/N3](https://github.com/zdmooc/shared-platform-services-openshift/blob/main/docs/runbooks/OPENSHIFT_CAAS_DAY2_N3_DEMO.md)
 - [Dossier CaaS / Platform Engineering](https://github.com/zdmooc/shared-platform-services-openshift/blob/main/docs/architecture/OPENSHIFT_CAAS_PLATFORM_ENGINEERING_DAY2_N3_DOSSIER.md)
 - [Data Lakehouse Kubernetes/OpenShift](https://github.com/zdmooc/enterprise-data-lakehouse-kubernetes-openshift)
+
+## Parcours de démonstration
+
+Ces dossiers s'intègrent au [parcours TradeOps demo/](../../demo/README.md) : checklist d'entretien, scénarios, présentation orale, préflight et diagnostic CRC read-only. Les PDF reposent sur la capture datée du 08/10/2026 et les preuves historiques citées, pas sur une nouvelle campagne ACTIVE.
