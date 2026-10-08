@@ -154,3 +154,11 @@ opencode debug agent plan | jq -c '[.permission[] | select(.permission == "*" or
 ```
 
 Inspect **all ordered matching rules** (last matching rule may win). If the command errors or format differs, use `opencode debug agent --help` and stop instead of widening privileges. Do not run `--auto`, install other providers, or expose raw `opencode debug config` output. A final runtime policy proof needs a controlled enforcement test plus independently captured tool/permission telemetry, not model self-report. References: https://docs.opencode.ai/docs/permissions/ and https://opencode.ai/docs/agents/ .
+
+## AA1 — effective OpenCode `plan` policy inspected (2026-10-08)
+
+Operator supplied `opencode debug agent plan` filtered to ordered `*`/`bash`/`edit` rules. Sequence: `* allow`, `edit deny`, two builtin narrow plan-file `edit allow` exceptions, then `* deny`, `bash deny`, `edit deny`, and terminal `* deny`. Official OpenCode v1 semantics: [last matching rule wins](https://docs.opencode.ai/docs/permissions/). The terminal broad deny and explicit late tool denies supersede both builtin editing exceptions for this `plan` agent. Record `AA1_POLICY_RESOLVED_PASS` for **the reported effective permission policy**, **not** a runtime tool-denial proof.
+
+This deliberate **deny-everything smoke profile also rejects read tools**, so it is not the future AA3 read-only mission-analysis policy; that requires separately reviewed tool allowlists, scopes and independent audit. The prior text-only Bash refusal did not invoke a tool. `AA1_RUNTIME_DENIAL_NOT_PROVEN`, `AA1_CONTEXT_64K_NOT_MET`, `AA1_CPU_RAM_NOT_MEASURED`, `AA1_OPEN` remain unchanged.
+
+To analyze the effective policy safely, retain the filtered JSON lines only; no raw `opencode debug config` output, no OAuth tokens and no `--auto`.
