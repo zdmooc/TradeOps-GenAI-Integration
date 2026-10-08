@@ -79,3 +79,48 @@ Use the host shown in `OLLAMA_HOST` only if it is local/authorized. If both `cur
 For OpenCode stable CLI, official installation options include `npm install -g opencode-ai`; this is a workstation change requiring operator action, not an automatic D-099 step. Verify `node --version`, `npm --version`, `opencode --version`.
 
 Correct optional model command: `D099_ALLOW_LOCAL_INFERENCE=YES python scripts/d099_aa1_ollama_smoke.py --model qwen2.5:3b`. Do not run until a read-only API probe works. **Even with PASS**, OpenCode performance and policy gating remain NOT TESTED.
+
+## HP17G3 — local Ollama PASS and OpenCode next step (2026-10-08)
+
+Observed in the **user's Windows Git Bash**, not GitHub CI: Ollama API probe PASS on `192.168.56.1:11434` (not localhost/loopback), OpenCode 1.18.35 CLI reports a version after npm install, local `qwen2.5:3b` JSON smoke `LOCAL_JSON_SMOKE_PASS` in 10917 ms; digest `357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b`. Source is an operator-pasted terminal transcript; retained in governance PR #16. No CPU/RAM measurements, no OpenCode model turn, no 64k-context proof, and no permission denial evidence. npm noted its install `postinstall` script was not in the allowed scripts list, so do **not** assume the installed CLI is fully functional.
+
+### Next supervised qualification (dedicated scratch directory, no Git repo)
+
+1. From Git Bash, run `ollama show qwen2.5:3b` (read-only model metadata) and `opencode run --help` (CLI option discovery). Do not download or change the model.
+2. Create a non-repository folder, separate from `/c/workspaces/TradeOps-GenAI-Integration`, with **no secrets, GitHub tokens or kubeconfig**.
+3. For this one smoke only, set **inline OpenCode config** via `OPENCODE_CONFIG_CONTENT` to explicitly select the single local provider, point to the API that actually responded, disable all tool permissions, disable sharing and autoupdates. `OPENCODE_CONFIG_CONTENT` overrides per-project config on OpenCode 1.x; inspect `opencode models ollama` before a model turn.
+
+```bash
+mkdir -p /c/workspaces/D099-AA1-OPENCODE-SANDBOX
+cd /c/workspaces/D099-AA1-OPENCODE-SANDBOX
+export OPENCODE_DISABLE_AUTOUPDATE=1
+export OPENCODE_DISABLE_DEFAULT_PLUGINS=1
+export OPENCODE_DISABLE_LSP_DOWNLOAD=1
+export OPENCODE_DISABLE_CLAUDE_CODE=1
+export OPENCODE_CONFIG_CONTENT='{
+  "$schema":"https://opencode.ai/config.json",
+  "model":"ollama/qwen2.5:3b",
+  "enabled_providers":["ollama"],
+  "provider":{
+    "ollama":{
+      "npm":"@ai-sdk/openai-compatible",
+      "name":"Ollama Local",
+      "options":{"baseURL":"http://192.168.56.1:11434/v1"},
+      "models":{"qwen2.5:3b":{"name":"Qwen 2.5 3B"}}
+    }
+  },
+  "permission":{"*":"deny","bash":"deny","edit":"deny","external_directory":"deny"},
+  "agent":{"plan":{"permission":{"*":"deny"}}},
+  "share":"disabled",
+  "autoupdate":false,
+  "snapshot":false
+}'
+opencode models ollama
+# STOP if ollama/qwen2.5:3b is absent or config/tool enforcement is uncertain
+opencode run --model ollama/qwen2.5:3b --agent plan \
+  'Respond with exactly AA1_OPENCODE_LOCAL_OK and do not use tools.'
+```
+
+This is a **model round-trip only**, not a proof that the permission layer denies malicious calls. If OpenCode fails or tries to download extra packages, capture the error and STOP; review Node's npm allow-scripts warning and local OpenCode config, do not grant scripts or wider tool permission automatically. If a model succeeds, also capture console timings and Windows CPU/RAM externally. See official [OpenCode provider documentation](https://docs.opencode.ai/docs/providers/), [OpenCode permissions](https://opencode.ai/docs/permissions/), [OpenCode CLI](https://opencode.ai/docs/cli/) and [Ollama integration](https://github.com/ollama/ollama/blob/main/docs/integrations/opencode.mdx).
+
+A 3B Ollama model completing one text prompt **does not** qualify OpenCode coding-agent throughput, context length, security or all AA1 acceptance gates. If it advertises an insufficient context or cannot work under the 24GiB workstation constraint, report `AA1_CONTEXT_UNQUALIFIED` rather than pull a larger model automatically.
