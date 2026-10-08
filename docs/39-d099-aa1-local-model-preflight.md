@@ -51,3 +51,31 @@ D099_ALLOW_LOCAL_INFERENCE=YES python scripts/d099_aa1_ollama_smoke.py --model '
 ```
 
 Do not copy the example model name literally. Expected JSON status is `LOCAL_JSON_SMOKE_PASS`. Ollama-only JSON proof does **not** validate OpenCode, the mandated 64k+ coding-agent context, CLI permissions or AA1 gate closure. Official Ollama/OpenCode documentation: https://github.com/ollama/ollama/blob/main/docs/integrations/opencode.mdx . OpenCode often needs at least 64k context to work reliably and may exceed available RAM on this workstation; choose a tested model and context deliberately, never claim it is suitable based on preflight alone.
+
+## D-099 HP17G3 observed failure and correction — 2026-10-08
+
+The user observed:
+- worktree on PR #25 `71d04df` correct;
+- `AA1_MISSING_TOOL=opencode`: OpenCode CLI not available in Git Bash PATH;
+- `ollama list` succeeded and showed `qwen2.5:3b`;
+- Python JSON smoke failed with `URLError` because the original helper pinned `127.0.0.1:11434` and did not share the Ollama CLI host/proxy behavior; actual cause must be verified locally;
+- the attempted `--model 'NOM_EXACT_DU_MODELE'` is a documentation placeholder, not the installed model.
+
+The helper now reads `OLLAMA_HOST` when set, conservatively permits loopback or the known Windows host-only interface `192.168.56.1`, blocks external hosts, bypasses HTTP proxies only for the accepted local endpoint, and prevents HTTP redirects. The preflight uses the *same* API resolver as the JSON smoke.
+
+Read-only diagnostics on Windows Git Bash:
+
+```bash
+cd /c/workspaces/TradeOps-D099-AA1
+printf 'OLLAMA_HOST=%s\n' "${OLLAMA_HOST:-<unset>}"
+curl --noproxy '*' -fsS --max-time 8 http://127.0.0.1:11434/api/version
+curl --noproxy '*' -fsS --max-time 8 http://localhost:11434/api/version
+# After updating the PR branch:
+python scripts/d099_aa1_ollama_smoke.py --probe
+```
+
+Use the host shown in `OLLAMA_HOST` only if it is local/authorized. If both `curl` probes fail while `ollama list` succeeds, compare the CLI's `OLLAMA_HOST` with this script and investigate Windows listener, `HTTP_PROXY` or security filtering. Do not set the server to `0.0.0.0` just to bypass these diagnostics.
+
+For OpenCode stable CLI, official installation options include `npm install -g opencode-ai`; this is a workstation change requiring operator action, not an automatic D-099 step. Verify `node --version`, `npm --version`, `opencode --version`.
+
+Correct optional model command: `D099_ALLOW_LOCAL_INFERENCE=YES python scripts/d099_aa1_ollama_smoke.py --model qwen2.5:3b`. Do not run until a read-only API probe works. **Even with PASS**, OpenCode performance and policy gating remain NOT TESTED.

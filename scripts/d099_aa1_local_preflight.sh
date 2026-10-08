@@ -17,7 +17,7 @@ opencode --version
 echo "AA1_OLLAMA_VERSION_START"
 ollama --version
 echo "AA1_OLLAMA_SERVER_VERSION_START"
-curl --fail --silent --show-error --max-time 8 http://127.0.0.1:11434/api/version
+python scripts/d099_aa1_ollama_smoke.py --probe
 printf '\n'
 echo "AA1_INSTALLED_MODELS_START"
 ollama list
