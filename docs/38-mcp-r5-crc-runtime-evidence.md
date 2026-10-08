@@ -1,6 +1,6 @@
 # R5 — CRC runtime : MCP natif -> IBM MQ réel
 
-Statut : **TESTED IN CI / CRC LIVE EVIDENCE PENDING**
+Statut : **CRC_RUNTIME_PROVEN / LIVE_OPERATIONAL — R5 functional gates CLOSED (2026-10-08)**. L'archivage du bundle brut de preuve, actuellement local, reste une tâche documentaire séparée.
 
 ## 1. But
 
@@ -233,16 +233,25 @@ verification=R5_CRC_MCP_MQ_VERIFY_PASS
 evidence_class=LIVE_OPERATIONAL
 ```
 
-## 8. Règle de vérité
+## 8. Preuve live observée — 8 octobre 2026
 
-Le statut reste **CRC LIVE EVIDENCE PENDING** tant que la commande n'a pas été exécutée sur le poste local et que le bundle de preuves réel n'existe pas.
+**Périmètre : OpenShift Local/CRC 4.22.7 mono-nœud, scénario R5 borné depuis PARK.** La sortie de la campagne finale exécutée localement rapporte :
 
-Ce n'est qu'après ce bundle que le statut pourra devenir :
+- base Git vérifiée : `33a1faf1cd5ee4779b7ce717fe5c41bc8bd3a79b`, fusion de la PR #21 ;
+- CI de la PR #21 : workflow `ci` / job `lint-test` **SUCCESS**, run `37796874524` ;
+- build OpenShift `tradeops-runtime-16` depuis ce commit, image `tradeops-runtime:i9` publiée avec digest `sha256:5a174f53bf895ddf6f458bb37d64e5de76f74b79749b8865156cf2651b58df34` ;
+- réutilisation de l'image publiée lors de la campagne finale (pas de nouveau build automatique) ;
+- `MCP_TOOLS_PASS` et `MQ_HEALTH_PAYLOAD_PASS` : invocation MCP réelle vers l'adaptateur MayaBank `mq-ops-api` puis `QM.MAYABANK` ;
+- `R5_FORBIDDEN_QUEUE_POLICY_PASS` : `SYSTEM.ADMIN.COMMAND.QUEUE` reçoit **HTTP 403** avec message explicite `queue is not allowed` (PR #21) ;
+- comparaison `PAYMENT.REQUEST.Q` via MCP et `runmqsc` : contrôle de parité obligatoire franchi ;
+- contournement TCP direct `agent-controller -> mq-ops-api` : test négatif franchi, sans autorisation d'un accès direct ;
+- `R5_CRC_MCP_MQ_VERIFY_PASS`, `R5_CRC_FROM_PARK=PASS`, `R5_CRC_WINDOW_REPARK=PASS` ;
+- D-093 `CapabilityConsumption/tradeops-crc` maintenu en **Observe**, sans autoriser `Manage`.
 
-```text
-DEPLOYED ON CRC
-VERIFIED LIVE
-```
+Bundle local déclaré par la commande : `evidence/r5/live/crc/20261008T154626Z/`.
+Ce dossier **n'est pas automatiquement présent dans Git** : son archivage contrôlé requiert une inspection/redaction des logs, manifeste Secret, éventuels tokens et identifiants avant tout commit. La présente note versionnée documente les résultats observés, sans prétendre embarquer le bundle brut.
+
+**Limites des claims :** intégration read-only MCP → IBM MQ prouvée sur CRC mono-nœud seulement. Ni haute disponibilité, ni production, ni déploiement multi-cluster, ni interopérabilité A2A live, ni isolation D-090 G3/G4, ni promotion D-093 `Manage` ne sont revendiquées. Le `R5_CRC_WINDOW_REPARK=PASS` atteste le retour en PARK prévu par le script.
 
 ## 9. Suite après R5
 
