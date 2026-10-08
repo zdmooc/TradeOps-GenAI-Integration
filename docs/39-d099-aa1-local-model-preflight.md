@@ -139,3 +139,18 @@ This closes the missing **basic OpenCode local round-trip** diagnostic. It does 
 **Evidence markers:** `AA1_OPENCODE_LOCAL_ROUNDTRIP_PASS`, `AA1_CONTEXT_64K_NOT_MET`, `AA1_PERMISSION_NEGATIVE_TEST_PENDING`, `AA1_CPU_RAM_MEASUREMENT_PENDING`, `AA1_OPEN`.
 
 Next safe checks: collect raw OpenCode event trace with `--format json --pure` in **scratch only**, test a denied tool request and inspect whether OpenCode attempted/blocked it (absence of a tool attempt is not a successful negative test). Keep privileges denied, no GitHub tokens/kubeconfig or production files in scratch, do not use `--auto`. Capture workstation CPU/RAM using independent OS telemetry; then compare the 32768 advertised context to actual mission payload needs.
+
+## AA1 follow-up — tool call was not attempted (2026-10-08)
+
+An operator-tested JSONL run with `opencode run --pure --format json --model ollama/qwen2.5:3b --agent plan` from isolated scratch responded with a **text explanation** that Bash could not execute `pwd`. Only `step_start`, `text`, and `step_finish` events appeared. It made **no actual tool invocation**, so no runtime tool denial was proved. The model also advised requesting Bash permission despite an instruction not to request it, a limited instruction-following deviation; no permission prompt or approval tool was used.
+
+Recorded token accounting: 334 input, 38 output, 1895 cache read, 2267 reported total, 0 cache write. Wall-clock from visible event timestamps ~2.85s; no CPU/RAM measurement. **AA1 remains open**. Do not misclassify the text as `TOOL_DENIED` evidence.
+
+OpenCode V1 permissions can disable a tool at capability-advertisement time. Therefore missing `tool_use` is compatible with a correctly restricted toolset. Obtain the agent's **resolved permission rules** using read-only inspection, without pasting raw config/credentials:
+
+```bash
+cd /c/workspaces/D099-AA1-OPENCODE-SANDBOX
+opencode debug agent plan | jq -c '[.permission[] | select(.permission == "*" or .permission == "bash" or .permission == "edit") | {permission, pattern, action}]'
+```
+
+Inspect **all ordered matching rules** (last matching rule may win). If the command errors or format differs, use `opencode debug agent --help` and stop instead of widening privileges. Do not run `--auto`, install other providers, or expose raw `opencode debug config` output. A final runtime policy proof needs a controlled enforcement test plus independently captured tool/permission telemetry, not model self-report. References: https://docs.opencode.ai/docs/permissions/ and https://opencode.ai/docs/agents/ .
