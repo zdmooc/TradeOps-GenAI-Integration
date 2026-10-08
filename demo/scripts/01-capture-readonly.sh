@@ -20,7 +20,7 @@ capture() {
     printf '%q ' "$@"
     printf '\n'
     "$@" || rc=$?
-    printf '\nEXIT_CODE=$rc\n'
+    printf '\nEXIT_CODE=%s\n' "$rc"
   } > "$out/$name.txt" 2>&1
   commands=$((commands + 1))
   if (( rc != 0 )); then
