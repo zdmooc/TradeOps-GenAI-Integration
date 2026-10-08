@@ -124,3 +124,18 @@ opencode run --model ollama/qwen2.5:3b --agent plan \
 This is a **model round-trip only**, not a proof that the permission layer denies malicious calls. If OpenCode fails or tries to download extra packages, capture the error and STOP; review Node's npm allow-scripts warning and local OpenCode config, do not grant scripts or wider tool permission automatically. If a model succeeds, also capture console timings and Windows CPU/RAM externally. See official [OpenCode provider documentation](https://docs.opencode.ai/docs/providers/), [OpenCode permissions](https://opencode.ai/docs/permissions/), [OpenCode CLI](https://opencode.ai/docs/cli/) and [Ollama integration](https://github.com/ollama/ollama/blob/main/docs/integrations/opencode.mdx).
 
 A 3B Ollama model completing one text prompt **does not** qualify OpenCode coding-agent throughput, context length, security or all AA1 acceptance gates. If it advertises an insufficient context or cannot work under the 24GiB workstation constraint, report `AA1_CONTEXT_UNQUALIFIED` rather than pull a larger model automatically.
+
+## HP17G3 — OpenCode round-trip PASS, context remains insufficient (2026-10-08)
+
+Operator transcript from the **isolated** `/c/workspaces/D099-AA1-OPENCODE-SANDBOX` showed:
+
+- `ollama show qwen2.5:3b`: Qwen 2, 3.1B, Q4_K_M, **context length 32768**; `completion` and `tools` capabilities.
+- `opencode run --help` returned CLI usage with `--model`, `--agent`, `--format json`, `--pure`, and a documented dangerous `--auto` flag (do not use).
+- The inline local Ollama provider appeared in `opencode models ollama` as `ollama/qwen2.5:3b`.
+- After setting `permission.*=deny`, `agent.plan.permission.*=deny` and `share=disabled`, `opencode run --model ollama/qwen2.5:3b --agent plan 'Respond with exactly AA1_OPENCODE_LOCAL_OK and do not use tools.'` returned **exactly** `AA1_OPENCODE_LOCAL_OK`.
+
+This closes the missing **basic OpenCode local round-trip** diagnostic. It does **not** prove permissions denied any actual attempted call, because the prompt did not ask for a tool action, nor does it demonstrate real coding-agent work. CPU/RAM/timing under OpenCode remain unmeasured. `ollama show` advertises only 32768 context, less than the proposed >=64k coding-agent target. Do not silently expand/override context or install another model on a resource-constrained CRC workstation.
+
+**Evidence markers:** `AA1_OPENCODE_LOCAL_ROUNDTRIP_PASS`, `AA1_CONTEXT_64K_NOT_MET`, `AA1_PERMISSION_NEGATIVE_TEST_PENDING`, `AA1_CPU_RAM_MEASUREMENT_PENDING`, `AA1_OPEN`.
+
+Next safe checks: collect raw OpenCode event trace with `--format json --pure` in **scratch only**, test a denied tool request and inspect whether OpenCode attempted/blocked it (absence of a tool attempt is not a successful negative test). Keep privileges denied, no GitHub tokens/kubeconfig or production files in scratch, do not use `--auto`. Capture workstation CPU/RAM using independent OS telemetry; then compare the 32768 advertised context to actual mission payload needs.
