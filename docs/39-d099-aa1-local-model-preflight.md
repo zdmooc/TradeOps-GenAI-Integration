@@ -39,3 +39,15 @@ OpenCode official provider/CLI documentation describes `opencode run --model pro
 ## No claims
 
 Preflight PASS != Ollama inference PASS != OpenCode run PASS != local model qualification != AA2 enforceable least privilege != AA8 CRC proof.
+
+## Optional read-only local-model JSON qualification
+
+This is a separate *explicit opt-in* test. It calls only `http://127.0.0.1:11434/api/tags` and `/api/generate` for an **already installed local** model (no `:cloud` model). It does not read repositories, install software, run OpenCode, or alter CRC. It briefly consumes workstation CPU/RAM during local inference; don't run concurrently with a high-load CRC session. Uses a bounded prompt and 80 output tokens. It captures model digest, local latency, token count, response hash (not response content), and marks host CPU/RAM measurements as NOT_MEASURED.
+
+```bash
+cd /c/workspaces/TradeOps-GenAI-Integration
+ollama list  # choose one ALREADY installed local model
+D099_ALLOW_LOCAL_INFERENCE=YES python scripts/d099_aa1_ollama_smoke.py --model 'EXACT_MODEL_NAME'
+```
+
+Do not copy the example model name literally. Expected JSON status is `LOCAL_JSON_SMOKE_PASS`. Ollama-only JSON proof does **not** validate OpenCode, the mandated 64k+ coding-agent context, CLI permissions or AA1 gate closure. Official Ollama/OpenCode documentation: https://github.com/ollama/ollama/blob/main/docs/integrations/opencode.mdx . OpenCode often needs at least 64k context to work reliably and may exceed available RAM on this workstation; choose a tested model and context deliberately, never claim it is suitable based on preflight alone.
