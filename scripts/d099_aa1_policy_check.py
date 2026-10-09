@@ -53,17 +53,60 @@ def inspect(value: object) -> dict[str, object]:
                 "permission_tests": {}, "runtime_denial_proven": False}
     results = {tool: [decision(rules, tool, probe) for probe in probes]
                for tool, probes in PROBE_VALUES.items()}
-    # End with a deny-all catch-all: this prevents overlooked builtin and
-    # user-defined permissions from slipping through these sampled probes.
-    last = rules[-1]
-    terminal_deny_all = (last["permission"] == "*" and last["pattern"] == "*"
-                         and last["action"] == "deny")
-    all_denied = all(v == "deny" for decisions in results.values() for v in decisions)
-    success = terminal_deny_all and all_denied
+    # A last-match model does not require the blanket deny to be literally
+    # last. Subsequent DENY rules cannot reopen earlier permissions.
+    # Subsequent ALLOW/ASK rules, however, can reopen some category or path
+    # that isn't in our small probe set, so keep global verification open.
+    blanket_deny_indices = [
+        i for i, r in enumerate(rules)
+        if r["permission"] == "*" and r["pattern"] == "*" and r["action"] == "deny"
+    ]
+    last_blanket_deny_index = (
+        blanket_deny_indices[-1] if blanket_deny_indices else None
+    )
+    following = (rules[last_blanket_deny_index + 1:]
+                 if last_blanket_deny_index is not None else rules)
+    relaxed_after_blanket = [
+        r for r in following if r["action"] in {"allow", "ask"}
+    ]
+    global_deny_verified = (last_blanket_deny_index is not None
+                            and not relaxed_after_blanket)
+    terminal_deny_all = (last_blanket_deny_index is not None
+                         and last_blanket_deny_index == len(rules) - 1)
+    all_denied = all(
+        choice == "deny"
+        for tool_results in results.values() for choice in tool_results
+    )
+    success = global_deny_verified and all_denied
+    # Report only permission type/action; never output path patterns,
+    # user directories, tokens or private workspaces from debug config.
+    known_types = frozenset({
+        "*", "bash", "edit", "read", "webfetch", "external_directory",
+        "glob", "grep", "task", "skill", "lsp", "question", "todowrite",
+        "todoread", "doom_loop",
+    })
+    reopening_categories = sorted({
+        r["permission"] if r["permission"] in known_types else "<other>"
+        for r in relaxed_after_blanket
+    })
+    if success:
+        status = "POLICY_RESOLVED_PASS"
+        reason = "ALL_TOOLS_DENIED_AFTER_LAST_BLANKET_RULE"
+    elif all_denied:
+        status = "TARGETED_DENY_PASS_GLOBAL_UNVERIFIED"
+        reason = "LATE_ALLOW_ASK_OR_MISSING_GLOBAL_CATCHALL"
+    else:
+        status = "FAIL"
+        reason = "AT_LEAST_ONE_PROBED_PERMISSION_NOT_DENIED"
     return {
-        "status": "POLICY_RESOLVED_PASS" if success else "FAIL",
-        "reason": "EFFECTIVE_DENY_ALL_SAMPLED" if success else "NON_DENY_OR_NO_FINAL_CATCHALL",
+        "status": status,
+        "reason": reason,
         "terminal_deny_all": terminal_deny_all,
+        "global_deny_verified": global_deny_verified,
+        "last_blanket_deny_index": last_blanket_deny_index,
+        "rules_after_blanket": len(following),
+        "allow_or_ask_after_blanket": len(relaxed_after_blanket),
+        "reopening_categories": reopening_categories,
         "permission_tests": results,
         "runtime_denial_proven": False,
     }
@@ -74,8 +117,9 @@ def main() -> int:
         value = json.load(sys.stdin)
     except (ValueError, UnicodeError):
         value = None
-    print(json.dumps(inspect(value), sort_keys=True))
-    return 0 if inspect(value)["status"] == "POLICY_RESOLVED_PASS" else 2
+    report = inspect(value)
+    print(json.dumps(report, sort_keys=True))
+    return 0 if report["status"] == "POLICY_RESOLVED_PASS" else 2
 
 
 if __name__ == "__main__":
