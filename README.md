@@ -13,6 +13,10 @@ Projet portfolio orienté **architecture et intégration IA/GenAI dans un SI de 
 - **TradeOps Web Cockpit** : IHM métier React/TypeScript **LIVE et vérifiée sur CRC**, avec preuve HITL métier end-to-end encore à capturer.
 
 
+## Étude GPU IA externe : station Linux dédiée ou Cloud 4h/jour
+
+Le HP ZBook reste le runtime OpenShift CRC. L'alternative « station IA locale séparée » / « VM GPU Azure, AWS ou GCP à la demande » est **à l'étude, non déployée**. Les coûts des PC/stations, les GPU RTX 3090/4090/5090/GB10, les scénarios GCP L4/AWS L4/Azure, le TCO, les références Terraform et l'architecture hybride sont centralisés dans le [dossier FinOps canonique](https://github.com/zdmooc/mayabank-multicloud-migration-finops/blob/main/finops/AI_INFERENCE_TCO_LOCAL_STATIONS_AZURE_AWS_GCP_2026-10-09.md), avec le [HLD réseau/raccordement](https://github.com/zdmooc/mayabank-multicloud-migration-finops/blob/main/architecture/TRADEOPS_HYBRID_GPU_INFERENCE_HLD_2026-10-09.md). **Aucune preuve D-090 acquise sur un GPU GCP distant à ce jour** : le chemin existant devra être requalifié.
+
 ## Démonstration canonique CRC — Platform Engineering / Agentic AI
 
 Le parcours unifié de démonstration (préflight read-only, checklist, runbook A–Z, scénarios, présentation et dépannage) est dans **[demo/README.md](demo/README.md)**. Il réutilise les scripts de preuve et les [deux dossiers PDF du 08/10/2026](docs/dossiers/README.md), sans reprendre une exécution runtime en mode PARK ni relancer R5/G1/G2 automatiquement.
