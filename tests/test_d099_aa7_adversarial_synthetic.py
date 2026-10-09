@@ -1,5 +1,4 @@
 """AA7 synthetic policy invariance negative corpus, NOT model eval."""
-import pytest
 from services.solution_architect.adversarial_synthetic import (
     ATTACKS, inspect_host_policy_invariance,
 )
