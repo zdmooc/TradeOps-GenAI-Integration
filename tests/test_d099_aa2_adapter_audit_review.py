@@ -52,10 +52,52 @@ def test_denial_must_have_no_content_hash():
 def test_malicious_tool_name_and_subject_denied():
     e = [event(action="oc.apply", subject="model")]
     v = inspect(e)["violations"]
-    assert "UNEXPECTED_TOOL_ACTION" in v
+    assert "FORBIDDEN_ACTION_ALLOWED" in v
     assert "UNTRUSTED_SUBJECT_EVENT" in v
 
 
 def test_boolean_coercion_is_not_trusted():
     e = [event(allowed="true")]
     assert "NON_BOOLEAN_AUDIT_DECISION" in inspect(e)["violations"]
+
+
+def test_actual_local_gateway_events_are_reviewed(tmp_path):
+    """Exercise the host adapter itself, not manually invented event objects."""
+    from services.security.identity import SecurityPrincipal
+    from services.solution_architect.authorization import (
+        MayaPolicyGate, ScopedRequest, TrustedScope,
+    )
+    from services.solution_architect.local_evidence_gateway import LocalEvidenceGateway
+    repo = "lab/repo"
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "mission.md").write_text(
+        "Fictional offline evidence", encoding="utf-8")
+    policy = {"default_decision": "DENY", "profiles": {
+        "maya-architect": {"read": "ALLOW", "git_push": "DENY"},
+        "maya-reviewer": {"git_push": "DENY"},
+        "maya-builder": {"git_push": "DENY"},
+        "maya-openshift-reader": {"oc_apply": "DENY", "oc_delete": "DENY"},
+    }}
+    identity = SecurityPrincipal("host-subject", frozenset({"maya-architect"}),
+                                 frozenset(), "oidc-jwt", "https://issuer.invalid")
+    scope = TrustedScope("t1", frozenset({repo}), frozenset(), frozenset())
+    audit = []
+    gateway = LocalEvidenceGateway(policy=MayaPolicyGate(policy),
+                                   repo_roots={repo: tmp_path}, audit=audit)
+    assert gateway.read(
+        principal=identity, scope=scope,
+        request=ScopedRequest("repo.read", "t1", repo, "docs/mission.md")
+    ).allowed
+    assert not gateway.read(
+        principal=identity, scope=scope,
+        request=ScopedRequest("repo.read", "t2", repo, "docs/mission.md")
+    ).allowed
+    assert not gateway.read(
+        principal=identity, scope=scope,
+        request=ScopedRequest("oc.apply", "t1", repo, namespace="production")
+    ).allowed
+    result = inspect(audit)
+    assert result["status"] == "AA2_ADAPTER_AUDIT_IN_MEMORY_PASS"
+    assert result["read_count"] == 1
+    assert result["denial_count"] == 2
+    assert result["independent_durable_audit"] is False

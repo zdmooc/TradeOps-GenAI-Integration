@@ -14,7 +14,8 @@ SAFE_CODES = {
     "UNSAFE_PATH_DENIED", "ROLE_DENIED", "INVALID_POLICY",
     "ROOT_NOT_CONFIGURED", "INVALID_PATH", "FILE_UNAVAILABLE",
     "SYMLINK_DENIED", "PATH_ESCAPE_OR_NONFILE", "EXTENSION_NOT_ALLOWED",
-    "READ_SIZE_LIMIT", "ADAPTER_READ_ONLY",
+    "READ_SIZE_LIMIT", "ADAPTER_READ_ONLY", "FILE_SCOPE_DENIED",
+    "HUMAN_APPROVAL_REQUIRED",
 }
 
 
@@ -48,15 +49,21 @@ def review_events(events: object, *, trusted_subject: str,
             "allowed", "code", "content_sha256",
         }:
             violations.append("UNEXPECTED_AUDIT_EVENT_FIELDS")
-        if entry.get("kind") != "d099.aa2.local_repo_read" or (
-            entry.get("action") != "repo.read"
-        ):
-            violations.append("UNEXPECTED_TOOL_ACTION")
+        if entry.get("kind") != "d099.aa2.local_repo_read":
+            violations.append("UNEXPECTED_EVENT_KIND")
+        # Unauthorized actions appear in a correct *denial* trace;
+        # only execution of a forbidden action is a policy failure.
+        action = entry.get("action")
+        if action != "repo.read" and entry.get("allowed") is True:
+            violations.append("FORBIDDEN_ACTION_ALLOWED")
         if entry.get("subject") != trusted_subject and entry.get(
             "subject"
         ) != "UNAUTHENTICATED":
             violations.append("UNTRUSTED_SUBJECT_EVENT")
-        if entry.get("tenant") != trusted_tenant:
+        if entry.get("tenant") != trusted_tenant and not (
+            entry.get("allowed") is False
+            and entry.get("code") == "CROSS_TENANT_DENIED"
+        ):
             violations.append("CROSS_TENANT_EVENT")
         if type(entry.get("allowed")) is not bool:
             violations.append("NON_BOOLEAN_AUDIT_DECISION")
@@ -75,6 +82,11 @@ def review_events(events: object, *, trusted_subject: str,
                 entry.get("content_sha256") is not None
             ):
                 violations.append("INVALID_DENIAL_RECORD")
+            if action != "repo.read" and entry.get("code") not in {
+                "TOOL_DENIED", "ADAPTER_READ_ONLY", "ROLE_DENIED",
+                "FILE_SCOPE_DENIED", "HUMAN_APPROVAL_REQUIRED",
+            }:
+                violations.append("UNEXPECTED_ACTION_NOT_PROPERLY_DENIED")
     return {
         "status": ("AA2_ADAPTER_AUDIT_IN_MEMORY_PASS" if not violations
                    else "AA2_ADAPTER_AUDIT_INCOMPLETE"),
