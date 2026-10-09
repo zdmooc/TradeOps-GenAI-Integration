@@ -54,6 +54,7 @@ class LocalEvidenceGateway:
             "kind": "d099.aa2.local_repo_read",
             "subject": principal.subject if principal else "UNAUTHENTICATED",
             "action": request.action,
+            "tenant": request.tenant,
             "repository": request.repository,
             "allowed": allowed,
             "code": code,
