@@ -97,7 +97,12 @@ class ApprovalRegistry:
                 or "human-approver" not in approver.roles
                 or not approver.subject or approver.subject == target.subject
                 or not target.subject or req.tenant != approver_scope.tenant
-                or ttl_seconds < 1 or ttl_seconds > 900):
+                or ttl_seconds < 1 or ttl_seconds > 900
+                or req.action not in {"repo.edit", "repo.tests", "repo.commit"}
+                or req.repository not in approver_scope.repositories
+                or (req.action == "repo.edit" and
+                    (not _safe_repo_path(req.file_path)
+                     or req.file_path not in approver_scope.editable_files))):
             raise PermissionError("INDEPENDENT_APPROVAL_REQUIRED")
         # Do not allow a credential-bearing model to issue its own approval.
         # The caller must not expose this method as an agent tool.
@@ -132,8 +137,15 @@ def _safe_repo_path(path: str) -> bool:
     if any(part in {"", ".", ".."} or ":" in part for part in parts):
         return False
     lowered = [part.casefold() for part in parts]
-    return not any(part.startswith(".env") or "kubeconfig" in part
-                   or part in {"secrets", ".ssh", ".aws"} for part in lowered)
+    sensitive = {".git", ".ssh", ".aws", ".kube", "secrets", "secret",
+                 "credentials", "id_rsa", "id_ed25519"}
+    if any(part.startswith(".env") or "kubeconfig" in part
+           or part in sensitive for part in lowered):
+        return False
+    name = lowered[-1]
+    if name.endswith((".pem", ".key", ".p12", ".pfx", ".kdbx")):
+        return False
+    return True
 
 
 class MayaPolicyGate:
@@ -172,6 +184,11 @@ class MayaPolicyGate:
         if len(active_roles) != 1:
             return PolicyDecision(False, "AMBIGUOUS_ROLE")
         role = next(iter(active_roles))
+        # Strong identity is needed before any potentially mutating action;
+        # static principals remain limited to read-only prototyping.
+        if (request.action in {"repo.edit", "repo.commit"}
+                and principal.authn_method != "oidc-jwt"):
+            return PolicyDecision(False, "STRONG_AUTH_REQUIRED")
         if request.action in HARD_DENY or request.action not in SUPPORTED_ACTIONS:
             return PolicyDecision(False, "TOOL_DENIED")
         if not scope.tenant or request.tenant != scope.tenant:

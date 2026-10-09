@@ -124,3 +124,37 @@ def test_policy_config_fail_closed():
     }}
     with pytest.raises(ValueError, match="WEAKENED_PUSH_POLICY"):
         MayaPolicyGate(weak)
+
+
+@pytest.mark.parametrize("path", [
+    ".git/config", "docs/.env.local", "docs/secret/readme.md",
+    "docs/credentials/token.txt", "docs/key.pem", "docs/id_rsa",
+])
+def test_sensitive_repo_files_are_denied(path):
+    result = MayaPolicyGate(POLICY).evaluate(
+        principal=principal(), scope=SCOPE, request=request("repo.read", file_path=path))
+    assert result.code == "UNSAFE_PATH_DENIED"
+
+
+def test_issue_requires_a_scoped_repository_and_approved_file():
+    registry = ApprovalRegistry()
+    reviewer = principal("human-approver", "reviewer")
+    builder = principal("maya-builder", "builder")
+    for req in (request("repo.edit", repository="zdmooc/other", file_path="docs/adr.md"),
+                request("repo.edit", file_path="docs/not-approved.md"),
+                request("oc.apply", namespace="prod")):
+        with pytest.raises(PermissionError, match="INDEPENDENT_APPROVAL_REQUIRED"):
+            registry.issue(approver=reviewer, approver_scope=SCOPE,
+                           target=builder, req=req)
+
+
+def test_static_builder_cannot_edit_even_if_it_holds_a_ticket():
+    registry = ApprovalRegistry()
+    builder = principal("maya-builder", "builder", method="static")
+    reviewer = principal("human-approver", "reviewer")
+    req = request("repo.edit", file_path="docs/adr.md")
+    ticket = registry.issue(approver=reviewer, approver_scope=SCOPE,
+                            target=builder, req=req)
+    assert MayaPolicyGate(POLICY, registry).evaluate(
+        principal=builder, scope=SCOPE, request=req,
+        approval_token=ticket).code == "STRONG_AUTH_REQUIRED"
