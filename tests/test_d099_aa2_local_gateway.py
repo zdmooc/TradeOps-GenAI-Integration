@@ -1,6 +1,4 @@
 """AA2 real file access checks using pytest tmp_path, never live Git/CRC."""
-from pathlib import Path
-
 import pytest
 
 from services.security.identity import SecurityPrincipal
